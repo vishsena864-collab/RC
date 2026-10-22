@@ -13,8 +13,8 @@ export function SiteHeader({ locale, dict }) {
         <Link href={`/${locale}`} className="brand" aria-label={`${SITE_NAME} — ${dict.nav.home}`}><BrandMark /><span>{SITE_NAME}<i className="brand-dot">.</i></span></Link>
         <nav aria-label="Main" className="nav">
           <Link className="studio-nav-home" href={`/${locale}`}>{dict.nav.home}</Link>
-          <Link href={`/${locale}/underground`} className="fm-nav-link">UNDERGROUND FM ↗</Link>
           <Link href={`/${locale}/safety`}>{dict.nav.safety}</Link>
+          <Link href={`/${locale}/underground`} className="nav-side-feature">Music room</Link>
           <LanguageSwitcher locale={locale} label={dict.nav.language} />
           <Link href={`/${locale}/start`} className="btn btn-small">{dict.nav.start}<span aria-hidden="true">↗</span></Link>
         </nav>
