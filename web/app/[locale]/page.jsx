@@ -49,6 +49,7 @@ export default async function HomePage({ params }) {
         <ScrollMotion />
         <Hero locale={locale} dict={dict} />
         <div className="home-content">
+          <section style={{background:"#dff977",color:"#121a10",padding:"clamp(30px,6vw,80px)",margin:"0 auto 32px",maxWidth:"1200px",borderRadius:"4px"}}><div style={{font:"800 12px monospace",letterSpacing:".15em"}}>✳ NEW FREQUENCY / CHATSPARK AFTERHOURS</div><h2 style={{fontFamily:"Impact,Arial,sans-serif",letterSpacing:"-.03em",fontSize:"clamp(36px,6vw,74px)",lineHeight:1,margin:"20px 0"}}>GOOD MUSIC.<br/>STRANGE PEOPLE.</h2><p style={{maxWidth:"530px",lineHeight:1.7}}>Listen to independent artists with random strangers. Pass the AUX. Keep the conversation going. No uploads, no profiles, no recordings.</p><a href={`/${locale}/underground`} style={{display:"inline-block",marginTop:18,padding:"16px 25px",font:"900 13px monospace",background:"#151b11",color:"#e2fa83",textDecoration:"none"}}>TUNE INTO UNDERGROUND FM ↗</a></section>
           <SparkShowcase locale={locale} dict={dict} />
           <CategoryGrid locale={locale} dict={dict} title={home.catsTitle} sub={home.catsSub} />
           <GlobeCard locale={locale} dict={dict} />
