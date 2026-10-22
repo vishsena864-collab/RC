@@ -1,0 +1,4146 @@
+{
+  "version": 1,
+  "license": "Original clue descriptions prepared for ChatSpark. Movie titles are for identification.",
+  "questions": [
+    {
+      "id": "movie-0001",
+      "answer": "Titanic",
+      "aliases": [],
+      "clues": [
+        "A historic ocean voyage becomes a disaster.",
+        "Two passengers from very different social classes fall in love.",
+        "An iceberg changes their journey.",
+        "A famous ship sinks in the North Atlantic."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0002",
+      "answer": "Inception",
+      "aliases": [],
+      "clues": [
+        "A team enters an unusual kind of mental landscape.",
+        "The story explores layered realities.",
+        "A spinning top becomes an important symbol.",
+        "Leonardo DiCaprio plays a thief who enters dreams."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0003",
+      "answer": "Interstellar",
+      "aliases": [],
+      "clues": [
+        "A family struggles on a dying Earth.",
+        "A team travels through a wormhole.",
+        "Time passes differently on a water-covered planet.",
+        "A father sends messages across space and time."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0004",
+      "answer": "The Matrix",
+      "aliases": [],
+      "clues": [
+        "Reality is not what it seems.",
+        "People can learn skills by downloading them.",
+        "A choice between red and blue pills changes everything.",
+        "Neo learns about a simulated world."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0005",
+      "answer": "Avatar",
+      "aliases": [],
+      "clues": [
+        "A human travels to an alien world.",
+        "The local people live in harmony with nature.",
+        "Blue-skinned inhabitants ride flying creatures.",
+        "The planet is called Pandora."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0006",
+      "answer": "Jurassic Park",
+      "aliases": [],
+      "clues": [
+        "A wealthy entrepreneur creates an unusual attraction.",
+        "Scientists visit a remote island.",
+        "A security failure releases dangerous animals.",
+        "Dinosaurs were brought back using ancient DNA."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0007",
+      "answer": "The Lion King",
+      "aliases": [],
+      "clues": [
+        "A young heir leaves home after a tragedy.",
+        "An ambitious uncle takes power.",
+        "A meerkat and warthog become close friends.",
+        "Simba must return to Pride Rock."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0008",
+      "answer": "Frozen",
+      "aliases": [],
+      "clues": [
+        "Two sisters grow apart after a frightening accident.",
+        "A kingdom suffers an unexpected winter.",
+        "A snowman dreams of summer.",
+        "Elsa struggles to control her ice powers."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0009",
+      "answer": "Finding Nemo",
+      "aliases": [],
+      "clues": [
+        "A parent crosses a vast distance for a child.",
+        "The journey includes sharks and sea turtles.",
+        "A forgetful blue fish helps the search.",
+        "A clownfish searches for his son."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0010",
+      "answer": "Toy Story",
+      "aliases": [],
+      "clues": [
+        "A group of companions secretly come alive.",
+        "Their owner is a boy named Andy.",
+        "A cowboy feels threatened by a new arrival.",
+        "Woody meets Buzz Lightyear."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0011",
+      "answer": "Shrek",
+      "aliases": [],
+      "clues": [
+        "A lonely character values his swamp.",
+        "A royal rescue goes in an unexpected direction.",
+        "A talkative donkey becomes his friend.",
+        "A green ogre falls in love with Princess Fiona."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0012",
+      "answer": "Up",
+      "aliases": [],
+      "clues": [
+        "A widower wants to fulfill an old promise.",
+        "A young wilderness explorer tags along.",
+        "A house travels high above the ground.",
+        "Thousands of balloons lift a house into the sky."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0013",
+      "answer": "Inside Out",
+      "aliases": [],
+      "clues": [
+        "Emotions act as characters.",
+        "A family moves to a new city.",
+        "Core memories shape a young girl.",
+        "Joy and Sadness navigate Riley’s mind."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0014",
+      "answer": "Coco",
+      "aliases": [],
+      "clues": [
+        "A child dreams of being a musician.",
+        "Family traditions complicate that dream.",
+        "The Land of the Dead plays a central role.",
+        "Miguel explores his family history through music."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0015",
+      "answer": "Moana",
+      "aliases": [],
+      "clues": [
+        "A young islander seeks to help her people.",
+        "The ocean seems to choose its own hero.",
+        "A shapeshifting demigod joins the adventure.",
+        "Moana sails with Maui to restore Te Fiti’s heart."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0016",
+      "answer": "Encanto",
+      "aliases": [],
+      "clues": [
+        "An extended family lives in a magical house.",
+        "Everyone seems to have a special gift.",
+        "One young family member believes she is ordinary.",
+        "Mirabel tries to save the Madrigal family’s magic."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0017",
+      "answer": "Zootopia",
+      "aliases": [],
+      "clues": [
+        "Animals live in a modern metropolis.",
+        "An ambitious newcomer joins the police.",
+        "A clever fox becomes an unlikely ally.",
+        "Judy Hopps and Nick Wilde solve a mystery."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0018",
+      "answer": "Ratatouille",
+      "aliases": [],
+      "clues": [
+        "An unlikely chef loves fine food.",
+        "A restaurant kitchen hides a surprising secret.",
+        "A young cook relies on help under his hat.",
+        "Remy the rat cooks in Paris."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0019",
+      "answer": "WALL-E",
+      "aliases": [],
+      "clues": [
+        "Earth is covered in waste.",
+        "Humans live far away in space.",
+        "A small machine finds a new friend.",
+        "A trash-compacting robot falls for EVE."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0020",
+      "answer": "Monsters, Inc.",
+      "aliases": [],
+      "clues": [
+        "A hidden workplace runs on children’s reactions.",
+        "Workers travel through bedroom doors.",
+        "A little girl disrupts everything.",
+        "Sulley and Mike work at a scare factory."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0021",
+      "answer": "The Incredibles",
+      "aliases": [],
+      "clues": [
+        "A family hides its extraordinary abilities.",
+        "The parents once lived as public heroes.",
+        "A supervillain relies on advanced gadgets.",
+        "Mr. Incredible and Elastigirl rescue their family."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0022",
+      "answer": "Kung Fu Panda",
+      "aliases": [],
+      "clues": [
+        "A food-loving dreamer wants to become a warrior.",
+        "A village is defended by martial arts masters.",
+        "An unlikely hero is chosen by a wise turtle.",
+        "Po trains as the Dragon Warrior."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0023",
+      "answer": "How to Train Your Dragon",
+      "aliases": [],
+      "clues": [
+        "A young outsider questions his community’s traditions.",
+        "His new friend cannot initially fly well.",
+        "A rare black dragon changes his life.",
+        "Hiccup befriends Toothless."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0024",
+      "answer": "Despicable Me",
+      "aliases": [],
+      "clues": [
+        "A criminal tries to pull off an enormous theft.",
+        "Three young sisters change his plans.",
+        "Yellow helpers cause chaos.",
+        "Gru becomes a father while plotting to steal the moon."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0025",
+      "answer": "Minions",
+      "aliases": [],
+      "clues": [
+        "Three small adventurers seek a leader.",
+        "Their quest crosses countries and decades.",
+        "Their language is full of nonsense words.",
+        "Kevin, Stuart and Bob seek a new villain to serve."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0026",
+      "answer": "The Super Mario Bros. Movie",
+      "aliases": [],
+      "clues": [
+        "Two siblings have an unusual plumbing business.",
+        "A mysterious pipe leads to another world.",
+        "An evil turtle-like ruler threatens a kingdom.",
+        "Mario teams up with Princess Peach."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0027",
+      "answer": "Spider-Man: No Way Home",
+      "aliases": [],
+      "clues": [
+        "A hero’s private identity becomes public.",
+        "A magical attempt to fix things goes wrong.",
+        "Visitors from other universes appear.",
+        "Three versions of Spider-Man work together."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0028",
+      "answer": "Spider-Man: Into the Spider-Verse",
+      "aliases": [],
+      "clues": [
+        "A teenager discovers a strange new power.",
+        "A comic-book visual style tells the story.",
+        "Heroes from multiple realities come together.",
+        "Miles Morales meets other Spider-People."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0029",
+      "answer": "Iron Man",
+      "aliases": [],
+      "clues": [
+        "A wealthy inventor survives captivity.",
+        "A powered suit becomes his signature invention.",
+        "His assistant is named Pepper Potts.",
+        "Tony Stark becomes a metal-suited superhero."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0030",
+      "answer": "Avengers: Endgame",
+      "aliases": [],
+      "clues": [
+        "A team faces the consequences of a devastating loss.",
+        "The heroes revisit earlier moments in time.",
+        "A final battle gathers many allies.",
+        "The Avengers try to reverse Thanos’s snap."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0031",
+      "answer": "Black Panther",
+      "aliases": [],
+      "clues": [
+        "A hidden nation has advanced technology.",
+        "A rare metal powers many inventions.",
+        "The new ruler faces a rival claimant.",
+        "T’Challa rules Wakanda."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0032",
+      "answer": "Doctor Strange",
+      "aliases": [],
+      "clues": [
+        "A brilliant professional loses the use of his hands.",
+        "He studies mystical arts far from home.",
+        "A magical artifact controls time.",
+        "Stephen Strange learns sorcery at Kamar-Taj."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0033",
+      "answer": "Guardians of the Galaxy",
+      "aliases": [],
+      "clues": [
+        "A mismatched crew forms in outer space.",
+        "A talking tree is part of the team.",
+        "An old music player matters greatly.",
+        "Star-Lord joins Rocket, Groot and Gamora."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0034",
+      "answer": "Thor: Ragnarok",
+      "aliases": [],
+      "clues": [
+        "A kingdom faces destruction.",
+        "A hero must fight in a gladiator arena.",
+        "His unusual opponent is an old teammate.",
+        "Thor battles Hela and reunites with Hulk."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0035",
+      "answer": "The Batman",
+      "aliases": [],
+      "clues": [
+        "A masked detective investigates a serial killer.",
+        "A city is threatened by riddles and corruption.",
+        "The villain sends cryptic messages.",
+        "Robert Pattinson plays Gotham’s Dark Knight."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0036",
+      "answer": "The Dark Knight",
+      "aliases": [],
+      "clues": [
+        "A city’s protector faces a chaotic criminal.",
+        "The villain loves disturbing social experiments.",
+        "A police officer named Gordon is an ally.",
+        "Heath Ledger plays the Joker opposite Batman."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0037",
+      "answer": "Joker",
+      "aliases": [],
+      "clues": [
+        "An isolated performer struggles in a harsh city.",
+        "The story is set in Gotham.",
+        "A man adopts a clown persona.",
+        "Arthur Fleck transforms into the Joker."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0038",
+      "answer": "Superman",
+      "aliases": [],
+      "clues": [
+        "A child arrives from another world.",
+        "An ordinary job hides an extraordinary identity.",
+        "A newspaper is central to his civilian life.",
+        "Clark Kent works at the Daily Planet."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0039",
+      "answer": "Wonder Woman",
+      "aliases": [],
+      "clues": [
+        "A warrior leaves a hidden island.",
+        "Her journey takes place during a world war.",
+        "A magical lasso reveals the truth.",
+        "Diana of Themyscira fights as a superhero."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0040",
+      "answer": "Aquaman",
+      "aliases": [],
+      "clues": [
+        "A reluctant hero has two worlds to protect.",
+        "An underwater kingdom struggles over its throne.",
+        "Sea creatures answer his call.",
+        "Arthur Curry becomes king of Atlantis."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0041",
+      "answer": "Deadpool",
+      "aliases": [],
+      "clues": [
+        "A talkative antihero constantly breaks conventions.",
+        "He jokes directly with the audience.",
+        "His healing ability is unusually powerful.",
+        "Wade Wilson wears a red-and-black suit."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0042",
+      "answer": "Logan",
+      "aliases": [],
+      "clues": [
+        "An aging hero hides from his violent past.",
+        "He protects a young mutant girl.",
+        "His metal claws remain iconic.",
+        "Hugh Jackman plays Wolverine in a final journey."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0043",
+      "answer": "Harry Potter and the Sorcerer’s Stone",
+      "aliases": [],
+      "clues": [
+        "A neglected child receives a mysterious invitation.",
+        "A train departs from Platform Nine and Three-Quarters.",
+        "A famous school teaches magic.",
+        "Harry begins his first year at Hogwarts."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0044",
+      "answer": "Harry Potter and the Chamber of Secrets",
+      "aliases": [],
+      "clues": [
+        "Strange attacks occur at a magical school.",
+        "A secret room is part of an old legend.",
+        "A diary hides a sinister memory.",
+        "Harry confronts a basilisk under Hogwarts."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0045",
+      "answer": "Harry Potter and the Prisoner of Azkaban",
+      "aliases": [],
+      "clues": [
+        "An escaped prisoner unsettles a wizarding school.",
+        "A powerful guardian creature is misunderstood.",
+        "A time-turning device changes events.",
+        "Harry learns about Sirius Black."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0046",
+      "answer": "Harry Potter and the Goblet of Fire",
+      "aliases": [],
+      "clues": [
+        "A dangerous tournament brings multiple schools together.",
+        "A magical cup chooses contestants.",
+        "A maze leads to a terrible surprise.",
+        "Harry competes in the Triwizard Tournament."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0047",
+      "answer": "The Lord of the Rings: The Fellowship of the Ring",
+      "aliases": [],
+      "clues": [
+        "A humble traveler carries a dangerous object.",
+        "A wizard gathers allies from several races.",
+        "The journey begins in the Shire.",
+        "Frodo sets out to destroy the One Ring."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0048",
+      "answer": "The Lord of the Rings: The Two Towers",
+      "aliases": [],
+      "clues": [
+        "A fellowship has scattered across the world.",
+        "An ancient forest begins to fight back.",
+        "A fortress endures a massive siege.",
+        "The Battle of Helm’s Deep is a central event."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0049",
+      "answer": "The Lord of the Rings: The Return of the King",
+      "aliases": [],
+      "clues": [
+        "A great conflict reaches its climax.",
+        "A small hero climbs a deadly mountain.",
+        "A king reclaims a long-lost title.",
+        "The One Ring is finally destroyed."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0050",
+      "answer": "The Hobbit: An Unexpected Journey",
+      "aliases": [],
+      "clues": [
+        "A peaceful homebody joins an adventure.",
+        "A wizard recruits him to travel with dwarves.",
+        "The group seeks a lost mountain kingdom.",
+        "Bilbo Baggins begins his journey with Thorin."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0051",
+      "answer": "Star Wars: A New Hope",
+      "aliases": [],
+      "clues": [
+        "A young farm boy dreams of adventure.",
+        "A rebellion fights a powerful empire.",
+        "A giant space station threatens planets.",
+        "Luke Skywalker helps destroy the Death Star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0052",
+      "answer": "Star Wars: The Empire Strikes Back",
+      "aliases": [],
+      "clues": [
+        "Heroes face a powerful galactic enemy.",
+        "A young warrior trains with a small green master.",
+        "A frozen world hosts a rebel base.",
+        "Darth Vader reveals a shocking truth to Luke."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0053",
+      "answer": "Star Wars: Return of the Jedi",
+      "aliases": [],
+      "clues": [
+        "A captured friend needs rescuing.",
+        "A forest moon is inhabited by small allies.",
+        "A second enormous battle station must be destroyed.",
+        "Luke confronts the Emperor and Darth Vader."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0054",
+      "answer": "Rogue One: A Star Wars Story",
+      "aliases": [],
+      "clues": [
+        "A small team takes on a near-impossible mission.",
+        "The story leads into a famous rebellion.",
+        "A technical weakness is hidden in secret plans.",
+        "Rebels steal the Death Star blueprints."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0055",
+      "answer": "Dune",
+      "aliases": [],
+      "clues": [
+        "A powerful family moves to a desert world.",
+        "A resource called spice shapes politics.",
+        "Giant sandworms roam the dunes.",
+        "Paul Atreides arrives on Arrakis."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0056",
+      "answer": "Dune: Part Two",
+      "aliases": [],
+      "clues": [
+        "A young exile joins desert warriors.",
+        "Ancient prophecies shape his rise.",
+        "A deadly duel decides control of a desert world.",
+        "Paul Atreides leads the Fremen against the Harkonnens."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0057",
+      "answer": "The Hunger Games",
+      "aliases": [],
+      "clues": [
+        "Young people are selected for a televised competition.",
+        "A powerful capital controls divided districts.",
+        "Survival becomes a public spectacle.",
+        "Katniss Everdeen volunteers as tribute."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0058",
+      "answer": "Catching Fire",
+      "aliases": [],
+      "clues": [
+        "Previous winners are forced to return to danger.",
+        "A rebellion grows across the districts.",
+        "An arena is designed like a clock.",
+        "Katniss enters the Quarter Quell."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0059",
+      "answer": "The Maze Runner",
+      "aliases": [],
+      "clues": [
+        "Teenagers wake in a mysterious enclosed settlement.",
+        "A giant structure changes every night.",
+        "Dangerous mechanical creatures patrol the walls.",
+        "Thomas searches for a way out of the Glade."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0060",
+      "answer": "Divergent",
+      "aliases": [],
+      "clues": [
+        "Society divides people by personality-based groups.",
+        "A teenager does not fit just one category.",
+        "An initiation process tests courage.",
+        "Tris joins the Dauntless faction."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0061",
+      "answer": "Twilight",
+      "aliases": [],
+      "clues": [
+        "A newcomer moves to a rainy town.",
+        "A mysterious family hides a secret.",
+        "A dangerous romance develops at school.",
+        "Bella Swan falls in love with vampire Edward Cullen."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0062",
+      "answer": "The Fault in Our Stars",
+      "aliases": [],
+      "clues": [
+        "Two teenagers bond through a support group.",
+        "They take a meaningful trip overseas.",
+        "A novel plays an important role in their connection.",
+        "Hazel and Augustus fall in love."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0063",
+      "answer": "The Notebook",
+      "aliases": [],
+      "clues": [
+        "A romance begins during a summer.",
+        "Social differences complicate the relationship.",
+        "An elderly man reads a love story aloud.",
+        "Noah and Allie’s relationship spans decades."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0064",
+      "answer": "La La Land",
+      "aliases": [],
+      "clues": [
+        "Two ambitious artists meet in a big city.",
+        "Music and dance shape their romance.",
+        "One dreams of acting, the other of jazz.",
+        "Mia and Sebastian pursue their dreams in Los Angeles."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0065",
+      "answer": "Barbie",
+      "aliases": [],
+      "clues": [
+        "A famous doll questions her perfect world.",
+        "She travels from a fantasy place to reality.",
+        "A companion discovers a fascination with horses.",
+        "Barbie and Ken leave Barbieland."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0066",
+      "answer": "Oppenheimer",
+      "aliases": [],
+      "clues": [
+        "A scientist leads a secret wartime project.",
+        "A desert test changes history.",
+        "The story follows hearings and political fallout.",
+        "J. Robert Oppenheimer directs the atomic bomb project."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0067",
+      "answer": "Everything Everywhere All at Once",
+      "aliases": [],
+      "clues": [
+        "A family’s struggles span multiple realities.",
+        "A laundromat owner faces an extraordinary challenge.",
+        "An unusual bagel becomes a major symbol.",
+        "Evelyn explores a multiverse of alternate lives."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0068",
+      "answer": "The Truman Show",
+      "aliases": [],
+      "clues": [
+        "One man’s ordinary life hides an enormous secret.",
+        "His neighbors seem strangely rehearsed.",
+        "An entire town is part of a television production.",
+        "Truman Burbank discovers his life is a reality show."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0069",
+      "answer": "Forrest Gump",
+      "aliases": [],
+      "clues": [
+        "A man recalls his remarkable life on a bench.",
+        "His path crosses major moments in U.S. history.",
+        "He becomes known for long-distance running.",
+        "Tom Hanks plays a man who often says life is like a box of chocolates."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0070",
+      "answer": "Cast Away",
+      "aliases": [],
+      "clues": [
+        "A worker survives a terrible accident.",
+        "He spends years isolated far from home.",
+        "A volleyball becomes an imaginary companion.",
+        "Tom Hanks’s character calls the volleyball Wilson."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0071",
+      "answer": "The Pursuit of Happyness",
+      "aliases": [],
+      "clues": [
+        "A parent struggles with homelessness.",
+        "A competitive internship offers a chance for change.",
+        "His young son stays by his side.",
+        "Will Smith plays Chris Gardner."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0072",
+      "answer": "Home Alone",
+      "aliases": [],
+      "clues": [
+        "A child is accidentally left behind during vacation.",
+        "Two criminals target his house.",
+        "The child builds elaborate booby traps.",
+        "Kevin McCallister defends his home at Christmas."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0073",
+      "answer": "Elf",
+      "aliases": [],
+      "clues": [
+        "A human grows up in an unusual environment.",
+        "He travels to New York to find family.",
+        "His unusual clothing stands out in the city.",
+        "Buddy was raised by elves at the North Pole."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0074",
+      "answer": "The Grinch",
+      "aliases": [],
+      "clues": [
+        "A grumpy outsider dislikes a holiday.",
+        "The town below celebrates joyfully.",
+        "He tries to steal decorations and gifts.",
+        "A green creature attempts to stop Christmas in Whoville."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0075",
+      "answer": "Jumanji",
+      "aliases": [],
+      "clues": [
+        "An ordinary game produces extraordinary dangers.",
+        "Players cannot leave until the game ends.",
+        "Jungle hazards suddenly appear in the real world.",
+        "A mysterious board game traps Alan Parrish."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0076",
+      "answer": "Jumanji: Welcome to the Jungle",
+      "aliases": [],
+      "clues": [
+        "Four teenagers end up in another world.",
+        "They gain unfamiliar bodies and abilities.",
+        "Their adventure follows video-game rules.",
+        "Players are transported into the Jumanji video game."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0077",
+      "answer": "Night at the Museum",
+      "aliases": [],
+      "clues": [
+        "A new employee works overnight in a public building.",
+        "Exhibits behave strangely after dark.",
+        "A tiny cowboy and Roman soldier argue.",
+        "Museum displays come alive at night."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0078",
+      "answer": "Ghostbusters",
+      "aliases": [],
+      "clues": [
+        "A group starts an unusual business in New York.",
+        "Their work involves strange equipment.",
+        "A giant marshmallow figure becomes a threat.",
+        "Scientists capture ghosts using proton packs."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0079",
+      "answer": "Back to the Future",
+      "aliases": [],
+      "clues": [
+        "A teenager travels to another decade.",
+        "Changing the past threatens his existence.",
+        "A scientist builds a remarkable car.",
+        "Marty McFly time-travels in a DeLorean."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0080",
+      "answer": "E.T. the Extra-Terrestrial",
+      "aliases": [],
+      "clues": [
+        "Children keep an unexpected visitor hidden.",
+        "The visitor wants to return home.",
+        "A bicycle flies across the moon.",
+        "Elliott befriends an alien named E.T."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0081",
+      "answer": "Men in Black",
+      "aliases": [],
+      "clues": [
+        "A secret organization manages unusual visitors.",
+        "Its agents wear distinctive suits.",
+        "A small device erases memories.",
+        "Agents J and K monitor aliens on Earth."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0082",
+      "answer": "Independence Day",
+      "aliases": [],
+      "clues": [
+        "Cities around the world face a major threat.",
+        "A president gives a defiant speech.",
+        "An enormous spacecraft blocks the sky.",
+        "Humanity fights an alien invasion on July 4."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0083",
+      "answer": "The Martian",
+      "aliases": [],
+      "clues": [
+        "An astronaut is stranded during a mission.",
+        "Growing food becomes a survival strategy.",
+        "Messages reach Earth through improvised technology.",
+        "Mark Watney grows potatoes on Mars."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0084",
+      "answer": "Gravity",
+      "aliases": [],
+      "clues": [
+        "A mission in orbit goes disastrously wrong.",
+        "Space debris creates a deadly chain reaction.",
+        "Survival depends on reaching another spacecraft.",
+        "Sandra Bullock plays an astronaut stranded in space."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0085",
+      "answer": "Apollo 13",
+      "aliases": [],
+      "clues": [
+        "An ambitious space mission suffers a technical failure.",
+        "A crew must improvise solutions far from Earth.",
+        "A famous line alerts mission control.",
+        "An oxygen tank explosion threatens the Moon mission."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0086",
+      "answer": "Top Gun: Maverick",
+      "aliases": [],
+      "clues": [
+        "An experienced pilot returns as an instructor.",
+        "A dangerous aerial mission needs young recruits.",
+        "A former friend’s son joins the training.",
+        "Maverick teaches pilots for a high-risk mission."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0087",
+      "answer": "Mission: Impossible – Fallout",
+      "aliases": [],
+      "clues": [
+        "A spy races to stop a deadly global threat.",
+        "A helicopter chase becomes an important sequence.",
+        "Masks and deception complicate alliances.",
+        "Ethan Hunt battles the Apostles."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0088",
+      "answer": "John Wick",
+      "aliases": [],
+      "clues": [
+        "A retired professional suffers a personal loss.",
+        "A criminal attack pulls him back into violence.",
+        "A secret society of assassins follows special rules.",
+        "A former hitman seeks revenge after his dog is killed."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0089",
+      "answer": "Fast Five",
+      "aliases": [],
+      "clues": [
+        "A crew plans an enormous heist.",
+        "The action takes place partly in Brazil.",
+        "A powerful law enforcement agent pursues them.",
+        "Cars drag a giant safe through Rio de Janeiro."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0090",
+      "answer": "Mad Max: Fury Road",
+      "aliases": [],
+      "clues": [
+        "Survivors flee across a harsh desert.",
+        "A heavily armored convoy becomes central.",
+        "A rebel driver protects several women.",
+        "Furiosa and Max escape Immortan Joe."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0091",
+      "answer": "Speed",
+      "aliases": [],
+      "clues": [
+        "Commuters face a ticking danger.",
+        "A vehicle must keep moving to avoid disaster.",
+        "The action begins with a dangerous bus ride.",
+        "A city bus will explode if it slows below 50 mph."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0092",
+      "answer": "Die Hard",
+      "aliases": [],
+      "clues": [
+        "A visitor attends a holiday party.",
+        "Criminals take over a tall building.",
+        "One police officer hides from the attackers.",
+        "John McClane fights terrorists at Nakatomi Plaza."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0093",
+      "answer": "Gladiator",
+      "aliases": [],
+      "clues": [
+        "A soldier loses his position and family.",
+        "He is forced to fight for crowds.",
+        "An emperor becomes his enemy.",
+        "Maximus battles in the Roman Colosseum."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0094",
+      "answer": "Troy",
+      "aliases": [],
+      "clues": [
+        "A conflict begins over a royal relationship.",
+        "A famous city is besieged.",
+        "A legendary warrior has a vulnerable heel.",
+        "Achilles fights during the Trojan War."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0095",
+      "answer": "300",
+      "aliases": [],
+      "clues": [
+        "A small army defends a narrow passage.",
+        "The opposing force vastly outnumbers them.",
+        "Their king delivers a famous battle cry.",
+        "Leonidas leads Spartan warriors at Thermopylae."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0096",
+      "answer": "Braveheart",
+      "aliases": [],
+      "clues": [
+        "A Scottish figure resists foreign rule.",
+        "The plot follows revolt and betrayal.",
+        "Blue war paint appears in battle.",
+        "William Wallace fights for Scottish independence."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0097",
+      "answer": "The King’s Speech",
+      "aliases": [],
+      "clues": [
+        "A royal figure struggles with public speaking.",
+        "An unconventional teacher offers help.",
+        "The story leads toward a wartime address.",
+        "King George VI works with Lionel Logue to overcome a stammer."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0098",
+      "answer": "The Social Network",
+      "aliases": [],
+      "clues": [
+        "A university project creates conflict among friends.",
+        "A new website spreads rapidly across campuses.",
+        "Legal disputes follow its success.",
+        "Mark Zuckerberg co-founds Facebook."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0099",
+      "answer": "Steve Jobs",
+      "aliases": [],
+      "clues": [
+        "A technology figure prepares for product launches.",
+        "Backstage tensions reveal personal conflicts.",
+        "The story centers on three major product presentations.",
+        "Michael Fassbender portrays Apple cofounder Steve Jobs."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0100",
+      "answer": "The Wolf of Wall Street",
+      "aliases": [],
+      "clues": [
+        "A salesman enters the financial industry.",
+        "Excessive wealth and fraud shape his rise.",
+        "A brokerage becomes notorious.",
+        "Leonardo DiCaprio plays Jordan Belfort."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0101",
+      "answer": "Catch Me If You Can",
+      "aliases": [],
+      "clues": [
+        "A young con artist adopts many identities.",
+        "An FBI agent pursues him over years.",
+        "Forged checks become central to the story.",
+        "Frank Abagnale Jr. impersonates a pilot and doctor."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0102",
+      "answer": "Now You See Me",
+      "aliases": [],
+      "clues": [
+        "Entertainers perform elaborate public shows.",
+        "The performances seem to involve real crimes.",
+        "A secret group may be behind everything.",
+        "The Four Horsemen are stage magicians pursued by the FBI."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0103",
+      "answer": "Knives Out",
+      "aliases": [],
+      "clues": [
+        "A wealthy family gathers after a sudden death.",
+        "A detective questions many suspicious relatives.",
+        "A nurse knows more than she admits.",
+        "Benoit Blanc investigates the death of Harlan Thrombey."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0104",
+      "answer": "Glass Onion: A Knives Out Mystery",
+      "aliases": [],
+      "clues": [
+        "A rich entrepreneur invites friends on a trip.",
+        "A private island hosts an elaborate gathering.",
+        "A detective arrives amid deception.",
+        "Benoit Blanc investigates a mystery in Greece."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0105",
+      "answer": "Murder on the Orient Express",
+      "aliases": [],
+      "clues": [
+        "A famous detective boards a luxurious journey.",
+        "A crime occurs while passengers are trapped.",
+        "Snow stops the train.",
+        "Hercule Poirot investigates a murder aboard the Orient Express."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0106",
+      "answer": "Sherlock Holmes",
+      "aliases": [],
+      "clues": [
+        "A brilliant investigator solves a complex case.",
+        "His loyal companion is a doctor.",
+        "Victorian London provides the setting.",
+        "Robert Downey Jr. plays Sherlock Holmes."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0107",
+      "answer": "The Silence of the Lambs",
+      "aliases": [],
+      "clues": [
+        "A trainee investigator seeks help with a case.",
+        "An imprisoned psychiatrist gives cryptic insight.",
+        "A serial killer is pursued.",
+        "Clarice Starling interviews Hannibal Lecter."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0108",
+      "answer": "Se7en",
+      "aliases": [],
+      "clues": [
+        "Detectives investigate a disturbing series of crimes.",
+        "The murders follow a moral pattern.",
+        "A box becomes central to the finale.",
+        "A serial killer uses the seven deadly sins."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0109",
+      "answer": "Gone Girl",
+      "aliases": [],
+      "clues": [
+        "A disappearance attracts national attention.",
+        "A marriage hides elaborate secrets.",
+        "The missing woman leaves a trail of clues.",
+        "Amy Dunne vanishes on her fifth wedding anniversary."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0110",
+      "answer": "Shutter Island",
+      "aliases": [],
+      "clues": [
+        "Investigators arrive at a remote institution.",
+        "An apparent disappearance prompts their visit.",
+        "The setting is a psychiatric hospital on an island.",
+        "Leonardo DiCaprio plays Teddy Daniels."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0111",
+      "answer": "Fight Club",
+      "aliases": [],
+      "clues": [
+        "An unhappy worker meets a charismatic stranger.",
+        "Underground gatherings become increasingly dangerous.",
+        "The story explores identity and consumerism.",
+        "A narrator discovers the truth about Tyler Durden."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0112",
+      "answer": "The Sixth Sense",
+      "aliases": [],
+      "clues": [
+        "A child experiences disturbing visions.",
+        "A psychologist tries to help him.",
+        "The story contains a celebrated late twist.",
+        "A boy says he can see dead people."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0113",
+      "answer": "A Quiet Place",
+      "aliases": [],
+      "clues": [
+        "A family survives in a dangerous world.",
+        "Making noise can bring deadly consequences.",
+        "Sign language is essential to survival.",
+        "Creatures hunt people by sound."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0114",
+      "answer": "Get Out",
+      "aliases": [],
+      "clues": [
+        "A young man visits his partner’s family.",
+        "The visit becomes increasingly unsettling.",
+        "Hypnosis plays a sinister role.",
+        "Chris discovers the secrets behind the Sunken Place."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0115",
+      "answer": "Us",
+      "aliases": [],
+      "clues": [
+        "A family vacation takes a frightening turn.",
+        "Unsettling doubles appear at night.",
+        "The doubles wear red outfits.",
+        "A family is attacked by their own doppelgängers."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0116",
+      "answer": "It",
+      "aliases": [],
+      "clues": [
+        "Young friends confront an ancient threat.",
+        "Strange disappearances plague their town.",
+        "A red balloon signals danger.",
+        "Pennywise the clown terrorizes Derry."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0117",
+      "answer": "The Conjuring",
+      "aliases": [],
+      "clues": [
+        "Investigators visit a troubled family home.",
+        "Unexplained activity escalates quickly.",
+        "The story draws on paranormal case files.",
+        "Ed and Lorraine Warren investigate a haunting."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0118",
+      "answer": "The Ring",
+      "aliases": [],
+      "clues": [
+        "An unusual recording carries a terrible consequence.",
+        "A phone call follows a viewing.",
+        "A girl emerges from a television.",
+        "A cursed videotape gives viewers seven days to live."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0119",
+      "answer": "Scream",
+      "aliases": [],
+      "clues": [
+        "A small town experiences masked attacks.",
+        "The killer asks horror-movie questions.",
+        "A phone becomes a frightening tool.",
+        "Ghostface terrorizes Sidney Prescott."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0120",
+      "answer": "The Exorcist",
+      "aliases": [],
+      "clues": [
+        "A mother worries about her daughter.",
+        "Unusual behavior suggests a supernatural cause.",
+        "Two priests try to help.",
+        "Regan undergoes an exorcism."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0121",
+      "answer": "The Shining",
+      "aliases": [],
+      "clues": [
+        "A family travels to an isolated workplace.",
+        "A winter storm prevents escape.",
+        "Twin girls appear in a hallway.",
+        "Jack Torrance becomes caretaker of the Overlook Hotel."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0122",
+      "answer": "Parasite",
+      "aliases": [],
+      "clues": [
+        "Two families lead very different lives.",
+        "A household finds an unusual employment opportunity.",
+        "A hidden basement reveals a secret.",
+        "Bong Joon-ho’s Korean thriller explores class through the Kim and Park families."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0123",
+      "answer": "Train to Busan",
+      "aliases": [],
+      "clues": [
+        "A father and daughter travel together.",
+        "A fast-moving crisis spreads among passengers.",
+        "People seek safety from infected attackers.",
+        "A zombie outbreak erupts on a South Korean train."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0124",
+      "answer": "RRR",
+      "aliases": [],
+      "clues": [
+        "Two heroes form a friendship under difficult circumstances.",
+        "The story is set in colonial India.",
+        "A famous dance sequence features the song Naatu Naatu.",
+        "Ram and Bheem fight British colonial rule."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0125",
+      "answer": "3 Idiots",
+      "aliases": [],
+      "clues": [
+        "College friends struggle with academic expectations.",
+        "An unconventional student questions the system.",
+        "The story alternates between youth and reunion.",
+        "Rancho inspires his engineering classmates."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0126",
+      "answer": "Dangal",
+      "aliases": [],
+      "clues": [
+        "A parent coaches children toward sporting success.",
+        "Their training challenges social expectations.",
+        "Wrestling competitions drive the plot.",
+        "Mahavir Singh Phogat trains his daughters to wrestle."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0127",
+      "answer": "PK",
+      "aliases": [],
+      "clues": [
+        "An outsider tries to understand society.",
+        "He asks uncomfortable questions about belief.",
+        "He loses a device essential to his journey.",
+        "Aamir Khan plays an alien stranded on Earth."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0128",
+      "answer": "Baahubali: The Beginning",
+      "aliases": [],
+      "clues": [
+        "A young man discovers a hidden legacy.",
+        "An enormous waterfall separates worlds.",
+        "Two royal brothers compete for power.",
+        "Shivudu learns about the kingdom of Mahishmati."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0129",
+      "answer": "Baahubali 2: The Conclusion",
+      "aliases": [],
+      "clues": [
+        "A royal family’s betrayal is revealed.",
+        "An epic conflict decides control of a kingdom.",
+        "A long-standing question finally gets answered.",
+        "The film reveals why Kattappa killed Baahubali."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0130",
+      "answer": "Kantara",
+      "aliases": [],
+      "clues": [
+        "A village community defends its traditions.",
+        "A dispute over land escalates.",
+        "A spiritual performance becomes important.",
+        "The story features the Bhoota Kola ritual."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0131",
+      "answer": "Pathaan",
+      "aliases": [],
+      "clues": [
+        "A secret agent confronts a major threat.",
+        "A former colleague becomes a dangerous enemy.",
+        "Espionage and action cross several countries.",
+        "Shah Rukh Khan plays Indian agent Pathaan."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0132",
+      "answer": "Jawan",
+      "aliases": [],
+      "clues": [
+        "A mysterious man leads a daring operation.",
+        "Disguises and public broadcasts draw attention.",
+        "A father-son connection is key.",
+        "Shah Rukh Khan plays dual roles involving Azad and Vikram Rathore."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0133",
+      "answer": "K.G.F: Chapter 1",
+      "aliases": [],
+      "clues": [
+        "A determined boy dreams of great power.",
+        "A gold-mining region dominates the story.",
+        "A powerful criminal empire controls workers.",
+        "Rocky infiltrates the Kolar Gold Fields."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0134",
+      "answer": "Drishyam",
+      "aliases": [],
+      "clues": [
+        "A family tries to survive a terrible secret.",
+        "An investigation centers on a disappearance.",
+        "A movie lover devises a careful cover story.",
+        "A father creates an alibi to protect his family."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0135",
+      "answer": "Andhadhun",
+      "aliases": [],
+      "clues": [
+        "A musician becomes entangled in a crime.",
+        "What he can perceive is uncertain.",
+        "A pianist visits a home and witnesses suspicious events.",
+        "A blind pianist is caught up in a murder mystery."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0136",
+      "answer": "Slumdog Millionaire",
+      "aliases": [],
+      "clues": [
+        "A young man takes part in a TV contest.",
+        "His life experiences help with difficult questions.",
+        "The story takes place largely in Mumbai.",
+        "Jamal competes on Who Wants to Be a Millionaire?"
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0137",
+      "answer": "Life of Pi",
+      "aliases": [],
+      "clues": [
+        "A young survivor faces an extraordinary journey.",
+        "He travels across an ocean.",
+        "An animal companion creates danger.",
+        "Pi shares a lifeboat with a Bengal tiger named Richard Parker."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0138",
+      "answer": "The Grand Budapest Hotel",
+      "aliases": [],
+      "clues": [
+        "A hotel employee becomes involved in a strange adventure.",
+        "The story unfolds through multiple time periods.",
+        "An eccentric concierge befriends a lobby boy.",
+        "Gustave H. and Zero work at a famous fictional hotel."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0139",
+      "answer": "The Devil Wears Prada",
+      "aliases": [],
+      "clues": [
+        "A new employee enters a demanding workplace.",
+        "Fashion becomes a source of pressure and ambition.",
+        "A powerful editor tests her assistant.",
+        "Andy Sachs works for Miranda Priestly at Runway."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0140",
+      "answer": "Mean Girls",
+      "aliases": [],
+      "clues": [
+        "A teenager joins a new social environment.",
+        "A clique dominates the school.",
+        "A pink dress code becomes iconic.",
+        "Cady Heron meets Regina George and the Plastics."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0141",
+      "answer": "Clueless",
+      "aliases": [],
+      "clues": [
+        "A popular student tries to improve others’ lives.",
+        "Fashion and high school status are central.",
+        "An attempted matchmaking plan backfires.",
+        "Cher Horowitz navigates life in Beverly Hills."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0142",
+      "answer": "10 Things I Hate About You",
+      "aliases": [],
+      "clues": [
+        "A modern adaptation of a Shakespeare comedy.",
+        "Two sisters face strict dating rules.",
+        "A school romance begins with a paid arrangement.",
+        "Kat Stratford and Patrick Verona fall in love."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0143",
+      "answer": "The Princess Diaries",
+      "aliases": [],
+      "clues": [
+        "A shy teenager learns a surprising family secret.",
+        "Her grandmother teaches her royal etiquette.",
+        "A makeover changes her public image.",
+        "Mia Thermopolis learns she is heir to Genovia."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0144",
+      "answer": "Crazy Rich Asians",
+      "aliases": [],
+      "clues": [
+        "A professor travels abroad with her boyfriend.",
+        "Her boyfriend’s family is extremely wealthy.",
+        "A lavish wedding takes place in Singapore.",
+        "Rachel Chu meets Nick Young’s family."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0145",
+      "answer": "The Hangover",
+      "aliases": [],
+      "clues": [
+        "Friends travel to celebrate an upcoming wedding.",
+        "They wake with few memories of the previous night.",
+        "A missing groom creates panic.",
+        "A bachelor party in Las Vegas goes wildly wrong."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0146",
+      "answer": "Superbad",
+      "aliases": [],
+      "clues": [
+        "Teenage friends plan one memorable night.",
+        "A party invitation launches their mission.",
+        "A fake ID bears a single unusual name.",
+        "Two friends try to buy alcohol using a McLovin ID."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0147",
+      "answer": "The Lego Movie",
+      "aliases": [],
+      "clues": [
+        "A regular worker is mistaken for someone special.",
+        "Many worlds are built from familiar toy bricks.",
+        "A song declares everything is awesome.",
+        "Emmet Brickowski joins a rebellion against Lord Business."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0148",
+      "answer": "Paddington",
+      "aliases": [],
+      "clues": [
+        "A polite traveler arrives in a large city.",
+        "He wears a distinctive blue coat.",
+        "A family takes him into their home.",
+        "A marmalade-loving bear comes from Peru."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0149",
+      "answer": "The Secret Life of Pets",
+      "aliases": [],
+      "clues": [
+        "An owner leaves animals home alone.",
+        "Two animals become unlikely companions.",
+        "The story follows pets around New York City.",
+        "Max and Duke have adventures while Katie is away."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0150",
+      "answer": "Sing",
+      "aliases": [],
+      "clues": [
+        "An ambitious organizer stages a talent competition.",
+        "Animal performers pursue musical dreams.",
+        "A theater needs saving.",
+        "Buster Moon hosts a singing contest."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0151",
+      "answer": "Puss in Boots: The Last Wish",
+      "aliases": [],
+      "clues": [
+        "A fearless hero worries about his future.",
+        "A mysterious wolf follows him.",
+        "A magical wishing star is the goal.",
+        "A sword-wielding cat discovers he has used eight of his nine lives."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0152",
+      "answer": "Sonic the Hedgehog",
+      "aliases": [],
+      "clues": [
+        "A fast creature hides in an unfamiliar world.",
+        "He befriends a small-town police officer.",
+        "An eccentric scientist tries to capture him.",
+        "Sonic battles Dr. Robotnik."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0153",
+      "answer": "Detective Pikachu",
+      "aliases": [],
+      "clues": [
+        "A young man investigates a disappearance.",
+        "A city is shared by humans and unusual creatures.",
+        "An unexpected companion can speak to him.",
+        "A talking Pikachu helps Tim Goodman solve a mystery."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0154",
+      "answer": "The Whale",
+      "aliases": [],
+      "clues": [
+        "A reclusive teacher teaches writing online.",
+        "He tries to reconnect with his teenage daughter.",
+        "The central character lives with severe obesity.",
+        "Brendan Fraser stars as Charlie."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0155",
+      "answer": "Whiplash",
+      "aliases": [],
+      "clues": [
+        "A young drummer enrolls at a prestigious music conservatory.",
+        "A demanding instructor pushes students harshly.",
+        "The phrase not quite my tempo becomes notorious.",
+        "Miles Teller and J. K. Simmons star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0156",
+      "answer": "Eternal Sunshine of the Spotless Mind",
+      "aliases": [],
+      "clues": [
+        "A couple has a painful breakup.",
+        "A procedure can erase memories of a person.",
+        "A character tries to preserve memories while they vanish.",
+        "Jim Carrey and Kate Winslet star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0157",
+      "answer": "The Prestige",
+      "aliases": [],
+      "clues": [
+        "Two magicians compete in Victorian London.",
+        "A transported-man illusion fuels obsession.",
+        "Nikola Tesla builds an unusual machine.",
+        "Christian Bale and Hugh Jackman play rival illusionists."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0158",
+      "answer": "Memento",
+      "aliases": [],
+      "clues": [
+        "A man investigates a murder with a memory impairment.",
+        "He relies on notes and photographs.",
+        "Tattoos help preserve clues.",
+        "The narrative famously unfolds in reverse order."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0159",
+      "answer": "Prisoners",
+      "aliases": [],
+      "clues": [
+        "Two young girls go missing in Pennsylvania.",
+        "A desperate father takes matters into his own hands.",
+        "A detective follows a maze-like trail.",
+        "Hugh Jackman and Jake Gyllenhaal star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0160",
+      "answer": "The Menu",
+      "aliases": [],
+      "clues": [
+        "Guests travel to a remote island restaurant.",
+        "An acclaimed chef serves a disturbing tasting menu.",
+        "The evening's courses turn increasingly threatening.",
+        "Ralph Fiennes plays Chef Slowik."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0161",
+      "answer": "Nope",
+      "aliases": [],
+      "clues": [
+        "Siblings operate a horse ranch in California.",
+        "A strange object appears in the sky.",
+        "An outdoor spectacle turns dangerous.",
+        "Jordan Peele directed this UFO-themed thriller."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0162",
+      "answer": "Hereditary",
+      "aliases": [],
+      "clues": [
+        "A family grieves the death of a grandmother.",
+        "Miniature models echo the family's experiences.",
+        "An occult inheritance emerges.",
+        "Toni Collette plays Annie Graham."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0163",
+      "answer": "Midsommar",
+      "aliases": [],
+      "clues": [
+        "A group travels to a remote Swedish festival.",
+        "Celebrations take place in near-constant daylight.",
+        "Flower crowns become unsettling imagery.",
+        "Florence Pugh plays Dani."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0164",
+      "answer": "Bird Box",
+      "aliases": [],
+      "clues": [
+        "A mysterious force causes people to harm themselves.",
+        "Survivors avoid looking outside.",
+        "A woman travels blindfolded with two children.",
+        "Sandra Bullock plays Malorie."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0165",
+      "answer": "Annabelle",
+      "aliases": [],
+      "clues": [
+        "An antique doll becomes associated with evil events.",
+        "A couple receives a doll as a gift.",
+        "Supernatural attacks escalate in their home.",
+        "The haunted doll is named Annabelle."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0166",
+      "answer": "The Babadook",
+      "aliases": [],
+      "clues": [
+        "A widowed mother struggles with grief and parenting.",
+        "A disturbing pop-up book appears.",
+        "A shadowy figure wears a top hat.",
+        "The creature's name is Babadook."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0167",
+      "answer": "The Witch",
+      "aliases": [],
+      "clues": [
+        "A Puritan family lives near a forest.",
+        "A missing baby begins a chain of accusations.",
+        "A goat named Black Phillip plays a role.",
+        "Robert Eggers directed this folk-horror film."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0168",
+      "answer": "The Lighthouse",
+      "aliases": [],
+      "clues": [
+        "Two men tend a remote beacon.",
+        "Isolation strains their relationship.",
+        "A seabird becomes a source of conflict.",
+        "Robert Pattinson and Willem Dafoe star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0169",
+      "answer": "The Northman",
+      "aliases": [],
+      "clues": [
+        "A young prince witnesses his father's murder.",
+        "He vows to avenge his family.",
+        "The story draws on Norse legend.",
+        "Alexander Skarsgård plays Amleth."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0170",
+      "answer": "Furiosa: A Mad Max Saga",
+      "aliases": [],
+      "clues": [
+        "A girl is taken from the Green Place.",
+        "Warring leaders control a desert wasteland.",
+        "A character rises through the ranks of a war rig crew.",
+        "Anya Taylor-Joy plays the younger Furiosa."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0171",
+      "answer": "The Revenant",
+      "aliases": [],
+      "clues": [
+        "A frontiersman is attacked in the wilderness.",
+        "A bear mauling leaves him badly injured.",
+        "He seeks revenge against a fellow trapper.",
+        "Leonardo DiCaprio portrays Hugh Glass."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0172",
+      "answer": "1917",
+      "aliases": [],
+      "clues": [
+        "Two soldiers must deliver a message during World War I.",
+        "Their mission requires crossing enemy territory.",
+        "The film is staged to resemble a continuous shot.",
+        "Sam Mendes directed this wartime journey."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0173",
+      "answer": "Dunkirk",
+      "aliases": [],
+      "clues": [
+        "Soldiers await rescue on a French beach.",
+        "Stories unfold across land, sea and air.",
+        "Civilian boats join a wartime evacuation.",
+        "Christopher Nolan directed this World War II film."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0174",
+      "answer": "Saving Private Ryan",
+      "aliases": [],
+      "clues": [
+        "Soldiers land on a beach during World War II.",
+        "A squad is sent behind enemy lines.",
+        "They search for a soldier whose brothers have died.",
+        "Tom Hanks plays Captain John Miller."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0175",
+      "answer": "Hacksaw Ridge",
+      "aliases": [],
+      "clues": [
+        "A soldier refuses to carry a weapon.",
+        "He serves as a combat medic in World War II.",
+        "The battle takes place on Okinawa.",
+        "Andrew Garfield portrays Desmond Doss."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0176",
+      "answer": "The Imitation Game",
+      "aliases": [],
+      "clues": [
+        "A mathematician works on wartime codebreaking.",
+        "A machine helps decipher encrypted messages.",
+        "Bletchley Park is a key setting.",
+        "Benedict Cumberbatch portrays Alan Turing."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0177",
+      "answer": "The King's Speech",
+      "aliases": [],
+      "clues": [
+        "A royal figure struggles with a speech impediment.",
+        "An unconventional therapist helps him.",
+        "A wartime radio address becomes a crucial challenge.",
+        "Colin Firth plays King George VI."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0178",
+      "answer": "Ford v Ferrari",
+      "aliases": [],
+      "clues": [
+        "An American automaker challenges a racing powerhouse.",
+        "A designer and driver collaborate on a new car.",
+        "The 24 Hours of Le Mans race is central.",
+        "Matt Damon and Christian Bale star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0179",
+      "answer": "Rush",
+      "aliases": [],
+      "clues": [
+        "Two Formula One drivers have a fierce rivalry.",
+        "The story focuses on the 1976 season.",
+        "A severe crash changes one competitor's season.",
+        "James Hunt and Niki Lauda are the rivals."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0180",
+      "answer": "Moneyball",
+      "aliases": [],
+      "clues": [
+        "A baseball team works with a small budget.",
+        "An executive uses statistics to find undervalued players.",
+        "The Oakland Athletics are central.",
+        "Brad Pitt plays Billy Beane."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0181",
+      "answer": "The Big Short",
+      "aliases": [],
+      "clues": [
+        "Investors spot weakness in the housing market.",
+        "Financial instruments conceal risky mortgages.",
+        "The story leads toward the 2008 financial crisis.",
+        "Christian Bale plays Michael Burry."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0182",
+      "answer": "Spotlight",
+      "aliases": [],
+      "clues": [
+        "Journalists investigate a long-running scandal.",
+        "A Boston newspaper's investigative team leads the work.",
+        "Survivors describe institutional abuse.",
+        "The Boston Globe Spotlight team is the focus."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0183",
+      "answer": "The Blind Side",
+      "aliases": [],
+      "clues": [
+        "A teenager finds support with a new family.",
+        "His talent on the football field draws attention.",
+        "The story is based on Michael Oher.",
+        "Sandra Bullock portrays Leigh Anne Tuohy."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0184",
+      "answer": "A Star Is Born",
+      "aliases": [],
+      "clues": [
+        "A musician discovers a talented singer.",
+        "The pair's careers move in different directions.",
+        "The song Shallow features prominently.",
+        "Bradley Cooper and Lady Gaga star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0185",
+      "answer": "The Greatest Showman",
+      "aliases": [],
+      "clues": [
+        "An entertainer dreams of building a spectacle.",
+        "A troupe of unusual performers forms.",
+        "The songs include This Is Me.",
+        "Hugh Jackman plays P. T. Barnum."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0186",
+      "answer": "Bohemian Rhapsody",
+      "aliases": [],
+      "clues": [
+        "A band rises through the rock music scene.",
+        "A lead singer's personal life becomes central.",
+        "The Live Aid performance is recreated.",
+        "Rami Malek portrays Freddie Mercury."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0187",
+      "answer": "Rocketman",
+      "aliases": [],
+      "clues": [
+        "A shy musician becomes a flamboyant performer.",
+        "A singer's life is told through musical fantasy.",
+        "The protagonist was born Reginald Dwight.",
+        "Taron Egerton portrays Elton John."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0188",
+      "answer": "Elvis",
+      "aliases": [],
+      "clues": [
+        "A singer becomes a cultural phenomenon.",
+        "A manager exerts strong influence on his career.",
+        "The film depicts Las Vegas performances.",
+        "Austin Butler portrays Elvis Presley."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0189",
+      "answer": "The Iron Claw",
+      "aliases": [],
+      "clues": [
+        "A family of brothers enters professional wrestling.",
+        "Their father pushes them toward championship success.",
+        "Tragedies repeatedly strike the family.",
+        "The story follows the Von Erich wrestlers."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0190",
+      "answer": "The Holdovers",
+      "aliases": [],
+      "clues": [
+        "A teacher stays at a boarding school over winter break.",
+        "A student cannot go home for the holidays.",
+        "A cafeteria worker joins an unlikely trio.",
+        "Paul Giamatti plays Paul Hunham."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0191",
+      "answer": "Poor Things",
+      "aliases": [],
+      "clues": [
+        "A young woman experiences the world with fresh curiosity.",
+        "An eccentric surgeon performs an unusual experiment.",
+        "A journey spans several European cities.",
+        "Emma Stone plays Bella Baxter."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0192",
+      "answer": "The Shape of Water",
+      "aliases": [],
+      "clues": [
+        "A mute cleaner works in a secret government facility.",
+        "She befriends a captive aquatic creature.",
+        "The story is set during the Cold War.",
+        "Guillermo del Toro directed this fantasy romance."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0193",
+      "answer": "The Green Mile",
+      "aliases": [],
+      "clues": [
+        "A prison guard meets an unusual inmate.",
+        "The setting is death row during the Great Depression.",
+        "A prisoner displays mysterious healing powers.",
+        "Michael Clarke Duncan plays John Coffey."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0194",
+      "answer": "The Shawshank Redemption",
+      "aliases": [],
+      "clues": [
+        "A banker is convicted of murdering his wife.",
+        "A friendship develops in prison.",
+        "A poster conceals a secret.",
+        "Andy Dufresne escapes Shawshank prison."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0195",
+      "answer": "Good Will Hunting",
+      "aliases": [],
+      "clues": [
+        "A janitor solves advanced mathematics problems.",
+        "A professor recognizes his talent.",
+        "Therapy helps him confront his past.",
+        "Matt Damon plays Will Hunting."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0196",
+      "answer": "Dead Poets Society",
+      "aliases": [],
+      "clues": [
+        "A teacher inspires students at a strict school.",
+        "Poetry becomes a form of self-expression.",
+        "Students revive a secret literary club.",
+        "Robin Williams plays John Keating."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0197",
+      "answer": "The Breakfast Club",
+      "aliases": [],
+      "clues": [
+        "Five teenagers spend a Saturday in detention.",
+        "Students come from different social groups.",
+        "They begin to understand one another.",
+        "The setting is Shermer High School."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0198",
+      "answer": "Ferris Bueller's Day Off",
+      "aliases": [],
+      "clues": [
+        "A teenager skips school for an adventure.",
+        "A friend worries about his father's sports car.",
+        "The group explores Chicago.",
+        "Matthew Broderick plays Ferris Bueller."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0199",
+      "answer": "Back to the Future Part II",
+      "aliases": [],
+      "clues": [
+        "A teenager travels to an imagined future.",
+        "A sports almanac changes events.",
+        "A flying car and hoverboard appear.",
+        "Marty McFly visits 2015."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0200",
+      "answer": "Back to the Future Part III",
+      "aliases": [],
+      "clues": [
+        "A time traveler arrives in the Old West.",
+        "A scientist falls for a schoolteacher.",
+        "A steam locomotive helps power the return trip.",
+        "Marty McFly visits 1885."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0201",
+      "answer": "Jumanji: The Next Level",
+      "aliases": [],
+      "clues": [
+        "Friends return to a dangerous video game.",
+        "The game's avatars are reassigned unexpectedly.",
+        "A desert and snowy mountain feature in the adventure.",
+        "Dwayne Johnson and Kevin Hart return."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0202",
+      "answer": "The Wild Robot",
+      "aliases": [],
+      "clues": [
+        "A machine wakes up alone on an island.",
+        "It learns to communicate with animals.",
+        "It raises an orphaned gosling.",
+        "The robot is named Roz."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0203",
+      "answer": "Inside Out 2",
+      "aliases": [],
+      "clues": [
+        "A teenager experiences new emotional changes.",
+        "Headquarters welcomes unfamiliar emotions.",
+        "Anxiety takes a leading role.",
+        "Riley attends a hockey camp."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0204",
+      "answer": "Elemental",
+      "aliases": [],
+      "clues": [
+        "Residents of a city represent different natural forces.",
+        "A fire resident meets a water resident.",
+        "A family runs a shop.",
+        "Ember and Wade form a bond."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0205",
+      "answer": "Turning Red",
+      "aliases": [],
+      "clues": [
+        "A teenager struggles with changes and family expectations.",
+        "Strong emotions trigger an unusual transformation.",
+        "A boy band is important to the plot.",
+        "Meilin turns into a giant red panda."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0206",
+      "answer": "Luca",
+      "aliases": [],
+      "clues": [
+        "Two boys become friends on the Italian coast.",
+        "They hide a secret while visiting a seaside town.",
+        "Water reveals their true forms.",
+        "The friends are sea monsters."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0207",
+      "answer": "Soul",
+      "aliases": [],
+      "clues": [
+        "A music teacher longs to perform jazz.",
+        "An accident sends him to a realm of souls.",
+        "He meets a soul numbered 22.",
+        "Joe Gardner learns about life's purpose."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0208",
+      "answer": "Finding Dory",
+      "aliases": [],
+      "clues": [
+        "A forgetful fish searches for her family.",
+        "A marine-life institute becomes the destination.",
+        "An octopus helps with the escape.",
+        "Dory reunites with her parents."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0209",
+      "answer": "Monsters University",
+      "aliases": [],
+      "clues": [
+        "Two unlikely friends meet during college.",
+        "They train to become professional scarers.",
+        "A campus competition tests their skills.",
+        "Mike and Sulley attend Monsters University."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0210",
+      "answer": "The Incredibles 2",
+      "aliases": [],
+      "clues": [
+        "A superhero family tries to restore public trust.",
+        "The mother takes the lead on missions.",
+        "A villain uses hypnotic screens.",
+        "Elastigirl faces Screenslaver."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0211",
+      "answer": "Kung Fu Panda 4",
+      "aliases": [],
+      "clues": [
+        "A martial arts hero must find a successor.",
+        "A shape-shifting villain steals abilities.",
+        "A fox joins the journey.",
+        "Po faces the Chameleon."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0212",
+      "answer": "How to Train Your Dragon 2",
+      "aliases": [],
+      "clues": [
+        "A young dragon rider explores new lands.",
+        "A sanctuary holds many dragons.",
+        "A villain commands a giant alpha dragon.",
+        "Hiccup reunites with his mother Valka."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0213",
+      "answer": "Puss in Boots",
+      "aliases": [],
+      "clues": [
+        "A sword-wielding cat seeks magical beans.",
+        "An egg-shaped childhood friend returns.",
+        "A giant's castle is reached by a beanstalk.",
+        "Puss teams up with Kitty Softpaws."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0214",
+      "answer": "The Bad Guys",
+      "aliases": [],
+      "clues": [
+        "A gang of animal thieves attempts reform.",
+        "A wolf leads the crew.",
+        "A philanthropist guinea pig hides a scheme.",
+        "Mr. Wolf tries to become good."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0215",
+      "answer": "Megamind",
+      "aliases": [],
+      "clues": [
+        "A blue-skinned villain defeats his superhero rival.",
+        "Victory leaves him without a purpose.",
+        "A new hero becomes dangerous.",
+        "Megamind protects Metro City."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0216",
+      "answer": "The Mitchells vs. the Machines",
+      "aliases": [],
+      "clues": [
+        "A family road trip is interrupted.",
+        "Robots begin capturing humans.",
+        "A filmmaker daughter reconnects with her dad.",
+        "Katie Mitchell helps stop a robot uprising."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0217",
+      "answer": "The Sea Beast",
+      "aliases": [],
+      "clues": [
+        "A young girl joins a monster-hunting ship.",
+        "A famous hunter questions what he has been taught.",
+        "A huge red sea creature becomes an ally.",
+        "Maisie and Jacob befriend Red."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0218",
+      "answer": "Nimona",
+      "aliases": [],
+      "clues": [
+        "A knight is framed for a crime.",
+        "A shapeshifter offers to help him.",
+        "A futuristic kingdom distrusts outsiders.",
+        "Nimona transforms into many creatures."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0219",
+      "answer": "The Boy and the Heron",
+      "aliases": [],
+      "clues": [
+        "A boy moves to the countryside after a family tragedy.",
+        "A strange bird draws him into a mystery.",
+        "An alternate world is reached through a tower.",
+        "Hayao Miyazaki directed this animated fantasy."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0220",
+      "answer": "Spirited Away",
+      "aliases": [],
+      "clues": [
+        "A young girl enters a mysterious world.",
+        "Her parents are transformed into pigs.",
+        "She works in a bathhouse for spirits.",
+        "Chihiro tries to escape Yubaba's realm."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0221",
+      "answer": "My Neighbor Totoro",
+      "aliases": [],
+      "clues": [
+        "Two sisters move to a rural house.",
+        "Strange creatures inhabit the nearby forest.",
+        "A giant cat-shaped bus appears.",
+        "Satsuki and Mei befriend Totoro."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0222",
+      "answer": "Princess Mononoke",
+      "aliases": [],
+      "clues": [
+        "A young warrior is cursed.",
+        "Humans clash with forest spirits.",
+        "A wolf-raised girl fights to protect nature.",
+        "Ashitaka meets San."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0223",
+      "answer": "Howl's Moving Castle",
+      "aliases": [],
+      "clues": [
+        "A young woman is cursed into old age.",
+        "A wandering castle travels on mechanical legs.",
+        "A fire demon powers the home.",
+        "Sophie meets wizard Howl."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0224",
+      "answer": "Kiki's Delivery Service",
+      "aliases": [],
+      "clues": [
+        "A young witch leaves home to train.",
+        "She starts a courier business.",
+        "Her black cat is named Jiji.",
+        "Kiki delivers packages by flying broomstick."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0225",
+      "answer": "Your Name",
+      "aliases": [],
+      "clues": [
+        "Two teenagers experience strange dreams.",
+        "They wake up in each other's bodies.",
+        "A comet is central to the story.",
+        "Taki and Mitsuha try to find each other."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0226",
+      "answer": "Weathering with You",
+      "aliases": [],
+      "clues": [
+        "A boy runs away to Tokyo.",
+        "A girl can briefly clear the sky.",
+        "Rainfall overwhelms the city.",
+        "Hodaka meets Hina."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0227",
+      "answer": "Suzume",
+      "aliases": [],
+      "clues": [
+        "A teenager discovers mysterious doors.",
+        "A talking cat complicates her journey.",
+        "She travels across Japan to close portals.",
+        "Suzume tries to prevent supernatural disasters."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0228",
+      "answer": "Akira",
+      "aliases": [],
+      "clues": [
+        "Teenagers ride motorcycles through a futuristic city.",
+        "Psychic powers threaten public order.",
+        "A biker named Tetsuo loses control.",
+        "The story takes place in Neo-Tokyo."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0229",
+      "answer": "Ghost in the Shell",
+      "aliases": [],
+      "clues": [
+        "A cybernetic investigator pursues a hacker.",
+        "Human identity and artificial intelligence are central.",
+        "A covert government security unit is involved.",
+        "Major Motoko Kusanagi leads Section 9."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0230",
+      "answer": "The Raid",
+      "aliases": [],
+      "clues": [
+        "A police team enters a dangerous apartment building.",
+        "Criminals surround them floor by floor.",
+        "Close-quarters martial arts dominate the action.",
+        "Iko Uwais plays Rama."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0231",
+      "answer": "The Raid 2",
+      "aliases": [],
+      "clues": [
+        "An undercover officer enters a criminal organization.",
+        "A prison fight helps establish his cover.",
+        "A hammer-wielding assassin appears.",
+        "Rama returns in the Indonesian action sequel."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0232",
+      "answer": "Ip Man",
+      "aliases": [],
+      "clues": [
+        "A martial artist lives in Foshan.",
+        "His community suffers during wartime occupation.",
+        "He is a master of Wing Chun.",
+        "Donnie Yen portrays Ip Man."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0233",
+      "answer": "Crouching Tiger, Hidden Dragon",
+      "aliases": [],
+      "clues": [
+        "A legendary sword is stolen.",
+        "Martial artists leap across rooftops and bamboo.",
+        "A rebellious young woman seeks freedom.",
+        "The Green Destiny sword is central."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0234",
+      "answer": "Hero",
+      "aliases": [],
+      "clues": [
+        "An assassin tells stories to a ruler.",
+        "Different versions of events appear in distinct colors.",
+        "The story is set in ancient China.",
+        "Jet Li plays Nameless."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0235",
+      "answer": "The Farewell",
+      "aliases": [],
+      "clues": [
+        "A family gathers under a pretext of a wedding.",
+        "A grandmother has not been told of her diagnosis.",
+        "A young woman returns to China.",
+        "Awkwafina plays Billi."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0236",
+      "answer": "Crazy, Stupid, Love.",
+      "aliases": [],
+      "clues": [
+        "A man struggles after his marriage falls apart.",
+        "A stylish stranger teaches him dating skills.",
+        "An unexpected family connection changes everything.",
+        "Steve Carell and Ryan Gosling star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0237",
+      "answer": "Palm Springs",
+      "aliases": [],
+      "clues": [
+        "Two wedding guests get stuck repeating a day.",
+        "A desert cave holds a mysterious light.",
+        "The pair revisit the same wedding repeatedly.",
+        "Andy Samberg and Cristin Milioti star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0238",
+      "answer": "About Time",
+      "aliases": [],
+      "clues": [
+        "A young man discovers a family secret.",
+        "Men in his family can revisit moments in their lives.",
+        "He uses this ability to pursue love.",
+        "Domhnall Gleeson plays Tim."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0239",
+      "answer": "The Proposal",
+      "aliases": [],
+      "clues": [
+        "An executive faces deportation.",
+        "She pretends to be engaged to her assistant.",
+        "The pair visit his family in Alaska.",
+        "Sandra Bullock and Ryan Reynolds star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0240",
+      "answer": "Notting Hill",
+      "aliases": [],
+      "clues": [
+        "A bookshop owner meets a celebrity.",
+        "Their romance attracts media attention.",
+        "The story is set in a London neighborhood.",
+        "Hugh Grant and Julia Roberts star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0241",
+      "answer": "Love Actually",
+      "aliases": [],
+      "clues": [
+        "Multiple romantic stories unfold around Christmas.",
+        "A prime minister falls for a staff member.",
+        "A man declares love using handwritten signs.",
+        "The film features an ensemble cast in London."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0242",
+      "answer": "The Holiday",
+      "aliases": [],
+      "clues": [
+        "Two women swap homes for a break.",
+        "One travels to Los Angeles and the other to England.",
+        "Unexpected romances develop over Christmas.",
+        "Cameron Diaz and Kate Winslet star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0243",
+      "answer": "Bridesmaids",
+      "aliases": [],
+      "clues": [
+        "A woman struggles with her best friend's wedding.",
+        "A bridal party trip goes disastrously wrong.",
+        "Rivalry grows with another bridesmaid.",
+        "Kristen Wiig plays Annie."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0244",
+      "answer": "Pitch Perfect",
+      "aliases": [],
+      "clues": [
+        "A college student joins an a cappella group.",
+        "A singing competition brings rival teams together.",
+        "A cup percussion performance becomes memorable.",
+        "Beca joins the Barden Bellas."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0245",
+      "answer": "School of Rock",
+      "aliases": [],
+      "clues": [
+        "An unemployed musician impersonates a substitute teacher.",
+        "He secretly teaches students rock music.",
+        "A class enters a Battle of the Bands.",
+        "Jack Black plays Dewey Finn."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0246",
+      "answer": "The Intern",
+      "aliases": [],
+      "clues": [
+        "A retired man takes a senior internship.",
+        "He joins an online fashion company.",
+        "His boss is a young founder.",
+        "Robert De Niro plays Ben Whittaker."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0247",
+      "answer": "Chef",
+      "aliases": [],
+      "clues": [
+        "A restaurant chef leaves his job after a dispute.",
+        "He starts a food truck with his son.",
+        "A road trip features Cuban sandwiches.",
+        "Jon Favreau plays Carl Casper."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0248",
+      "answer": "Julie & Julia",
+      "aliases": [],
+      "clues": [
+        "Two women pursue cooking across different eras.",
+        "One blogs about mastering a famous cookbook.",
+        "The other learns French cuisine in Paris.",
+        "Meryl Streep portrays Julia Child."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0249",
+      "answer": "The Founder",
+      "aliases": [],
+      "clues": [
+        "A salesman discovers an innovative burger restaurant.",
+        "He expands a franchise across America.",
+        "Two brothers invented the original restaurant system.",
+        "Michael Keaton plays Ray Kroc."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0250",
+      "answer": "Air",
+      "aliases": [],
+      "clues": [
+        "A sports brand seeks a new basketball star.",
+        "A shoe deal could transform the company.",
+        "The story revolves around the Air Jordan partnership.",
+        "Matt Damon plays Sonny Vaccaro."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0251",
+      "answer": "Ad Astra",
+      "aliases": [],
+      "clues": [
+        "An astronaut searches for his missing father.",
+        "The mission takes him toward the outer solar system.",
+        "A secret project near Neptune is involved.",
+        "Brad Pitt plays Roy McBride."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0252",
+      "answer": "Arrival",
+      "aliases": [],
+      "clues": [
+        "Mysterious vessels appear across Earth.",
+        "A linguist tries to communicate with visitors.",
+        "Circular written symbols are important.",
+        "Amy Adams plays Louise Banks."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0253",
+      "answer": "District 9",
+      "aliases": [],
+      "clues": [
+        "Extraterrestrials live in a segregated settlement.",
+        "A bureaucrat is exposed to alien technology.",
+        "His body begins to change.",
+        "The story is set in Johannesburg."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0254",
+      "answer": "Edge of Tomorrow",
+      "aliases": [],
+      "clues": [
+        "A soldier repeats the same battle after dying.",
+        "Each loop helps him learn new tactics.",
+        "An alien invasion threatens humanity.",
+        "Tom Cruise and Emily Blunt star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0255",
+      "answer": "Oblivion",
+      "aliases": [],
+      "clues": [
+        "A technician repairs drones on a ruined Earth.",
+        "His memories do not match what he has been told.",
+        "A mysterious woman crashes to Earth.",
+        "Tom Cruise plays Jack Harper."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0256",
+      "answer": "Elysium",
+      "aliases": [],
+      "clues": [
+        "The wealthy live on an orbiting habitat.",
+        "People on Earth lack access to advanced medical care.",
+        "A factory worker seeks passage to the station.",
+        "Matt Damon plays Max Da Costa."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0257",
+      "answer": "Ready Player One",
+      "aliases": [],
+      "clues": [
+        "A virtual universe dominates daily life.",
+        "Players hunt for hidden keys in a contest.",
+        "A young gamer challenges a corporation.",
+        "The online world is called the OASIS."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0258",
+      "answer": "Free Guy",
+      "aliases": [],
+      "clues": [
+        "A cheerful bank teller repeats a routine.",
+        "He discovers his world is a video game.",
+        "A pair of sunglasses changes his perspective.",
+        "Ryan Reynolds plays Guy."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0259",
+      "answer": "The Lego Batman Movie",
+      "aliases": [],
+      "clues": [
+        "A masked hero works alone in a brick-built city.",
+        "His butler urges him to accept a family.",
+        "The Joker tries to prove his importance.",
+        "Batman learns teamwork in Lego Gotham."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0260",
+      "answer": "Spider-Man: Across the Spider-Verse",
+      "aliases": [],
+      "clues": [
+        "A young hero travels between animated dimensions.",
+        "A team of spider-powered heroes polices anomalies.",
+        "The Spot becomes a major threat.",
+        "Miles Morales meets Miguel O'Hara."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0261",
+      "answer": "Doctor Strange in the Multiverse of Madness",
+      "aliases": [],
+      "clues": [
+        "A sorcerer meets a girl who can cross universes.",
+        "Dreamwalking allows possession of alternate selves.",
+        "A former ally becomes a major threat.",
+        "Doctor Strange protects America Chavez."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0262",
+      "answer": "Black Panther: Wakanda Forever",
+      "aliases": [],
+      "clues": [
+        "A nation mourns its king.",
+        "An underwater civilization threatens conflict.",
+        "A scientist develops a vibranium detector.",
+        "Shuri confronts Namor."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0263",
+      "answer": "Shang-Chi and the Legend of the Ten Rings",
+      "aliases": [],
+      "clues": [
+        "A young man hides his martial arts past.",
+        "His father leads a mysterious organization.",
+        "A hidden village is guarded by mythical creatures.",
+        "Simu Liu plays Shang-Chi."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0264",
+      "answer": "Eternals",
+      "aliases": [],
+      "clues": [
+        "Ancient beings have secretly lived among humans.",
+        "Their mission concerns creatures called Deviants.",
+        "A Celestial's emergence threatens Earth.",
+        "A team of immortal heroes reunites."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0265",
+      "answer": "Ant-Man and the Wasp: Quantumania",
+      "aliases": [],
+      "clues": [
+        "A family is trapped in a subatomic realm.",
+        "A powerful conqueror rules the region.",
+        "An army of ants becomes significant.",
+        "Scott Lang confronts Kang."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0266",
+      "answer": "Guardians of the Galaxy Vol. 3",
+      "aliases": [],
+      "clues": [
+        "A spacefaring team fights to save a friend.",
+        "A character's traumatic origins are revealed.",
+        "A villain experiments on animals.",
+        "Rocket Raccoon's past is central."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0267",
+      "answer": "The Suicide Squad",
+      "aliases": [],
+      "clues": [
+        "A team of imprisoned villains is sent on a mission.",
+        "They infiltrate an island nation.",
+        "A giant starfish-like creature emerges.",
+        "James Gunn directed this film featuring Harley Quinn."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0268",
+      "answer": "Wonder Woman 1984",
+      "aliases": [],
+      "clues": [
+        "A superhero lives during the 1980s.",
+        "A mysterious stone grants wishes.",
+        "A businessman gains dangerous powers.",
+        "Diana faces Maxwell Lord and Cheetah."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0269",
+      "answer": "Aquaman and the Lost Kingdom",
+      "aliases": [],
+      "clues": [
+        "A king of Atlantis faces a returning enemy.",
+        "A cursed black trident grants power.",
+        "Two brothers reluctantly cooperate.",
+        "Arthur Curry teams up with Orm."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0270",
+      "answer": "The Flash",
+      "aliases": [],
+      "clues": [
+        "A speedster tries to change the past.",
+        "An altered timeline creates unexpected heroes.",
+        "A different Batman appears.",
+        "Barry Allen travels through time."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0271",
+      "answer": "The Dark Knight Rises",
+      "aliases": [],
+      "clues": [
+        "A masked hero returns after years away.",
+        "A mercenary takes control of Gotham.",
+        "A mysterious prison has a deep pit.",
+        "Batman faces Bane."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0272",
+      "answer": "Man of Steel",
+      "aliases": [],
+      "clues": [
+        "An alien child grows up on Earth.",
+        "His biological father sends him away from a dying planet.",
+        "A Kryptonian general threatens humanity.",
+        "Henry Cavill portrays Superman."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0273",
+      "answer": "The Hunger Games: The Ballad of Songbirds & Snakes",
+      "aliases": [],
+      "clues": [
+        "A young man mentors a contestant in an early arena competition.",
+        "The Capitol's politics shape his ambitions.",
+        "A singer from District 12 draws attention.",
+        "The story follows young Coriolanus Snow."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0274",
+      "answer": "Five Feet Apart",
+      "aliases": [],
+      "clues": [
+        "Two patients develop a romantic connection.",
+        "Strict distance rules separate them.",
+        "A hospital is the main setting.",
+        "Stella and Will live with cystic fibrosis."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0275",
+      "answer": "The Kissing Booth",
+      "aliases": [],
+      "clues": [
+        "A teenager runs a kissing booth at a school event.",
+        "She breaks a friendship rule by dating someone.",
+        "A popular older brother becomes her love interest.",
+        "Elle falls for Noah."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0276",
+      "answer": "To All the Boys I've Loved Before",
+      "aliases": [],
+      "clues": [
+        "Private letters are unexpectedly mailed.",
+        "A teenager pretends to date a classmate.",
+        "Her family and school life become complicated.",
+        "Lara Jean and Peter start a fake relationship."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0277",
+      "answer": "The Perfect Date",
+      "aliases": [],
+      "clues": [
+        "A student offers a paid companion service.",
+        "He uses an app to arrange dates.",
+        "His feelings complicate the business.",
+        "Noah Centineo plays Brooks Rattigan."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0278",
+      "answer": "The Platform",
+      "aliases": [],
+      "clues": [
+        "Prisoners live on stacked levels.",
+        "Food descends on a moving platform.",
+        "Lower levels receive leftovers.",
+        "The story takes place in a vertical prison."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0279",
+      "answer": "Snowpiercer",
+      "aliases": [],
+      "clues": [
+        "Survivors live aboard a train after a climate catastrophe.",
+        "Passengers are separated by social class.",
+        "A revolt moves from carriage to carriage.",
+        "Chris Evans plays Curtis."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0280",
+      "answer": "The Impossible",
+      "aliases": [],
+      "clues": [
+        "A family vacations in Thailand.",
+        "A devastating wave separates them.",
+        "They struggle to reunite after a natural disaster.",
+        "Naomi Watts and Ewan McGregor star in a tsunami drama."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0281",
+      "answer": "127 Hours",
+      "aliases": [],
+      "clues": [
+        "An adventurer explores a canyon alone.",
+        "A falling boulder traps his arm.",
+        "He must make an extreme survival decision.",
+        "James Franco portrays Aron Ralston."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0282",
+      "answer": "The Terminal",
+      "aliases": [],
+      "clues": [
+        "A traveler arrives at an American airport.",
+        "A political crisis invalidates his passport.",
+        "He lives inside the terminal for months.",
+        "Tom Hanks plays Viktor Navorski."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0283",
+      "answer": "The Secret Life of Walter Mitty",
+      "aliases": [],
+      "clues": [
+        "An office worker imagines daring adventures.",
+        "He searches for a missing photograph.",
+        "His journey includes Iceland and the Himalayas.",
+        "Ben Stiller plays Walter Mitty."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0284",
+      "answer": "The Curious Case of Benjamin Button",
+      "aliases": [],
+      "clues": [
+        "A man experiences aging in an unusual direction.",
+        "He is born with the appearance of an elderly person.",
+        "A lifelong romance connects him with Daisy.",
+        "Brad Pitt plays Benjamin Button."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0285",
+      "answer": "The Age of Adaline",
+      "aliases": [],
+      "clues": [
+        "A woman stops physically aging after an accident.",
+        "She changes identities to conceal her secret.",
+        "A romance threatens her carefully managed life.",
+        "Blake Lively plays Adaline."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0286",
+      "answer": "The Time Traveler's Wife",
+      "aliases": [],
+      "clues": [
+        "A man travels unpredictably through time.",
+        "His wife experiences their relationship out of sequence.",
+        "A genetic condition causes his disappearances.",
+        "Rachel McAdams and Eric Bana star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0287",
+      "answer": "The Vow",
+      "aliases": [],
+      "clues": [
+        "A couple's life changes after a car accident.",
+        "A woman loses memories of her marriage.",
+        "Her husband tries to win her love again.",
+        "Channing Tatum and Rachel McAdams star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0288",
+      "answer": "Me Before You",
+      "aliases": [],
+      "clues": [
+        "A young woman becomes a caregiver.",
+        "She befriends a wealthy man with a spinal injury.",
+        "Their relationship changes both lives.",
+        "Emilia Clarke plays Louisa Clark."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0289",
+      "answer": "The Intouchables",
+      "aliases": [],
+      "clues": [
+        "A wealthy man hires an unconventional caregiver.",
+        "The caregiver comes from a different social background.",
+        "A friendship forms in Paris.",
+        "Omar Sy plays Driss."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0290",
+      "answer": "The Theory of Everything",
+      "aliases": [],
+      "clues": [
+        "A physics student begins a remarkable career.",
+        "He is diagnosed with motor neuron disease.",
+        "His marriage to Jane is central.",
+        "Eddie Redmayne portrays Stephen Hawking."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0291",
+      "answer": "A Beautiful Mind",
+      "aliases": [],
+      "clues": [
+        "A brilliant mathematician works at Princeton.",
+        "He believes he is involved in secret intelligence work.",
+        "The story explores his experience of schizophrenia.",
+        "Russell Crowe portrays John Nash."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0292",
+      "answer": "Hidden Figures",
+      "aliases": [],
+      "clues": [
+        "Three women work at a space agency.",
+        "Mathematics helps advance a space mission.",
+        "Segregation creates barriers at work.",
+        "The story follows Katherine Johnson and fellow NASA mathematicians."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0293",
+      "answer": "The Help",
+      "aliases": [],
+      "clues": [
+        "A young writer returns to Mississippi.",
+        "She interviews domestic workers about their lives.",
+        "The story takes place during the civil rights era.",
+        "Emma Stone plays Skeeter."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0294",
+      "answer": "12 Years a Slave",
+      "aliases": [],
+      "clues": [
+        "A free man is kidnapped and enslaved.",
+        "He struggles to survive on plantations.",
+        "The story is based on Solomon Northup's memoir.",
+        "Chiwetel Ejiofor portrays Solomon Northup."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0295",
+      "answer": "The Butler",
+      "aliases": [],
+      "clues": [
+        "A man works for decades in the White House.",
+        "He serves during major civil rights events.",
+        "His son's activism strains family ties.",
+        "Forest Whitaker plays Cecil Gaines."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0296",
+      "answer": "Green Book",
+      "aliases": [],
+      "clues": [
+        "A driver accompanies a musician on tour.",
+        "Their journey crosses the American South in the 1960s.",
+        "A travel guide lists safer places for Black travelers.",
+        "Viggo Mortensen and Mahershala Ali star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0297",
+      "answer": "The Pianist",
+      "aliases": [],
+      "clues": [
+        "A musician survives in occupied Warsaw.",
+        "His family is forced into the ghetto.",
+        "He hides while the city is devastated.",
+        "Adrien Brody plays Władysław Szpilman."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0298",
+      "answer": "Schindler's List",
+      "aliases": [],
+      "clues": [
+        "A businessman employs Jewish workers during World War II.",
+        "He begins to protect people from persecution.",
+        "A red coat is a memorable image.",
+        "Liam Neeson portrays Oskar Schindler."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0299",
+      "answer": "Jojo Rabbit",
+      "aliases": [],
+      "clues": [
+        "A boy joins a youth organization in wartime Germany.",
+        "His imaginary friend is a dictator.",
+        "He discovers a girl hidden in his home.",
+        "Taika Waititi directed this satirical drama."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0300",
+      "answer": "The Boy in the Striped Pajamas",
+      "aliases": [],
+      "clues": [
+        "A boy moves near a concentration camp.",
+        "He befriends another boy across a fence.",
+        "Their friendship is hidden from adults.",
+        "The characters Bruno and Shmuel are central."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0301",
+      "answer": "The Sound of Music",
+      "aliases": [],
+      "clues": [
+        "A governess joins a large family in Austria.",
+        "She teaches the children to sing.",
+        "The family faces political upheaval.",
+        "Maria and the von Trapp children perform together."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0302",
+      "answer": "Mary Poppins",
+      "aliases": [],
+      "clues": [
+        "A magical nanny arrives in London.",
+        "She takes children on extraordinary adventures.",
+        "An umbrella helps her travel.",
+        "Julie Andrews plays Mary Poppins."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0303",
+      "answer": "Wonka",
+      "aliases": [],
+      "clues": [
+        "A young chocolatier arrives in a city.",
+        "A cartel controls the local sweets market.",
+        "He befriends a young girl named Noodle.",
+        "Timothée Chalamet plays Willy Wonka."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0304",
+      "answer": "Charlie and the Chocolate Factory",
+      "aliases": [],
+      "clues": [
+        "Children win tickets to tour a factory.",
+        "A strange inventor leads the visitors.",
+        "Oompa-Loompas work in the factory.",
+        "Johnny Depp portrays Willy Wonka."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0305",
+      "answer": "The BFG",
+      "aliases": [],
+      "clues": [
+        "A girl befriends a giant.",
+        "He collects dreams in jars.",
+        "Other giants are far less friendly.",
+        "Sophie meets the Big Friendly Giant."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0306",
+      "answer": "Matilda",
+      "aliases": [],
+      "clues": [
+        "A gifted girl grows up with neglectful parents.",
+        "Her school is run by a cruel headmistress.",
+        "She discovers telekinetic powers.",
+        "Matilda befriends Miss Honey."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0307",
+      "answer": "The Parent Trap",
+      "aliases": [],
+      "clues": [
+        "Two girls meet at summer camp.",
+        "They discover they are identical twins.",
+        "They switch places to reunite their parents.",
+        "Lindsay Lohan plays both Hallie and Annie."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0308",
+      "answer": "Freaky Friday",
+      "aliases": [],
+      "clues": [
+        "A mother and daughter argue frequently.",
+        "They suddenly exchange bodies.",
+        "Both gain new understanding of each other's lives.",
+        "Lindsay Lohan and Jamie Lee Curtis star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0309",
+      "answer": "13 Going on 30",
+      "aliases": [],
+      "clues": [
+        "A teenager wishes to be older.",
+        "She wakes up as a thirty-year-old magazine editor.",
+        "A childhood friend helps her understand what changed.",
+        "Jennifer Garner plays Jenna Rink."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0310",
+      "answer": "Legally Blonde",
+      "aliases": [],
+      "clues": [
+        "A fashion-conscious student applies to law school.",
+        "She aims to prove she is more than appearances.",
+        "A murder trial tests her legal skills.",
+        "Reese Witherspoon plays Elle Woods."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0311",
+      "answer": "Miss Congeniality",
+      "aliases": [],
+      "clues": [
+        "An FBI agent goes undercover in a competition.",
+        "She learns pageant etiquette.",
+        "A bomb threat drives the investigation.",
+        "Sandra Bullock plays Gracie Hart."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0312",
+      "answer": "The Princess Switch",
+      "aliases": [],
+      "clues": [
+        "Two women who look alike exchange places.",
+        "One is a baker and the other is royalty.",
+        "A Christmas romance develops.",
+        "Vanessa Hudgens plays both lookalikes."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0313",
+      "answer": "Enola Holmes",
+      "aliases": [],
+      "clues": [
+        "A teenager searches for her missing mother.",
+        "Her famous detective brother tries to intervene.",
+        "She investigates a young lord's disappearance.",
+        "Millie Bobby Brown plays Sherlock Holmes's sister."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0314",
+      "answer": "Enola Holmes 2",
+      "aliases": [],
+      "clues": [
+        "A young detective opens her own agency.",
+        "She investigates a missing match-factory worker.",
+        "The mystery involves dangerous workplace conditions.",
+        "Enola teams up with Sherlock."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0315",
+      "answer": "Murder Mystery",
+      "aliases": [],
+      "clues": [
+        "A couple vacations in Europe.",
+        "A wealthy host is murdered on a yacht.",
+        "They become suspects in the investigation.",
+        "Adam Sandler and Jennifer Aniston star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0316",
+      "answer": "Murder Mystery 2",
+      "aliases": [],
+      "clues": [
+        "A married couple starts a detective agency.",
+        "A friend is kidnapped during a lavish wedding.",
+        "A ransom exchange leads to Paris.",
+        "Nick and Audrey Spitz return."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0317",
+      "answer": "Red Notice",
+      "aliases": [],
+      "clues": [
+        "An FBI profiler pursues art thieves.",
+        "Three jeweled eggs are the target.",
+        "Rivals form uneasy alliances.",
+        "Dwayne Johnson, Ryan Reynolds and Gal Gadot star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0318",
+      "answer": "The Gray Man",
+      "aliases": [],
+      "clues": [
+        "A covert operative discovers a dangerous secret.",
+        "A ruthless former colleague hunts him.",
+        "The chase spans several countries.",
+        "Ryan Gosling plays Sierra Six."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0319",
+      "answer": "Extraction",
+      "aliases": [],
+      "clues": [
+        "A mercenary rescues a kidnapped teenager.",
+        "The mission takes place in Bangladesh.",
+        "A long action sequence follows an escape through Dhaka.",
+        "Chris Hemsworth plays Tyler Rake."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0320",
+      "answer": "Extraction 2",
+      "aliases": [],
+      "clues": [
+        "A mercenary returns for another rescue mission.",
+        "He infiltrates a prison to save a family.",
+        "An extended train action sequence follows.",
+        "Chris Hemsworth returns as Tyler Rake."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0321",
+      "answer": "The Old Guard",
+      "aliases": [],
+      "clues": [
+        "A team of warriors has lived for centuries.",
+        "They heal from seemingly fatal injuries.",
+        "A new recruit discovers the group's secret.",
+        "Charlize Theron plays Andy."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0322",
+      "answer": "6 Underground",
+      "aliases": [],
+      "clues": [
+        "A billionaire fakes his death.",
+        "He recruits a team of vigilantes.",
+        "The members are identified by numbers.",
+        "Ryan Reynolds plays One."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0323",
+      "answer": "Army of the Dead",
+      "aliases": [],
+      "clues": [
+        "A team plans a heist during a zombie outbreak.",
+        "The target is a Las Vegas casino vault.",
+        "A walled-off city contains the infected.",
+        "Dave Bautista leads the crew."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0324",
+      "answer": "Zombieland",
+      "aliases": [],
+      "clues": [
+        "Survivors follow rules during an apocalypse.",
+        "A man nicknamed Columbus narrates his survival guide.",
+        "A theme park becomes a destination.",
+        "Woody Harrelson plays Tallahassee."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0325",
+      "answer": "World War Z",
+      "aliases": [],
+      "clues": [
+        "A global infection spreads rapidly.",
+        "An investigator travels across countries for answers.",
+        "The infected move in enormous swarms.",
+        "Brad Pitt plays Gerry Lane."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0326",
+      "answer": "I Am Legend",
+      "aliases": [],
+      "clues": [
+        "A scientist lives in a largely abandoned city.",
+        "He experiments with a possible cure.",
+        "A dog is his close companion.",
+        "Will Smith plays Robert Neville in New York."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0327",
+      "answer": "28 Days Later",
+      "aliases": [],
+      "clues": [
+        "A man wakes from a coma.",
+        "London appears deserted.",
+        "A rage virus has spread through Britain.",
+        "Cillian Murphy plays Jim."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0328",
+      "answer": "Trainwreck",
+      "aliases": [],
+      "clues": [
+        "A magazine writer avoids long-term relationships.",
+        "She interviews a sports doctor.",
+        "Their romance challenges her habits.",
+        "Amy Schumer and Bill Hader star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0329",
+      "answer": "The Nice Guys",
+      "aliases": [],
+      "clues": [
+        "Two mismatched investigators work together.",
+        "They uncover a conspiracy in 1970s Los Angeles.",
+        "A missing young woman is central.",
+        "Ryan Gosling and Russell Crowe star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0330",
+      "answer": "Game Night",
+      "aliases": [],
+      "clues": [
+        "Friends gather for a mystery game.",
+        "A staged kidnapping becomes real.",
+        "The group struggles to distinguish clues from danger.",
+        "Jason Bateman and Rachel McAdams star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0331",
+      "answer": "Tag",
+      "aliases": [],
+      "clues": [
+        "A group of adult friends continues a childhood game.",
+        "One player has never been tagged.",
+        "The competition spans decades.",
+        "Jeremy Renner plays Jerry."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0332",
+      "answer": "We're the Millers",
+      "aliases": [],
+      "clues": [
+        "A small-time dealer recruits a fake family.",
+        "They travel in an RV across the border.",
+        "A pretend vacation conceals a smuggling plan.",
+        "Jason Sudeikis and Jennifer Aniston star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0333",
+      "answer": "Central Intelligence",
+      "aliases": [],
+      "clues": [
+        "An accountant reconnects with a former classmate.",
+        "The classmate now works as a spy.",
+        "A reunion leads to a dangerous mission.",
+        "Dwayne Johnson and Kevin Hart star."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0334",
+      "answer": "Night at the Museum: Battle of the Smithsonian",
+      "aliases": [],
+      "clues": [
+        "Museum exhibits are moved into storage.",
+        "An ancient pharaoh returns as a villain.",
+        "The action moves to Washington museums.",
+        "Larry Daley faces Kahmunrah."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0335",
+      "answer": "Night at the Museum: Secret of the Tomb",
+      "aliases": [],
+      "clues": [
+        "A magical tablet begins losing its power.",
+        "The characters travel to a London museum.",
+        "A final journey seeks to preserve the magic.",
+        "Ben Stiller returns as Larry Daley."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0336",
+      "answer": "The Pink Panther",
+      "aliases": [],
+      "clues": [
+        "A clumsy detective investigates a murder.",
+        "A valuable diamond is central.",
+        "The detective speaks with a distinctive accent.",
+        "Steve Martin plays Inspector Clouseau."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0337",
+      "answer": "Johnny English",
+      "aliases": [],
+      "clues": [
+        "An inept secret agent takes on a mission.",
+        "He repeatedly causes accidental chaos.",
+        "A stolen crown is part of the plot.",
+        "Rowan Atkinson plays Johnny English."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0338",
+      "answer": "Mr. Bean's Holiday",
+      "aliases": [],
+      "clues": [
+        "A quiet British man wins a trip to France.",
+        "He struggles through a series of travel mishaps.",
+        "He accidentally separates a boy from his father.",
+        "Rowan Atkinson takes Mr. Bean to Cannes."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0339",
+      "answer": "Bean",
+      "aliases": [],
+      "clues": [
+        "A British museum guard travels to Los Angeles.",
+        "He is mistaken for an art expert.",
+        "A famous painting is damaged.",
+        "Rowan Atkinson stars as Mr. Bean."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0340",
+      "answer": "The Mask",
+      "aliases": [],
+      "clues": [
+        "A timid bank clerk discovers an unusual object.",
+        "Putting it on gives him cartoonish powers.",
+        "His face turns green.",
+        "Jim Carrey plays Stanley Ipkiss."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0341",
+      "answer": "Ace Ventura: Pet Detective",
+      "aliases": [],
+      "clues": [
+        "An eccentric investigator specializes in missing animals.",
+        "A football team's mascot disappears.",
+        "The detective uses bizarre methods.",
+        "Jim Carrey plays Ace Ventura."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0342",
+      "answer": "Liar Liar",
+      "aliases": [],
+      "clues": [
+        "A lawyer often lies to get ahead.",
+        "His son's birthday wish changes everything.",
+        "He cannot tell a lie for one day.",
+        "Jim Carrey plays Fletcher Reede."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0343",
+      "answer": "Bruce Almighty",
+      "aliases": [],
+      "clues": [
+        "A frustrated television reporter challenges fate.",
+        "He is temporarily given divine powers.",
+        "He discovers that answering prayers is difficult.",
+        "Jim Carrey plays Bruce Nolan."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0344",
+      "answer": "Yes Man",
+      "aliases": [],
+      "clues": [
+        "A man avoids new experiences.",
+        "A motivational program changes his habits.",
+        "He starts agreeing to nearly every opportunity.",
+        "Jim Carrey plays Carl Allen."
+      ],
+      "category": "movies"
+    },
+    {
+      "id": "movie-0345",
+      "answer": "The Bucket List",
+      "aliases": [],
+      "clues": [
+        "Two men meet during cancer treatment.",
+        "They make a list of experiences to share.",
+        "A trip around the world follows.",
+        "Jack Nicholson and Morgan Freeman star."
+      ],
+      "category": "movies"
+    }
+  ]
+}
