@@ -19,6 +19,7 @@ import { anonymousNetworkKey, privacyKey } from "./privacy.js";
 import { Moderation, cleanMessage } from "./moderation.js";
 import { RateLimiter } from "./ratelimit.js";
 import { REPORT_REASONS, parseJoin } from "./validate.js";
+import { createUnderground } from "./underground.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const REPORT_LOOKBACK_MS = 5 * 60 * 1000;
@@ -82,6 +83,8 @@ export function createApp(overrides = {}) {
     return sendJson(res, 404, { error: "not_found" });
   }
 
+  const underground = createUnderground(io);
+
   // ---------- Connection guard ----------
 
   io.use((socket, next) => {
@@ -92,6 +95,7 @@ export function createApp(overrides = {}) {
   });
 
   io.on("connection", (socket) => {
+    underground.attach(socket);
     socket.data.roomId = null;
     socket.data.lastPartner = null;
     const joinLimiter = new RateLimiter(cfg.limits.joinsPerWindow, cfg.limits.joinWindowMs);
