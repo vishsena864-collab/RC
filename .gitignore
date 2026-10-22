@@ -3,8 +3,13 @@ node_modules/
 .env
 .env.*
 !.env.example
+
+# runtime safety reports can contain sensitive chat excerpts; do not commit them
+server/data/*.json
+server/data/*.jsonl
+
 *.log
-.DS_Store
-.vercel/
-coverage/
-server/data/*.sqlite
+
+# Public editorial question bank and prebuilt server-only SQLite DB (no user data)
+!server/data/movie_questions.json
+!server/data/movie_trivia.sqlite
