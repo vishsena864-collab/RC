@@ -4,6 +4,13 @@ const MAX_PEOPLE = 12;
 const ROOM_CODES = ["STATIC","MIDNIGHT","BASEMENT","ECHO","FREQUENCY","AFTERHOURS"];
 const TRACK_ID = /^[a-zA-Z0-9_-]{1,48}$/;
 const MAX_CHAT = 280;
+const DJ_TURN_MS = 4 * 60_000;
+const COLOR_THEMES = ["acid","infrared","ultraviolet","ocean","gold","rose","midnight","toxic"];
+const FX_MODES = ["pulse","march","sweep","crossfire","tunnel","bloom","drift"];
+const MOODS = ["energy","chill","love","deep"];
+const REACTIONS = ["heart","fire","spark","wave"];
+const defaultLights = () => ({theme:"acid",fx:"march",intensity:2,beatBpm:116,updatedAt:Date.now(),showMoment:null});
+
 export function createUnderground(io) {
   const rooms = new Map();
   const bySocket = new Map();
@@ -11,7 +18,7 @@ export function createUnderground(io) {
   const state = (room) => ({
     room: room.code, listeners: room.members.size,
     dj: room.dj, track: room.track, startedAt: room.startedAt,
-    queue: room.queue.slice(0, 12), updatedAt: Date.now()
+    queue: room.queue.slice(0, 12), lights:room.lights, mood:room.mood, djSince:room.djSince, djTurnMs:DJ_TURN_MS, updatedAt: Date.now()
   });
   const publish = (room) => io.to("fm:" + room.code).emit("fm:state", state(room));
   const leave = (socket) => {
@@ -21,10 +28,10 @@ export function createUnderground(io) {
     socket.leave("fm:" + code);
     const room = rooms.get(code);
     if (!room) return;
-    room.members.delete(socket.id);
+    room.members.delete(socket.id);room.reactionAt.delete(socket.id);room.lastMood.delete(socket.id);
     room.queue = room.queue.filter((q) => room.members.has(q.by));
     if (room.members.size === 0) { rooms.delete(code); return; }
-    if (room.dj === socket.id) room.dj = [...room.members][randomInt(room.members.size)];
+    if (room.dj === socket.id) {room.dj = [...room.members][randomInt(room.members.size)];room.djSince=Date.now();}
     publish(room);
   };
   const join = (socket, ack) => {
@@ -34,13 +41,13 @@ export function createUnderground(io) {
     if (!room) {
       const code = ROOM_CODES.find((name) => !rooms.has(name));
       if (!code) return ack?.({ok:false,error:"full"});
-      room = {code,members:new Set(),dj:null,track:null,startedAt:null,queue:[]};
+      room = {code,members:new Set(),dj:null,djSince:Date.now(),track:null,startedAt:null,queue:[],lights:defaultLights(),mood:{energy:0,chill:0,love:0,deep:0},reactionAt:new Map(),lastMood:new Map(),lastMoment:0};
       rooms.set(code, room);
     }
     room.members.add(socket.id);
     socket.join("fm:" + room.code);
     bySocket.set(socket.id, room.code);
-    if (!room.dj) room.dj = socket.id;
+    if (!room.dj) {room.dj = socket.id;room.djSince=Date.now();}
     ack?.({ok:true,room:room.code});
     publish(room);
   };
@@ -84,7 +91,54 @@ export function createUnderground(io) {
       const room=rooms.get(bySocket.get(socket.id));
       if (!room || room.dj !== socket.id || room.members.size < 2) return ack?.({ok:false});
       const others=[...room.members].filter((id)=>id!==socket.id);
-      room.dj=others[randomInt(others.length)];publish(room);ack?.({ok:true});
+      room.dj=others[randomInt(others.length)];room.djSince=Date.now();publish(room);ack?.({ok:true});
+    });
+    socket.on("fm:lights", (payload, ack) => {
+      const room = rooms.get(bySocket.get(socket.id));
+      if (!room || room.dj !== socket.id) return ack?.({ok:false,error:"dj_only"});
+      if (!payload || typeof payload !== "object") return ack?.({ok:false,error:"invalid"});
+      const next={...room.lights};
+      if (payload.theme !== undefined) {
+        if (!COLOR_THEMES.includes(payload.theme)) return ack?.({ok:false,error:"invalid_theme"});
+        next.theme=payload.theme;
+      }
+      if (payload.fx !== undefined) {
+        if (!FX_MODES.includes(payload.fx)) return ack?.({ok:false,error:"invalid_fx"});
+        next.fx=payload.fx;
+      }
+      if (payload.intensity !== undefined) {
+        if (![0,1,2,3].includes(payload.intensity)) return ack?.({ok:false,error:"invalid_intensity"});
+        next.intensity=payload.intensity;
+      }
+      if (payload.beatBpm !== undefined) {
+        if (!Number.isInteger(payload.beatBpm) || payload.beatBpm<60 || payload.beatBpm>180) return ack?.({ok:false,error:"invalid_bpm"});
+        next.beatBpm=payload.beatBpm;
+      }
+      next.updatedAt=Date.now();room.lights=next;publish(room);ack?.({ok:true});
+    });
+    socket.on("fm:moment", (kind, ack) => {
+      const room=rooms.get(bySocket.get(socket.id));
+      if (!room || room.dj!==socket.id) return ack?.({ok:false,error:"dj_only"});
+      if (!["drop","flip","storm","fade"].includes(kind)) return ack?.({ok:false,error:"invalid"});
+      if (Date.now()-room.lastMoment<25000) return ack?.({ok:false,error:"cooldown"});
+      room.lastMoment=Date.now();
+      room.lights={...room.lights,showMoment:{kind,at:Date.now()},updatedAt:Date.now()};
+      publish(room);ack?.({ok:true});
+    });
+    socket.on("fm:mood", (choice, ack) => {
+      const room=rooms.get(bySocket.get(socket.id));
+      if (!room || !MOODS.includes(choice)) return ack?.({ok:false,error:"invalid"});
+      if (Date.now()-(room.lastMood.get(socket.id)||0)<20000) return ack?.({ok:false,error:"cooldown"});
+      room.lastMood.set(socket.id,Date.now());
+      room.mood[choice]=Math.min(9999,room.mood[choice]+1);publish(room);ack?.({ok:true});
+    });
+    socket.on("fm:reaction", (reaction,ack) => {
+      const room=rooms.get(bySocket.get(socket.id));
+      if (!room || !REACTIONS.includes(reaction)) return ack?.({ok:false,error:"invalid"});
+      if (Date.now()-(room.reactionAt.get(socket.id)||0)<1800) return ack?.({ok:false,error:"cooldown"});
+      room.reactionAt.set(socket.id,Date.now());
+      io.to("fm:"+room.code).emit("fm:reaction",{kind:reaction,at:Date.now()});
+      ack?.({ok:true});
     });
     socket.on("fm:chat", (message) => {
       const room=rooms.get(bySocket.get(socket.id));
@@ -97,5 +151,16 @@ export function createUnderground(io) {
     });
     socket.on("disconnect",()=>{leave(socket);lastChat.delete(socket.id);});
   };
-  return {attach,rooms,leave};
+  const turnTimer=setInterval(()=>{
+    for(const room of rooms.values()){
+      if(room.members.size<2) continue;
+      if(Date.now()-room.djSince<DJ_TURN_MS) continue;
+      const order=[...room.members];
+      const idx=order.indexOf(room.dj);
+      room.dj=order[(idx+1)%order.length];
+      room.djSince=Date.now();publish(room);
+    }
+  },3000);
+  turnTimer.unref?.();
+  return {attach,rooms,leave,close:()=>clearInterval(turnTimer)};
 }
