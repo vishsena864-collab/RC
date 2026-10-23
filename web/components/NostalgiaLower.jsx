@@ -80,7 +80,7 @@ export default function NostalgiaLower({ locale, dict }) {
           <div className="nlg-atlas-grid">
             <div className="nlg-atlas-copy">
               <span className="nlg-kicker">EVERY PERSON HAS A STORY</span>
-              <h2 id="nlg-atlas-title">A WORLD<br />FULL OF <em>HELL0S.</em></h2>
+              <h2 id="nlg-atlas-title">A WORLD<br />FULL OF <em>HELLOS.</em></h2>
               <p>{fmt(home.globeText, {name: SITE_NAME})}</p>
               <div className="nlg-lang-label" id="nlg-lang-label">{home.globeLangs}</div>
               <ul className="nlg-lang-list" aria-labelledby="nlg-lang-label">
