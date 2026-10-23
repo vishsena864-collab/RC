@@ -59,6 +59,18 @@ export default async function HomePage({ params }) {
             </div>
             <a className="extra-feature-link" href={`/${locale}/underground`}>Explore music rooms <span aria-hidden="true">↗</span></a>
           </section>
+          <section className="creative-feature-grid" aria-label="Creative side features">
+            <a className="creative-feature-card creative-poem-card" href={`/${locale}/poem-wall`}>
+              <div className="creative-card-header"><span>CHATSPARK / 002</span><span>✳ COMMUNITY CURATED</span></div>
+              <div className="creative-poem-art" aria-hidden="true"><span>“</span><em>Some words deserve to outlive the stranger who wrote them.</em></div>
+              <div className="creative-card-footer"><div><small>THE WRITTEN WALL</small><h3>Poem Wall</h3><p>Anonymous poems. Your likes decide which five survive the week.</p></div><span className="creative-arrow" aria-hidden="true">↗</span></div>
+            </a>
+            <a className="creative-feature-card creative-graffiti-card" href={`/${locale}/graffiti-wall`}>
+              <div className="creative-card-header"><span>CHATSPARK / 003</span><span>↗ MAKE YOUR MARK</span></div>
+              <div className="creative-graffiti-art" aria-hidden="true"><span className="creative-paint-splash">✳</span><strong>STAY<br/>WEIRD.</strong><span className="creative-stencil-text">SPRAY / DRAW / VOTE / REPEAT</span></div>
+              <div className="creative-card-footer"><div><small>THE ART WALL</small><h3>Graffiti Wall</h3><p>Paint with neon spray, earn likes and download a signed art card.</p></div><span className="creative-arrow" aria-hidden="true">↗</span></div>
+            </a>
+          </section>
           <GlobeCard locale={locale} dict={dict} />
           <Steps title={home.stepsTitle} steps={home.steps} />
           <WhyGrid title={home.whyTitle} items={home.why} />
