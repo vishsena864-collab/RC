@@ -76,6 +76,7 @@ export default function GraffitiWall({locale="en"}){
    e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);
    if(tool==="pan"){panFrom.current={startX:e.clientX,startY:e.clientY,x:pan.x,y:pan.y};return;}
    const pt=pos(e);
+   if(tool==="bucket"){edit(a=>({...a,background:color}));return;}
    if(tool==="pick"){
      const rgba=canvas.current.getContext("2d").getImageData(Math.floor(pt[0]/1000*960),Math.floor(pt[1]/1000*600),1,1).data;
      setColor(hexColor(rgba));setTool("marker");return;
@@ -86,7 +87,7 @@ export default function GraffitiWall({locale="en"}){
    if(tool==="text"||tool==="stamp"){
      edit(prev=>({...prev,ops:[...prev.ops.slice(-279),op]}));return;
    }
-   if(["line","rectangle","ellipse","arrow"].includes(tool))op.pts.push(pt);
+   if(["line","rectangle","fill-rectangle","ellipse","fill-ellipse","arrow"].includes(tool))op.pts.push(pt);
    tracking.current=e.pointerId;draftRef.current=op;setDraft(op);
  };
  const move=e=>{
@@ -97,7 +98,7 @@ export default function GraffitiWall({locale="en"}){
    if(tracking.current!==e.pointerId || !draftRef.current)return;
    const pt=pos(e),prev=draftRef.current;
    let pts=prev.pts;
-   if(["line","rectangle","ellipse","arrow"].includes(tool)){pts=[pts[0],pt];}
+   if(["line","rectangle","fill-rectangle","ellipse","fill-ellipse","arrow"].includes(tool)){pts=[pts[0],pt];}
    else if(pts.length<190){
      const last=pts[pts.length-1];
      if(Math.abs(last[0]-pt[0])+Math.abs(last[1]-pt[1])<3)return;
