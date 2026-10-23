@@ -3800,3 +3800,33 @@ main:has(.home-entertainment) { padding: 0; }
   .extra-feature-link { width: 100%; }
   .nav-side-feature { display: none; }
 }
+
+/* Two standalone, collectible-feeling side features. Random chat remains first. */
+.creative-feature-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px;margin:18px 0 48px}
+.creative-feature-card{display:flex;min-width:0;flex-direction:column;text-decoration:none!important;color:#f3f0e7!important;border-radius:17px;overflow:hidden;isolation:isolate;position:relative;background:#1b211b;border:1px solid #3c483c;transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s}
+.creative-feature-card:hover{transform:translateY(-6px);box-shadow:0 15px 40px #19241822}
+.creative-feature-card:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
+.creative-card-header{display:flex;justify-content:space-between;gap:12px;padding:15px 18px;color:#d9e7cf;font:800 10px ui-monospace,monospace;letter-spacing:.08em}
+.creative-poem-card{background:#28221f;border-color:#746253}
+.creative-poem-card .creative-card-header{color:#dec6ad}
+.creative-poem-art{height:188px;position:relative;background:repeating-linear-gradient(0deg,transparent 0,transparent 29px,#a4866b25 30px),#3a2f29;display:flex;align-items:center;justify-content:center;padding:20px 50px;overflow:hidden;text-align:center}
+.creative-poem-art>span{position:absolute;font:400 300px/.5 Georgia,serif;left:0;top:85px;color:#eac59e26;transition:transform .5s}
+.creative-poem-art em{font:italic clamp(16px,2vw,27px)/1.45 Georgia,serif;position:relative;color:#f6dfc9}
+.creative-poem-card:hover .creative-poem-art>span{transform:translateY(-15px) rotate(-4deg)}
+.creative-graffiti-card{background:#1c281e;border-color:#536a42}
+.creative-graffiti-art{height:188px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(98deg,#293d2e 0,#293d2e 20px,#2c4230 21px,#2c4230 22px)}
+.creative-paint-splash{position:absolute;font:360px/.8 Arial,sans-serif;color:#e0fc6b66;animation:cs-graffiti-wiggle 14s linear infinite}
+.creative-graffiti-art strong{position:relative;z-index:1;transform:rotate(-8deg);font:900 clamp(38px,6vw,74px)/.82 Impact,Arial Black,sans-serif;letter-spacing:-.055em;color:#e9ff79;text-shadow:5px 5px #ff7954,-2px -2px #1b221c;transition:transform .4s}
+.creative-graffiti-card:hover .creative-graffiti-art strong{transform:rotate(-4deg) scale(1.06)}
+.creative-stencil-text{position:absolute;bottom:10px;right:14px;color:#c8e1c4;font:800 10px ui-monospace,monospace;letter-spacing:.06em}
+.creative-card-footer{display:flex;justify-content:space-between;align-items:end;gap:20px;padding:20px 22px 24px;flex:1}
+.creative-card-footer small{color:#adbb9c;font:800 10px ui-monospace,monospace;letter-spacing:.09em}
+.creative-poem-card .creative-card-footer small{color:#dfbda3}
+.creative-card-footer h3{font:900 clamp(25px,3vw,39px) Impact,Arial Black,sans-serif;letter-spacing:-.02em;margin:7px 0}
+.creative-card-footer p{color:#c4ccbf;font-size:13px;line-height:1.65;margin:0;max-width:370px}
+.creative-poem-card .creative-card-footer p{color:#dac5b6}
+.creative-arrow{display:flex;align-items:center;justify-content:center;width:45px;height:45px;flex-shrink:0;border-radius:50%;background:#dbff73;color:#152015;font:900 27px Arial,sans-serif}
+.creative-poem-card .creative-arrow{background:#edc5a4;color:#34251e}
+@keyframes cs-graffiti-wiggle{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@media(max-width:690px){.creative-feature-grid{grid-template-columns:1fr}.creative-poem-art,.creative-graffiti-art{height:165px}}
+@media(prefers-reduced-motion:reduce){.creative-feature-card,.creative-feature-card *{animation:none!important;transition:none!important}}
