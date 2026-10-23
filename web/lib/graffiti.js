@@ -9,12 +9,12 @@ export const WALL_PRESETS=[
 ];
 export const PALETTE=["#dbff73","#ff4e72","#ff7e40","#f9d22b","#00e8bc","#19b5ff","#a266ff","#f851d4","#ffffff","#14151b","#ff2525","#00ff70","#54deff","#ffadff","#bdffea","#1f2f29"];
 export const TOOL_LIST=[
-  {id:"spray",name:"Spray paint",icon:"✳"},{id:"neon",name:"Neon tube",icon:"ϟ"},
+  {id:"spray",name:"Spray paint",icon:"✳"},{id:"splatter",name:"Paint splatter",icon:"⁂"},{id:"drip",name:"Paint drips",icon:"♨"},{id:"glow-spray",name:"Neon aerosol",icon:"☄"},{id:"neon",name:"Neon tube",icon:"ϟ"},
   {id:"marker",name:"Paint marker",icon:"▰"},{id:"brush",name:"Brush",icon:"〰"},
   {id:"pencil",name:"Pencil",icon:"✎"},{id:"calligraphy",name:"Chisel pen",icon:"◆"},
   {id:"rainbow",name:"Rainbow",icon:"◒"},{id:"highlighter",name:"Highlighter",icon:"▥"},
-  {id:"eraser",name:"Eraser",icon:"⌫"},{id:"line",name:"Line",icon:"╱"},
-  {id:"rectangle",name:"Rectangle",icon:"▭"},{id:"ellipse",name:"Circle",icon:"◯"},
+  {id:"eraser",name:"Eraser",icon:"⌫"},{id:"bucket",name:"Fill wall",icon:"▣"},{id:"line",name:"Line",icon:"╱"},
+  {id:"rectangle",name:"Rectangle",icon:"▭"},{id:"fill-rectangle",name:"Solid block",icon:"■"},{id:"ellipse",name:"Circle",icon:"◯"},{id:"fill-ellipse",name:"Solid circle",icon:"●"},
   {id:"arrow",name:"Arrow",icon:"➜"},{id:"text",name:"Lettering",icon:"T"},
   {id:"stamp",name:"Stencil",icon:"★"},{id:"pick",name:"Pick color",icon:"◉"},
   {id:"pan",name:"Pan",icon:"✥"}
@@ -43,18 +43,27 @@ function strokeOne(ctx,op,w,h){
   ctx.lineJoin="round";ctx.lineCap="round";
   ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=size;
   if(op.tool==="eraser"){ctx.globalCompositeOperation="destination-out";ctx.lineWidth=size*2;path(ctx,pts,w,h);ctx.stroke();ctx.restore();return;}
-  if(op.tool==="spray"){
+  if(["spray","splatter","glow-spray"].includes(op.tool)){
     ctx.fillStyle=color;
-    const radius=size*2.4;
+    const radius=size*(op.tool==="splatter"?4.2:op.tool==="glow-spray"?2.2:2.4);
+    if(op.tool==="glow-spray"){ctx.shadowColor=color;ctx.shadowBlur=size*2.8;}
     pts.forEach((p,k)=>{
       const x=p[0]/1000*w,y=p[1]/1000*h;
-      for(let i=0;i<18;i++){
+      for(let i=0;i<(op.tool==="splatter"?30:18);i++){
         const seed=(k+1)*51+(i+1)*37+Math.round((p[0]+p[1])*.3);
         const r=radius*Math.sqrt(hash(seed)),angle=hash(seed+11)*Math.PI*2;
         ctx.beginPath();ctx.arc(x+Math.cos(angle)*r,y+Math.sin(angle)*r,Math.max(.35,size*(.02+.065*hash(seed+20))),0,Math.PI*2);ctx.fill();
       }
     });
     ctx.restore();return;
+  }
+  if(op.tool==="drip"){
+    path(ctx,pts,w,h);ctx.lineWidth=size*1.1;ctx.stroke();
+    pts.forEach((p,i)=>{
+      if(i%7!==0)return;
+      const x=p[0]/1000*w,y=p[1]/1000*h,drip=size*(1.5+hash(i+24)*4);
+      ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+drip);ctx.lineWidth=Math.max(1,size*(.15+.15*hash(i+19)));ctx.stroke();
+    });ctx.restore();return;
   }
   if(op.tool==="text"||op.tool==="stamp"){
     const label=op.tool==="text"?String(op.text||"").slice(0,80):(STAMPS.find(s=>s.id===op.stamp)?.mark||"★");
@@ -64,17 +73,17 @@ function strokeOne(ctx,op,w,h){
     ctx.shadowBlur=op.neonText?20:0;
     ctx.fillText(label,a[0]/1000*w,a[1]/1000*h,Math.max(40,w*.8));ctx.restore();return;
   }
-  if(["line","rectangle","ellipse","arrow"].includes(op.tool)){
+  if(["line","rectangle","fill-rectangle","ellipse","fill-ellipse","arrow"].includes(op.tool)){
     const x=a[0]/1000*w,y=a[1]/1000*h,ex=z[0]/1000*w,ey=z[1]/1000*h;
     ctx.beginPath();
     if(op.tool==="line" || op.tool==="arrow"){
       ctx.moveTo(x,y);ctx.lineTo(ex,ey);
-    }else if(op.tool==="rectangle"){
+    }else if(["rectangle","fill-rectangle"].includes(op.tool)){
       ctx.rect(x,y,ex-x,ey-y);
     }else{
       ctx.ellipse((x+ex)/2,(y+ey)/2,Math.max(.1,Math.abs(ex-x)/2),Math.max(.1,Math.abs(ey-y)/2),0,0,Math.PI*2);
     }
-    ctx.stroke();
+    if(op.tool==="fill-rectangle"||op.tool==="fill-ellipse")ctx.fill();else ctx.stroke();
     if(op.tool==="arrow"){
       const angle=Math.atan2(ey-y,ex-x),n=Math.max(12,size*2.5);
       ctx.beginPath();ctx.moveTo(ex,ey);
