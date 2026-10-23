@@ -12,7 +12,7 @@ const trustedSocket = api === "same-origin" ? "" : (() => {
 // strict CSP where supported by the chosen deployment.
 const contentSecurityPolicy = [
   "default-src 'self'", "base-uri 'self'", "object-src 'none'", "frame-ancestors 'none'",
-  "form-action 'self'", "img-src 'self' data: blob:", "font-src 'self' data:",
+  "form-action 'self'", "img-src 'self' https: data: blob:", "font-src 'self' data:",
   "worker-src 'none'", "media-src 'self' https:", `connect-src 'self' https://lpbpjffnjbjwzdrcscko.supabase.co${trustedSocket}`,
   `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'production' ? '' : " 'unsafe-eval'"}`,
   "style-src 'self' 'unsafe-inline'",
