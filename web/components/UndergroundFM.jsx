@@ -87,7 +87,7 @@ export default function UndergroundFM({locale="en"}){
   s.on("fm:reaction",entry=>{setReactions(v=>[...v.slice(-11),{...entry,id:Math.random()}]);});
   return ()=>{s.emit("fm:leave");s.disconnect();socket.current=null;};
  },[]);
- useEffect(()=>{const timer=setInterval(()=>setClock(Date.now()),120);return ()=>clearInterval(timer);},[]);
+ useEffect(()=>{const timer=setInterval(()=>setClock(Date.now()),500);return ()=>clearInterval(timer);},[]);
  useEffect(()=>{
   const a=audio.current;if(!a)return;
   if(!current){a.pause();streamTrackId.current=null;setPlaying(false);return;}
