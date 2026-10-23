@@ -409,6 +409,7 @@ export function createApp(overrides = {}) {
       clearInterval(onlineTimer);
       clearInterval(reportCleanupTimer);
       for (const room of rooms.values()) clearTimeout(room.movie.timer);
+      underground.close();
       movieBank.close();
       return new Promise((resolve) => {
         io.close(() => resolve());
