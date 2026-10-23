@@ -1,6 +1,7 @@
 import "../globals.css";
 import "../studio.css";
 import "../social-motion.css";
+import "../nostalgia-home.css";
 import "../movie-rush.css";
 import { notFound } from "next/navigation";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
