@@ -12,7 +12,7 @@ export default function PoemWall({locale="en"}){
   e.preventDefault();if(busy||!allowed)return;
   setBusy(true);setMessage("");
   try{
-    const res=await postWall({kind:"poem",title,body,author_tag:tag||"UNKNOWN"});
+    const res=await postWall({kind:"poem",title,body,author_tag:tag||"UNKNOWN",ageConfirmed:true});
     setLatest(res.entry);setMessage("Your poem is now on this week's wall. Readers can vote for it.");
     setTitle("");setBody("");setRefresh(x=>x+1);
   }catch(e){setMessage(e.message);}finally{setBusy(false);}
