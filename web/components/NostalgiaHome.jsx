@@ -1,4 +1,5 @@
 import Link from "next/link";
+import NostalgiaTerminal from "./NostalgiaTerminal";
 
 const PHOTO_ROOT = "/art/nostalgia/";
 const EXPERIENCES = [
@@ -43,6 +44,7 @@ export default function NostalgiaHome({ locale, dict }) {
           fetchPriority="high"
           decoding="async"
         />
+        <NostalgiaTerminal />
       </div>
       <span className="nostalgia-shade" aria-hidden="true" />
       <span className="nostalgia-film" aria-hidden="true" />
@@ -75,10 +77,6 @@ export default function NostalgiaHome({ locale, dict }) {
           <span className="nostalgia-status-dot" />
           <span>NO PROFILES. NO FOLLOWERS. JUST STRANGERS.</span>
         </div>
-      </div>
-
-      <div className="nostalgia-room-note" aria-hidden="true">
-        <span>GOOD</span><span>MUSIC.</span><span>BETTER</span><span>PEOPLE.</span>
       </div>
 
       <nav className="nostalgia-experiences" id="nostalgia-experiences" aria-label="Explore ChatSpark experiences">
