@@ -56,7 +56,9 @@ export function createUnderground(io) {
     const title = String(track.title || "").slice(0, 120).trim();
     const artist = String(track.artist || "").slice(0, 90).trim();
     if (!title || !artist) return null;
-    return { id:track.id, title, artist };
+    const artwork = typeof track.artwork==="string" && track.artwork.length<800 && /^https:\/\/[a-z0-9.-]+\/(?:[^\s?#]{1,600})(?:\?[^\s#]{0,100})?$/i.test(track.artwork) && (()=>{try { const host=new URL(track.artwork).hostname.toLowerCase();return host==="audius.co" || host.endsWith(".audius.co") || host==="audius.org" || host.endsWith(".audius.org") || host.endsWith(".audiususercontent.com"); } catch{return false;}})() ? track.artwork : null;
+    const duration = Number.isFinite(Number(track.duration)) ? Math.max(0,Math.min(21600,Math.round(Number(track.duration)))) : 0;
+    return { id:track.id, title, artist, artwork, duration, genre:String(track.genre||"").slice(0,50) };
   };
   const attach = (socket) => {
     socket.on("fm:join", (...a) => join(socket, typeof a.at(-1) === "function" ? a.at(-1) : undefined));
