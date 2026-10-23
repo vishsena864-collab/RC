@@ -1,0 +1,45 @@
+/* ChatSpark analog bedroom: CSS for the selected nostalgic mockup. */
+body:has(.nostalgia-home) main{padding:0}
+body:has(.nostalgia-home) .site-header{background:#151511;color:#f5e9d5;border-color:#40352c}
+body:has(.nostalgia-home) .site-header .brand{color:#e1f878!important;font-family:"Trebuchet MS",sans-serif;font-style:italic;font-size:1.5rem}
+body:has(.nostalgia-home) .site-header .studio-brand-icon{display:none}
+body:has(.nostalgia-home) .site-header .nav>a:not(.btn){color:#f4e6d3}
+body:has(.nostalgia-home) .site-header .nav>.btn{background:#f5e9d7!important;color:#191a15!important;border-radius:99px}
+.nostalgia-home{background:#181612;color:#f4eadb}
+.nostalgia-hero{position:relative;isolation:isolate;min-height:770px;background:#120f0d;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:60px clamp(20px,5vw,82px) 30px}
+.nostalgia-room{position:absolute;inset:0 0 10% 27%;z-index:-3;pointer-events:none}
+.nostalgia-room>img{width:100%;height:100%;object-fit:cover;object-position:center;filter:saturate(1.12) brightness(.85)}
+.nostalgia-shade{position:absolute;inset:0;z-index:-2;pointer-events:none;background:linear-gradient(90deg,#100e0deE 0%,#100e0dca 25%,#100e0d6b 51%,#100e0d33 75%),linear-gradient(0deg,#110e0d 4%,transparent 43%)}
+.nostalgia-film{position:absolute;inset:0;z-index:-1;opacity:.12;pointer-events:none;background-image:radial-gradient(#fff7e1 .55px,transparent 1px);background-size:3px 3px}
+.nostalgia-edge{position:absolute;inset:8px;z-index:-1;border:1px solid #ffffff1c;pointer-events:none}
+.nostalgia-copy{position:relative;z-index:2;max-width:560px}
+.nostalgia-copy-top{font:700 10px monospace;letter-spacing:.1em;color:#f2cb9b;margin-bottom:25px;display:flex;gap:9px;align-items:center}
+.nostalgia-tiny-star{color:#fb6548;font-size:21px}
+.nostalgia-handline{display:flex;flex-direction:column;font:italic 900 clamp(49px,6.8vw,102px)/.92 "Trebuchet MS","Arial Black",sans-serif;letter-spacing:-.065em;transform:rotate(-2deg);color:#fff1db;margin:0;text-shadow:2px 3px #1c110e}
+.nostalgia-handline span{display:block}.nostalgia-handline-accent{color:#ff6750}
+.nostalgia-subtitle{font:500 clamp(14px,1.3vw,18px)/1.62 "Courier New",monospace;color:#e6dbce;margin:33px 0 20px}
+.nostalgia-cta{display:inline-flex;gap:22px;align-items:center;min-height:54px;padding:10px 13px 10px 24px;border-radius:99px;background:#f3e5d0;color:#191812!important;border:1px solid #e1cfb3;text-decoration:none;font-weight:850;font-size:16px;transition:background .2s,transform .2s}
+.nostalgia-cta:hover{background:#e6f796;transform:translateY(-3px)}
+.nostalgia-cta-arrow{width:33px;height:33px;border:1px solid #676256;border-radius:50%;display:grid;place-items:center;font-size:23px}
+.nostalgia-status{margin-top:20px;display:flex;align-items:center;gap:10px;font:700 10px/1.5 monospace;letter-spacing:.08em;color:#d0c1ae}
+.nostalgia-status-dot{width:8px;height:8px;border-radius:50%;background:#ff6b56}
+.nostalgia-terminal{position:absolute;top:32%;left:12%;width:33%;height:31%;padding:5% 3%;border-radius:11%;background:#101716;box-shadow:inset 0 0 24px #000;display:flex;flex-direction:column;justify-content:center;color:#e5f7e4;font:700 clamp(11px,1.3vw,19px)/1.3 "Courier New",monospace;white-space:pre-wrap;text-shadow:0 0 5px #cfefd35e}
+.nostalgia-terminal-label{margin-bottom:4px}.nostalgia-terminal-output{white-space:pre-wrap;overflow-wrap:anywhere}
+.nostalgia-terminal-cursor{display:inline-block;width:.57em;height:.93em;background:#ddfae6;vertical-align:-.11em;margin-left:2px;animation:nostalgia-cursor .75s steps(1,end) infinite}
+@keyframes nostalgia-cursor{50%{opacity:0}}
+.nostalgia-experiences{position:relative;z-index:3;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px;margin-top:65px}
+.nostalgia-postcard{position:relative;display:flex;flex-direction:column;min-width:0;background:#e9decb;color:#181713!important;text-decoration:none!important;box-shadow:3px 8px 20px #0008;border:2px solid #d9c6ac;transition:transform .22s;transform:rotate(var(--angle))}
+.nostalgia-postcard:nth-child(1){--angle:-1deg}.nostalgia-postcard:nth-child(2){--angle:1deg}.nostalgia-postcard:nth-child(3){--angle:-.7deg}.nostalgia-postcard:nth-child(4){--angle:1.3deg}.nostalgia-postcard:nth-child(5){--angle:-1.4deg}
+.nostalgia-postcard:hover{transform:rotate(0) translateY(-8px)}
+.nostalgia-tape{position:absolute;z-index:2;top:-9px;left:-9px;width:56px;height:19px;background:#ded0b6cf;transform:rotate(-12deg);box-shadow:0 1px 4px #0005}
+.nostalgia-tape--right{right:-8px;left:auto;transform:rotate(12deg)}
+.nostalgia-photo{display:block;aspect-ratio:2.12;overflow:hidden;background:#2f2a22}.nostalgia-photo img{width:100%;height:100%;object-fit:cover}
+.nostalgia-card-paper{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;background:#eadfcf;min-height:64px}
+.nostalgia-card-copy{display:flex;flex-direction:column}.nostalgia-card-copy strong{font:italic 900 clamp(12px,1.25vw,19px)/1.2 "Trebuchet MS",Arial,sans-serif}.nostalgia-card-copy small{font:500 clamp(10px,.85vw,13px)/1.35 Arial,sans-serif}
+.nostalgia-card-arrow{display:grid;place-items:center;flex:0 0 29px;width:29px;height:29px;border:1px solid #62594c;border-radius:50%;font-size:21px}
+.nostalgia-hero-footnote{position:relative;margin-top:24px;text-align:right;font:700 10px monospace;color:#b8a899}
+.nostalgia-lower{padding-top:64px}.nostalgia-letterhead{text-align:center;padding:55px 15px 30px}.nostalgia-letterhead>span{font:700 11px monospace;color:#f69a74}.nostalgia-letterhead h2{color:#f1e4d3;font-size:clamp(35px,5vw,65px);margin:19px 0}.nostalgia-letterhead em{font-family:Georgia,serif;font-weight:400;color:#eaf2b2}.nostalgia-letterhead p{color:#bdb5a9;max-width:650px;margin:auto}
+.nostalgia-closing{text-align:center;background:#29211b;padding:60px 20px 90px}.nostalgia-closing>span{font:700 11px monospace;color:#ffa17e}.nostalgia-closing h2{font-size:clamp(36px,5vw,72px);color:#f1e5d2;margin:17px 0}.nostalgia-closing em{color:#f4b99e}.nostalgia-closing p{color:#c8baaa}.nostalgia-closing>a{display:inline-flex;gap:17px;background:#eee0cb;color:#1c1b17;padding:14px 19px;border-radius:99px;text-decoration:none;font-weight:800;margin-top:14px}
+body:has(.nostalgia-home) .site-footer{background:#151511;color:#bcb0a0;border-color:#4d4335}body:has(.nostalgia-home) .site-footer a{color:#e5d6bf}
+@media(max-width:750px){.nostalgia-hero{min-height:965px;padding:35px 20px}.nostalgia-room{inset:0 -85% 29% 0;opacity:.65}.nostalgia-shade{background:linear-gradient(90deg,#100d0dcc,#100d0d66),linear-gradient(0deg,#100d0d 15%,transparent 70%)}.nostalgia-handline{font-size:clamp(46px,9vw,71px)}.nostalgia-terminal{font-size:12px}.nostalgia-experiences{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.nostalgia-postcard:last-child{grid-column:span 2;width:75%;justify-self:center}.nostalgia-card-copy strong{font-size:14px}.nostalgia-card-copy small{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.nostalgia-terminal-cursor{animation:none}.nostalgia-postcard,.nostalgia-cta{transition:none}}
