@@ -1,0 +1,301 @@
+/*
+ * ChatSpark — nostalgic editorial continuation.
+ * The selected CRT-room homepage remains the primary visual story.
+ * All selectors are scoped to nlg-* so matching, chats, game panels
+ * and the independent FM/Poem/Graffiti pages are not restyled.
+ */
+.nostalgia-lower-wrap {
+  --nlg-bg: #181511;
+  --nlg-ink: #211c17;
+  --nlg-cream: #f1e6d2;
+  --nlg-paper: #e9dbc4;
+  --nlg-faded: #b9aa98;
+  --nlg-red: #ed7156;
+  --nlg-lime: #e2f68b;
+  --nlg-rule: #574c3c;
+  position: relative;
+  isolation: isolate;
+  background: var(--nlg-bg);
+  color: var(--nlg-cream);
+  padding: 28px 0 90px;
+  overflow: hidden;
+  font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+}
+.nostalgia-lower-wrap::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  background:radial-gradient(#e4c7a9 0.6px,transparent 0.9px) 0 0 / 5px 5px;
+  opacity:.075;
+  pointer-events:none;
+  z-index:-1;
+}
+.nostalgia-lower-wrap * {box-sizing:border-box;}
+.nostalgia-lower-wrap a:focus-visible,
+.nostalgia-lower-wrap summary:focus-visible {outline:3px solid var(--nlg-lime);outline-offset:4px}
+.nostalgia-lower-wrap > section {
+  width:min(1230px,calc(100% - 80px));
+  margin:0 auto;
+}
+.nostalgia-lower-wrap h2,
+.nostalgia-lower-wrap h3,
+.nostalgia-lower-wrap p {margin-top:0;}
+.nostalgia-lower-wrap h2 {color:var(--nlg-cream);}
+.nostalgia-lower-wrap em {font-style:italic;}
+.nlg-micro, .nlg-kicker, .nlg-heading-line, .nlg-section-number, .nlg-ticket-meta,
+.nlg-ticket-eyebrow, .nlg-ticket-bottom,.nlg-topics-footer,.nlg-topic-index,
+.nlg-atlas-top,.nlg-atlas-bottom,.nlg-lang-label,.nlg-step-foot,.nlg-ledger-head,
+.nlg-ledger-foot,.nlg-faq-num {
+  font:700 11px/1.5 "Courier New", ui-monospace, monospace;
+  letter-spacing:.085em;
+}
+.nlg-micro,.nlg-kicker {color:#e5a586}
+.nlg-intro{
+  padding:94px 20px 93px;
+  text-align:center;
+  position:relative;
+}
+.nlg-intro h2 {
+  margin:21px auto 20px;
+  font:900 clamp(42px,6.2vw,87px)/.99 "Trebuchet MS",Arial,sans-serif;
+  letter-spacing:-.075em;
+  text-transform:uppercase;
+  max-width:890px;
+}
+.nlg-intro h2 em {font-family:Georgia,serif;font-weight:400;text-transform:none;letter-spacing:-.045em;color:#e9b89d;}
+.nlg-intro>p{max-width:650px;margin:0 auto;color:#c5b8a6;font:400 clamp(15px,1.3vw,17px)/1.8 "Courier New",monospace}
+.nlg-intro-doodle {display:flex;align-items:center;justify-content:center;gap:11px;margin-top:30px;color:#dbf186;font:800 11px "Courier New",monospace;transform:rotate(-2deg)}
+.nlg-intro-doodle:first-letter{font-size:22px}
+
+/* Folded two-player choice slip, placed like a vintage tabletop game */
+.nlg-samebrain{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.06fr);
+  min-height:530px;
+  border:1px solid #69503f;
+  position:relative;isolation:isolate;
+  background:linear-gradient(130deg,#302017 0%,#271d1a 58%,#463125 100%);
+  box-shadow:0 17px 0 #0e0d0b, 0 20px 60px #0005;
+}
+.nlg-samebrain::before {
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:-1;
+  opacity:.22;
+  background:repeating-linear-gradient(111deg,transparent 0,transparent 28px,#bb794327 30px,#bb794327 31px),
+    radial-gradient(ellipse at 85% 10%,#fca87144,transparent 60%);
+}
+.nlg-samebrain-copy {padding:clamp(32px,5vw,72px) clamp(23px,4.8vw,64px);position:relative;z-index:2;}
+.nlg-section-number{display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;border-bottom:1px solid #cba78271;color:#ecd2aa;margin-bottom:31px}
+.nlg-stamp-dot{font-size:22px;color:var(--nlg-red)}
+.nlg-samebrain h2 {
+  font:italic 900 clamp(65px,9vw,135px)/.83 "Trebuchet MS",Arial Black,sans-serif;
+  letter-spacing:-.097em;
+  transform:rotate(-3deg);
+  margin:23px 0 34px;
+  text-shadow:3px 4px #190f0c;
+}
+.nlg-samebrain h2 em{color:var(--nlg-red);}
+.nlg-samebrain-copy>p{max-width:475px;color:#dcc8b8;font-size:15px;line-height:1.8;margin-bottom:25px}
+.nlg-sidequest-badges {display:flex;flex-wrap:wrap;gap:9px;margin-bottom:30px}
+.nlg-sidequest-badges span{border:1px solid #916950;padding:7px 10px;font:800 10px "Courier New",monospace;color:#e3c0a8;letter-spacing:.035em}
+.nlg-paper-button {display:inline-flex;align-items:center;justify-content:space-between;gap:30px;min-height:54px;padding:12px 21px;background:var(--nlg-paper);color:#1d1c16!important;text-decoration:none!important;border-radius:99px;font:900 12px "Courier New",monospace;letter-spacing:.02em;transition:transform .2s,background .2s;}
+.nlg-paper-button:hover{background:var(--nlg-lime);transform:translateY(-3px)}
+.nlg-paper-button span{font-size:21px}
+.nlg-sidequest-stage{display:grid;place-items:center;min-width:0;padding:46px 30px;position:relative}
+.nlg-samebrain-slip{
+  width:min(100%,470px);
+  min-height:395px;
+  transform:rotate(3deg);
+  background:#e9dbc4;
+  color:#262017;
+  border:1px solid #b8a38a;
+  padding:23px 24px 29px;
+  box-shadow:13px 15px 0 #c2a081,22px 28px 0 #120d0ca3;
+  position:relative;
+  text-align:center;
+}
+.nlg-samebrain-slip::before {
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.14;
+  background:radial-gradient(#72543a .7px,transparent 1px) 0 0/4px 4px;
+}
+.nlg-samebrain-slip > *{position:relative}
+.nlg-ticket-meta {display:flex;justify-content:space-between;gap:7px;border-bottom:1px dashed #887562;padding-bottom:9px;text-align:left;font-size:9px;}
+.nlg-ticket-icon{display:grid;place-items:center;margin:19px auto 8px;width:55px;height:55px;border:2px solid #b9573e;border-radius:50%;font:bold 36px Georgia,serif;color:#b9573e;}
+.nlg-ticket-eyebrow{color:#725d4b;font-size:10px;}
+.nlg-samebrain-slip h3{font:700 clamp(24px,2.4vw,32px)/1.12 Georgia,serif;letter-spacing:-.035em;color:#34271c;margin:12px auto 23px;max-width:315px}
+.nlg-choice-row{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.nlg-choice{display:grid;place-items:center;gap:7px;min-height:112px;background:#f8eede;border:2px solid #c9b59e;color:#262018;box-shadow:3px 3px 0 #bba28b}
+.nlg-choice span{font-size:30px}
+.nlg-choice strong{font:900 15px "Trebuchet MS",sans-serif}
+.nlg-ticket-bottom{display:flex;justify-content:space-between;gap:5px;color:#7f6655;font-size:9px;border-top:1px dashed #978370;margin-top:25px;padding-top:14px}
+.nlg-stage-tape{position:absolute;width:116px;height:31px;background:#c6b89dbd;z-index:3;filter:drop-shadow(0 3px 2px #0006)}
+.nlg-tape-top{top:29px;right:27%;transform:rotate(-12deg)}
+.nlg-pencilled-side{font:italic 700 17px/1.35 Georgia,serif;letter-spacing:.01em;color:#ddbf9e;position:absolute;bottom:18px;right:12px;transform:rotate(-9deg);text-align:center}
+
+/* Topic cards: worn record sleeves, not multicolour toy avatars */
+.nlg-topics{padding:115px 0 83px}
+.nlg-heading-line{display:flex;justify-content:space-between;align-items:center;gap:20px;color:#e3a787;border-bottom:1px solid var(--nlg-rule);padding:0 0 16px}
+.nlg-heading-line span:last-child{color:#8e8374;text-align:right}
+.nlg-section-intro {display:flex;justify-content:space-between;align-items:end;gap:35px;margin:33px 0 34px}
+.nlg-section-intro h2{font:italic 900 clamp(49px,6.15vw,94px)/.91 "Trebuchet MS",Arial Black,sans-serif;letter-spacing:-.078em;margin:0;transform:rotate(-1deg)}
+.nlg-section-intro h2 em{color:var(--nlg-red)}
+.nlg-section-intro p{max-width:310px;color:#c3b5a7;font:400 15px/1.75 "Courier New",monospace}
+.nlg-topics-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;list-style:none;padding:0;margin:0}
+.nlg-topics-grid li{min-width:0}
+.nlg-topic{min-height:250px;display:flex;position:relative;flex-direction:column;align-items:flex-start;overflow:hidden;padding:17px 19px 20px;background:#29251f;border:1px solid #53493a;color:#f0e3cc!important;text-decoration:none!important;transition:transform .22s,border-color .22s,background .22s}
+.nlg-topic::before{content:"";position:absolute;inset:0;opacity:.23;background:repeating-linear-gradient(0deg,transparent 0,transparent 10px,#7d625339 11px,#7d625339 12px);pointer-events:none}
+.nlg-topic:hover{transform:translateY(-5px) rotate(-.6deg);border-color:#e0ac8c;background:#3b2d25}
+.nlg-topic-index{color:#cf9775;font-size:10px}
+.nlg-topic-mark{display:grid;place-items:center;width:70px;height:70px;margin:20px 0 17px;border:1px solid #916d50;border-radius:50%;font:900 42px Georgia,serif;color:#f4c097;transform:rotate(-11deg);text-shadow:2px 2px #100a08}
+.nlg-topic:nth-child(2n) .nlg-topic-mark {color:#dfef9c;border-color:#81946a}
+.nlg-topic-copy{display:grid;gap:7px;z-index:1;padding-right:20px}
+.nlg-topic-copy strong{font:italic 900 22px/1.07 "Trebuchet MS",Arial,sans-serif;letter-spacing:-.045em}
+.nlg-topic-copy small{font:400 12px/1.55 "Courier New",monospace;color:#bdb1a2}
+.nlg-topic-arrow{position:absolute;right:17px;top:16px;display:grid;place-items:center;width:30px;height:30px;border:1px solid #ad967c;border-radius:50%;font-size:17px;transition:transform .22s}
+.nlg-topic:hover .nlg-topic-arrow{transform:rotate(45deg)}
+.nlg-topics-footer{display:flex;justify-content:flex-end;align-items:center;gap:18px;margin-top:24px;color:#a89d8e}
+.nlg-topics-footer a{color:var(--nlg-lime);text-underline-offset:5px;text-decoration-thickness:1px}
+
+/* Vintage paper travel postcard. Existing globe is recoloured to amber ink. */
+.nlg-atlas{padding:15px 0 75px}
+.nlg-atlas-paper{position:relative;background:#e2d1b6;color:#251d16;border:1px solid #a5967b;box-shadow:9px 10px 0 #42352b;overflow:hidden}
+.nlg-atlas-paper::before{content:"";position:absolute;inset:0;opacity:.17;pointer-events:none;background:radial-gradient(#473321 0.6px,transparent 1px) 0 0/4px 4px}
+.nlg-atlas-top,.nlg-atlas-bottom{position:relative;display:flex;justify-content:space-between;gap:20px;padding:17px 25px;font-size:10px;color:#705d4b}
+.nlg-atlas-top{border-bottom:1px solid #a38f77}
+.nlg-atlas-bottom{border-top:1px solid #a38f77}
+.nlg-atlas-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.nlg-atlas-copy{position:relative;padding:60px clamp(24px,5vw,65px) 56px}
+.nlg-atlas-copy .nlg-kicker{color:#985c42}
+.nlg-atlas-copy h2{font:italic 900 clamp(45px,5.4vw,82px)/.91 "Trebuchet MS",Arial,sans-serif;letter-spacing:-.075em;color:#282019;margin:25px 0 22px}
+.nlg-atlas-copy h2 em{color:#b6543f}
+.nlg-atlas-copy p{max-width:430px;color:#5a4b3b;font:400 15px/1.75 "Courier New",monospace}
+.nlg-lang-label{margin:27px 0 11px;color:#5b3e2c;font-size:12px}
+.nlg-lang-list{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:0}
+.nlg-lang-list a{display:block;border:1px solid #6f604c;border-radius:99px;padding:10px 14px;color:#3a2d21;text-decoration:none;font:700 11px "Trebuchet MS",Arial,sans-serif;transition:background .2s}
+.nlg-lang-list a[aria-current="page"],.nlg-lang-list a:hover{background:#29251f;color:#eee2d0}
+.nlg-atlas-image{position:relative;overflow:hidden;min-height:400px;display:grid;place-items:center;background:radial-gradient(circle at 48% 45%,#c9a77b,#8c7054 62%,#3c2f23 99%);border-left:2px solid #b09a7b}
+.nlg-atlas-image img{width:115%;max-width:none;height:100%;min-height:410px;object-fit:cover;object-position:center;filter:grayscale(1) sepia(1) saturate(1.5) hue-rotate(-18deg) contrast(1.11) brightness(.84);mix-blend-mode:multiply;opacity:.93}
+.nlg-atlas-image::after{content:"";pointer-events:none;position:absolute;inset:0;border:14px solid #e1d1b640;box-shadow:inset 0 0 0 1px #442b1a66, inset 0 0 80px #301c18a1}
+.nlg-atlas-stamp{position:absolute;top:21px;right:21px;max-width:140px;width:130px;height:90px;border:2px dashed #efd0a5;outline:2px solid #3c261a;color:#fbdda9;background:#382419b5;transform:rotate(12deg);display:flex;align-items:center;justify-content:center;flex-direction:column;font:bold 10px "Courier New",monospace;letter-spacing:.03em;text-align:center;z-index:1}
+.nlg-atlas-stamp b{font-size:33px}
+.nlg-atlas-scribble{position:absolute;bottom:25px;left:18px;transform:rotate(-6deg);font:italic 22px/1.05 Georgia,serif;color:#f8deb1;text-shadow:1px 2px 3px #261b11}
+
+/* Numbered, aged-paper instructions: limited ink palette */
+.nlg-instructions{padding:87px 0 110px}
+.nlg-instructions .nlg-section-intro{margin-bottom:34px}
+.nlg-instructions .nlg-section-intro h2{font-size:clamp(48px,5.5vw,80px)}
+.nlg-steps{list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px;padding:0;margin:0}
+.nlg-steps>li{min-height:310px;background:#e3d3bb;color:#2b221b;border:1px solid #a88d72;padding:27px 26px;position:relative;box-shadow:5px 7px 0 #342921;display:flex;flex-direction:column;transition:transform .2s}
+.nlg-steps>li:nth-child(2){background:#d4bfa4;transform:rotate(1deg)}
+.nlg-steps>li:nth-child(3){background:#eddfc9;transform:rotate(-1deg)}
+.nlg-steps>li:hover{transform:rotate(0) translateY(-4px)}
+.nlg-steps>li::before{content:"";pointer-events:none;position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0,transparent 18px,#59452e11 19px)}
+.nlg-step-upper{position:relative;display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #947c65;padding-bottom:16px}
+.nlg-step-upper>span:first-child{font:900 72px/.8 "Trebuchet MS",Arial,sans-serif;letter-spacing:-.11em;color:#9c6049}
+.nlg-step-symbol{font:900 46px/1 Georgia,serif;color:#402d21;transform:rotate(-17deg)}
+.nlg-steps h3{font:italic 900 clamp(25px,2.7vw,38px)/1.05 "Trebuchet MS",Arial,sans-serif;letter-spacing:-.06em;margin:25px 0 13px;position:relative;color:#201915}
+.nlg-steps p{font:400 14px/1.65 "Courier New",monospace;color:#56493c;position:relative;margin-bottom:20px}
+.nlg-step-foot{margin-top:auto;position:relative;border-top:1px dashed #987d65;padding-top:12px;color:#7d5c46;font-size:10px}
+
+/* Four short ledger entries instead of floating pastel rectangles */
+.nlg-groundrules{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(38px,6vw,105px);align-items:center;padding:0 0 115px}
+.nlg-ground-copy h2{font:italic 900 clamp(50px,6vw,84px)/.91 "Trebuchet MS",Arial,sans-serif;letter-spacing:-.07em;margin:23px 0}
+.nlg-ground-copy h2 em{color:var(--nlg-red)}
+.nlg-ground-copy p{font:400 15px/1.8 "Courier New",monospace;color:#c9b6a3;margin-bottom:25px}
+.nlg-text-link{color:var(--nlg-lime);font:900 13px "Courier New",monospace;letter-spacing:.035em;text-decoration:none;border-bottom:1px solid var(--nlg-lime);padding-bottom:6px}
+.nlg-ground-ledger{position:relative;background:#d9c8ac;color:#261c13;box-shadow:12px 12px 0 #554033;transform:rotate(.7deg);padding:19px 24px 21px}
+.nlg-ground-ledger::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.16;background:radial-gradient(#523a26 .65px,transparent 1px) 0 0/4px 4px}
+.nlg-ledger-head,.nlg-ledger-foot{position:relative;display:flex;justify-content:space-between;color:#86654f;border-bottom:1px solid #997d66;padding:6px 0 15px}
+.nlg-ledger-foot{border:0;border-top:1px solid #997d66;margin-top:10px;padding:16px 0 4px}
+.nlg-ledger-line{position:relative;display:grid;grid-template-columns:40px minmax(0,1fr) 26px;gap:15px;padding:16px 0;border-bottom:1px dashed #a58b76}
+.nlg-ledger-line>span:first-child{font:900 21px "Courier New",monospace;color:#bb6345}
+.nlg-ledger-line>span:last-child{font:900 21px "Courier New",monospace;color:#6b8252}
+.nlg-ledger-line strong{font:900 20px "Trebuchet MS",Arial,sans-serif;letter-spacing:-.04em}
+.nlg-ledger-line p{margin:6px 0 0;color:#685443;font:400 13px/1.55 "Courier New",monospace}
+
+/* Open ink-on-black FAQ, like liner notes rather than app widgets */
+.nlg-faq{padding:5px 0 50px}
+.nlg-faq-grid{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(35px,5vw,80px);padding-top:48px}
+.nlg-faq-titlebox{position:relative}
+.nlg-faq-titlebox h2{font:italic 900 clamp(50px,6vw,88px)/.89 "Trebuchet MS",Arial,sans-serif;letter-spacing:-.082em;margin:0 0 21px}
+.nlg-faq-titlebox h2 em{color:var(--nlg-red)}
+.nlg-faq-titlebox p{font:400 14px/1.7 "Courier New",monospace;color:#c5ad99}
+.nlg-faq-glyph{position:absolute;top:130px;left:10px;z-index:-1;opacity:.1;color:var(--nlg-red);font:900 300px/1 Georgia,serif;transform:rotate(-18deg)}
+.nlg-faq-list{border-top:1px solid #816a56}
+.nlg-faq-list details{border-bottom:1px solid #554636}
+.nlg-faq-list summary{list-style:none;display:flex;align-items:center;gap:18px;padding:22px 2px;cursor:pointer;font:800 17px/1.45 "Trebuchet MS",Arial,sans-serif;color:#f2ddc3}
+.nlg-faq-list summary::-webkit-details-marker{display:none}
+.nlg-faq-num{flex:0 0 30px;color:#e08e6c}
+.nlg-faq-plus{display:grid;place-items:center;margin-left:auto;width:30px;height:30px;border:1px solid #a7866b;border-radius:50%;flex-shrink:0;color:#f3d7b3;font:400 23px/1 "Courier New",monospace;transition:transform .2s}
+.nlg-faq-list details[open] .nlg-faq-plus{transform:rotate(45deg);color:var(--nlg-lime)}
+.nlg-faq-list details[open] summary{color:#eff2cc}
+.nlg-faq-list details>p{padding:0 42px 22px 49px;color:#bfad9b;font:400 14px/1.85 "Courier New",monospace;max-width:640px}
+
+/* Footer belongs to the same room, not to an unrelated gradient landing page */
+.nostalgia-home .nostalgia-closing{background:repeating-linear-gradient(-7deg,transparent 0,transparent 34px,#85553e13 35px),#30261e;border-top:1px solid #78553c;padding:80px 20px 95px;position:relative}
+.nostalgia-home .nostalgia-closing::before{content:"✳";position:absolute;right:8%;top:35px;color:#ad765b;font:110px Georgia,serif;opacity:.4;transform:rotate(14deg)}
+.nostalgia-home .nostalgia-closing h2{font:italic 900 clamp(40px,6vw,79px)/1 "Trebuchet MS",Arial,sans-serif;letter-spacing:-.06em}
+.nostalgia-home .nostalgia-closing h2 em{color:#ff8d68}
+.nostalgia-home .nostalgia-closing p{font:400 14px/1.8 "Courier New",monospace}
+.nostalgia-home .nostalgia-closing>a{min-height:52px;align-items:center}
+.nostalgia-home .nostalgia-closing>a:hover{background:#e2f68b}
+@media(max-width:1040px){
+  .nlg-topics-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .nlg-topic{min-height:195px}
+  .nlg-topic-mark{width:56px;height:56px;font-size:32px;margin-block:14px}
+  .nlg-samebrain h2{font-size:clamp(63px,8vw,102px)}
+  .nlg-groundrules{gap:35px}
+}
+@media(max-width:760px){
+  .nostalgia-lower-wrap{padding:15px 0 60px}
+  .nostalgia-lower-wrap > section{width:calc(100% - 34px)}
+  .nlg-intro{padding:72px 7px}
+  .nlg-intro h2{font-size:clamp(38px,9vw,62px)}
+  .nlg-intro>p{font-size:13px}
+  .nlg-samebrain{grid-template-columns:1fr}
+  .nlg-samebrain-copy{padding:29px 23px}
+  .nlg-samebrain h2{font-size:76px}
+  .nlg-sidequest-stage{padding:45px 23px 61px}
+  .nlg-samebrain-slip{min-height:345px}
+  .nlg-tape-top{right:25%}
+  .nlg-topics,.nlg-instructions{padding:77px 0 69px}
+  .nlg-heading-line span:last-child{display:none}
+  .nlg-section-intro{display:block}
+  .nlg-section-intro h2{font-size:clamp(43px,10vw,72px)}
+  .nlg-section-intro p{margin:24px 0 0;max-width:430px}
+  .nlg-atlas-grid{grid-template-columns:1fr}
+  .nlg-atlas-copy{padding:35px 28px}
+  .nlg-atlas-copy h2{font-size:clamp(47px,9vw,72px)}
+  .nlg-atlas-image{border-left:0;border-top:1px solid #a58d72;min-height:250px;max-height:350px}
+  .nlg-atlas-image img{min-height:300px}
+  .nlg-steps{grid-template-columns:1fr}
+  .nlg-steps>li{min-height:200px}
+  .nlg-groundrules,.nlg-faq-grid{grid-template-columns:1fr}
+  .nlg-groundrules{padding-bottom:90px}
+  .nlg-ground-copy h2{font-size:clamp(47px,9vw,72px)}
+  .nlg-ground-ledger{margin:0 7px 8px 0}
+  .nlg-faq-grid{gap:20px}
+  .nlg-faq-titlebox h2{font-size:clamp(45px,9vw,72px)}
+  .nlg-faq-list details>p{padding-left:47px}
+}
+@media(max-width:460px){
+  .nlg-samebrain h2{font-size:60px}
+  .nlg-sidequest-badges span{font-size:9px}
+  .nlg-samebrain-slip{padding:19px 14px;min-height:330px;transform:rotate(1deg)}
+  .nlg-ticket-meta{font-size:8px}
+  .nlg-ticket-bottom{font-size:8px}
+  .nlg-topics-grid{gap:9px}
+  .nlg-topic{min-height:220px;padding:11px}
+  .nlg-topic-index{font-size:9px}
+  .nlg-topic-mark{width:44px;height:44px;font-size:24px;margin-block:22px 14px}
+  .nlg-topic-copy strong{font-size:18px}
+  .nlg-topic-copy small{font-size:10px}
+  .nlg-topic-arrow{right:9px;top:9px;width:24px;height:24px;font-size:14px}
+  .nlg-topics-footer{flex-wrap:wrap;justify-content:flex-start}
+  .nlg-atlas-top,.nlg-atlas-bottom{font-size:8px;padding:12px}
+  .nlg-atlas-top span:last-child,.nlg-atlas-bottom span:last-child{display:none}
+  .nlg-ledger-line{grid-template-columns:28px minmax(0,1fr) 15px;gap:8px}
+  .nlg-ledger-line strong{font-size:17px}
+  .nlg-faq-list summary{gap:9px;font-size:15px}
+}
+@media(prefers-reduced-motion:reduce){
+  .nostalgia-lower-wrap *, .nostalgia-home .nostalgia-closing>a{transition:none!important;animation:none!important}
+}
