@@ -124,7 +124,7 @@ export default function GraffitiWall({locale="en"}){
    if(hiddenLayers.length){setMessage("Reveal all layers before submitting so you can see exactly what will be published.");return;}
    setBusy(true);setMessage("");
    try{
-     const res=await postWall({kind:"graffiti",title,author_tag:tag||"UNKNOWN",artwork:art});
+     const res=await postWall({kind:"graffiti",title,author_tag:tag||"UNKNOWN",artwork:art,ageConfirmed:true});
      setPublished({art:JSON.parse(JSON.stringify(art)),entry:{...res.entry,title,author_tag:tag||"UNKNOWN"}});
      setCertificate(res.certificate);setRefresh(n=>n+1);
      setMessage("Your art is on the wall. Download its cryptographically signed ChatSpark card below.");
