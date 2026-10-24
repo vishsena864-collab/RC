@@ -6,4 +6,5 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://chatspark-
 // tunnel in front of both). It becomes an empty string here and the chat client then connects to the page's own origin.
 const rawServerUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:4000";
 export const SERVER_URL = rawServerUrl === "same-origin" ? "" : rawServerUrl.replace(/\/$/, "");
+export const SOCKET_PATH = process.env.NEXT_PUBLIC_SOCKET_PATH || "/socket.io";
 export const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "support@example.com";
