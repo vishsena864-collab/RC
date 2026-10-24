@@ -28,7 +28,7 @@ export async function GET(){
   const joinedB=await ack(b,"fm:join",{});
   await new Promise(resolve=>setTimeout(resolve,600));
   const shared=states.a.some(e=>e.listeners>=2)&&states.b.some(e=>e.listeners>=2);
-  await ack(a,"fm:leave",{});await ack(b,"fm:leave",{});
+  a.emit("fm:leave");b.emit("fm:leave");
   const matches={a:null,b:null};
   a.on("matched",m=>{matches.a=m.roomId;});
   b.on("matched",m=>{matches.b=m.roomId;});
