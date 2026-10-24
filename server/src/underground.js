@@ -25,7 +25,7 @@ export function createUnderground(io) {
   const state = (room) => ({
     room: room.code, listeners: room.members.size,
     dj: room.dj, track: room.track, startedAt: room.startedAt,
-    queue: room.queue.slice(0, MAX_QUEUE), reactionCounts:room.reactionCounts, lights:room.lights, mood:room.mood, moodAt:room.moodAt, heat:heatNow(room), heatUpdatedAt:room.heatAt, djSince:room.djSince, djTurnMs:DJ_TURN_MS, updatedAt: Date.now()
+    queue: room.queue.slice(0, MAX_QUEUE), reactionCounts:room.reactionCounts, lights:room.lights, mood:room.mood, moodAt:room.moodAt, heat:heatNow(room), heatUpdatedAt:Date.now(), djSince:room.djSince, djTurnMs:DJ_TURN_MS, updatedAt: Date.now()
   });
   const publish = (room) => io.to("fm:" + room.code).emit("fm:state", state(room));
   const leave = (socket) => {
