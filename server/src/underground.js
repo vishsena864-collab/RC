@@ -8,7 +8,7 @@ const MAX_QUEUE = 17;
 const DJ_TURN_MS = 4 * 60_000;
 const COLOR_THEMES = ["acid","infrared","ultraviolet","ocean","gold","rose","midnight","toxic"];
 const FX_MODES = ["pulse","march","sweep","crossfire","tunnel","bloom","drift"];
-const MOODS = ["energy","chill","love","deep"];
+const MOODS = ["energy","chill","love"];
 const REACTIONS = ["heart","fire","spark","wave"];
 const defaultLights = () => ({theme:"acid",fx:"march",intensity:2,beatBpm:116,updatedAt:Date.now(),showMoment:null});
 
@@ -19,7 +19,7 @@ export function createUnderground(io) {
   const state = (room) => ({
     room: room.code, listeners: room.members.size,
     dj: room.dj, track: room.track, startedAt: room.startedAt,
-    queue: room.queue.slice(0, MAX_QUEUE), lights:room.lights, mood:room.mood, djSince:room.djSince, djTurnMs:DJ_TURN_MS, updatedAt: Date.now()
+    queue: room.queue.slice(0, MAX_QUEUE), lights:room.lights, mood:room.mood, moodAt:room.moodAt, djSince:room.djSince, djTurnMs:DJ_TURN_MS, updatedAt: Date.now()
   });
   const publish = (room) => io.to("fm:" + room.code).emit("fm:state", state(room));
   const leave = (socket) => {
@@ -42,7 +42,7 @@ export function createUnderground(io) {
     if (!room) {
       const code = ROOM_CODES.find((name) => !rooms.has(name));
       if (!code) return ack?.({ok:false,error:"full"});
-      room = {code,members:new Set(),dj:null,djSince:Date.now(),track:null,startedAt:null,queue:[],lights:defaultLights(),mood:{energy:0,chill:0,love:0,deep:0},reactionAt:new Map(),lastMood:new Map(),lastMoment:0};
+      room = {code,members:new Set(),dj:null,djSince:Date.now(),track:null,startedAt:null,queue:[],lights:defaultLights(),mood:{energy:0,chill:0,love:0},moodAt:Date.now(),reactionAt:new Map(),lastMood:new Map(),lastMoment:0};
       rooms.set(code, room);
     }
     room.members.add(socket.id);
@@ -159,7 +159,7 @@ export function createUnderground(io) {
       const room=rooms.get(bySocket.get(socket.id));
       if (!room || room.dj!==socket.id) return ack?.({ok:false,error:"dj_only"});
       if (!["drop","flip","storm","fade"].includes(kind)) return ack?.({ok:false,error:"invalid"});
-      if (Date.now()-room.lastMoment<25000) return ack?.({ok:false,error:"cooldown"});
+      if (Date.now()-room.lastMoment<5000) return ack?.({ok:false,error:"cooldown"});
       room.lastMoment=Date.now();
       room.lights={...room.lights,showMoment:{kind,at:Date.now()},updatedAt:Date.now()};
       publish(room);ack?.({ok:true});
@@ -167,9 +167,9 @@ export function createUnderground(io) {
     socket.on("fm:mood", (choice, ack) => {
       const room=rooms.get(bySocket.get(socket.id));
       if (!room || !MOODS.includes(choice)) return ack?.({ok:false,error:"invalid"});
-      if (Date.now()-(room.lastMood.get(socket.id)||0)<20000) return ack?.({ok:false,error:"cooldown"});
+      if (Date.now()-(room.lastMood.get(socket.id)||0)<3000) return ack?.({ok:false,error:"cooldown"});
       room.lastMood.set(socket.id,Date.now());
-      room.mood[choice]=Math.min(9999,room.mood[choice]+1);publish(room);ack?.({ok:true});
+      room.mood[choice]=Math.min(9999,room.mood[choice]+1);room.moodAt=Date.now();publish(room);io.to("fm:"+room.code).emit("fm:mood:burst",{kind:choice,at:Date.now()});ack?.({ok:true});
     });
     socket.on("fm:reaction", (reaction,ack) => {
       const room=rooms.get(bySocket.get(socket.id));
