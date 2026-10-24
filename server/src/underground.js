@@ -72,7 +72,9 @@ export function createUnderground(io) {
         const host=uri.hostname.toLowerCase();
         const allowed=host==="audius.co" || host.endsWith(".audius.co") ||
           host.endsWith(".audiusindex.org") || host.endsWith(".audiususercontent.com") ||
-          host.endsWith(".figment.io") || host.endsWith(".monophonic.digital");
+          host.endsWith(".figment.io") || host.endsWith(".monophonic.digital") ||
+          host.endsWith(".theblueprint.xyz") || host.endsWith(".open-audio-validator.com") ||
+          host==="validator.soundmaxx.xyz" || host==="audius-04.staked.cloud";
         return allowed && /^\/content\/[a-z0-9/._-]+\/(?:150x150|480x480|1000x1000)\.(?:jpg|jpeg|png|webp)$/i.test(uri.pathname);
       } catch {return false;}
     })() ? track.artwork : null;
