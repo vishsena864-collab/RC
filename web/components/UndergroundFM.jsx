@@ -8,30 +8,18 @@ import {createOrb,createOverlay,createStage,qualityFor} from "./underground-fx";
 import "./underground-stage.css";
 
 const oswald=Oswald({subsets:["latin"],weight:["500","600","700"],variable:"--fx-oswald",display:"swap"});
-// Backlit crowd silhouette (heads, shoulders, raised hands), generated once and shared by every panel.
-const CROWD=(()=>{
- let seed=11;const r=()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};
- const W=1400,H=200;let out="";
- for(const [base,scale,fill,step] of [[H-20,.78,"#0b0712",34],[H+6,1,"#020104",42]]){
-  for(let x=-20;x<W+40;x+=step*(.7+r()*.6)){
-   const s=scale*(.85+r()*.3),hy=base-62*s;
-   out+=`<ellipse cx="${x|0}" cy="${(base-14*s)|0}" rx="${(22*s)|0}" ry="${(34*s)|0}" fill="${fill}"/><circle cx="${x|0}" cy="${hy|0}" r="${(12*s)|0}" fill="${fill}"/>`;
-   const arms=r();
-   if(arms<.55){const side=arms<.25?[-1,1]:[r()<.5?-1:1];for(const d of side){const tx=x+d*(14+r()*16)*s,ty=hy-(38+r()*34)*s;out+=`<path d="M${x+d*12*s|0} ${hy+20*s|0}L${tx|0} ${ty|0}" stroke="${fill}" stroke-width="${(7*s).toFixed(1)}" stroke-linecap="round"/><circle cx="${tx|0}" cy="${ty|0}" r="${(5*s).toFixed(1)}" fill="${fill}"/>`;}}
-  }
- }
- return `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax slice">${out}</svg>`)}")`;
-})();
+// Real venue photography (web/public/underground). The stage photo is tinted to the controller's light colour.
+const CROWD="url(/underground/crowd-1200.webp)";
 
 const THEMES=[
- {id:"acid",name:"Acid Lime",a:"#ddff73",b:"#80ffb1",dark:"#1c3221"},
- {id:"infrared",name:"Infrared Red",a:"#ff625c",b:"#ffb467",dark:"#381d29"},
- {id:"ultraviolet",name:"Ultraviolet",a:"#cf7cff",b:"#ff70cf",dark:"#251738"},
- {id:"ocean",name:"Ocean Cyan",a:"#2de5ee",b:"#72aaff",dark:"#122837"},
- {id:"gold",name:"Solar Gold",a:"#ffe77a",b:"#ff9c55",dark:"#362819"},
- {id:"rose",name:"Velvet Pulse",a:"#ff84c8",b:"#ffb9a5",dark:"#36202c"},
- {id:"midnight",name:"Midnight Tunnel",a:"#83a5ff",b:"#75d0ff",dark:"#111b34"},
- {id:"toxic",name:"Neon Riot",a:"#9cff2d",b:"#fe52b8",dark:"#2c1536"}
+ {id:"acid",name:"Acid Lime",a:"#ddff73",b:"#80ffb1",dark:"#1c3221",hue:95},
+ {id:"infrared",name:"Infrared Red",a:"#ff625c",b:"#ffb467",dark:"#381d29",hue:0},
+ {id:"ultraviolet",name:"Ultraviolet",a:"#cf7cff",b:"#ff70cf",dark:"#251738",hue:290},
+ {id:"ocean",name:"Ocean Cyan",a:"#2de5ee",b:"#72aaff",dark:"#122837",hue:185},
+ {id:"gold",name:"Solar Gold",a:"#ffe77a",b:"#ff9c55",dark:"#362819",hue:35},
+ {id:"rose",name:"Velvet Pulse",a:"#ff84c8",b:"#ffb9a5",dark:"#36202c",hue:330},
+ {id:"midnight",name:"Midnight Tunnel",a:"#83a5ff",b:"#75d0ff",dark:"#111b34",hue:225},
+ {id:"toxic",name:"Neon Riot",a:"#9cff2d",b:"#fe52b8",dark:"#2c1536",hue:100}
 ];
 const FX=[["march","Marching lasers"],["pulse","Pulse"],["sweep","Wave sweep"],["crossfire","Crossfire"],["tunnel","Tunnel"],["bloom","Soft bloom"],["drift","Drift"]];
 const MOODS=["energy","love","chill"];
@@ -61,7 +49,7 @@ const DISCOVER_TABS=["For You","Underground Picks","New This Week","Global Sound
 const DISCOVER_TERMS={"For You":"","Underground Picks":"underground","New This Week":"new music","Global Sounds":"world","Chill":"ambient","High Energy":"electronic"};
 const GENRES=["Electronic","Indie","Alt","House","Techno","Beats"];
 const WAVE=Array.from({length:60},(_,i)=>({h:18+((i*37+Math.round(Math.sin(i*.8)*30+30))%78),d:((i*11)%19)/19}));
-const defaults={theme:"acid",fx:"march",intensity:2,beatBpm:116,showMoment:null};
+const defaults={theme:"infrared",fx:"sweep",intensity:2,beatBpm:116,showMoment:null};
 const shuffle=list=>{const a=[...list];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 const clamp=(n,min,max)=>Math.max(min,Math.min(n,max));
 const clockFmt=seconds=>!Number.isFinite(seconds)?"0:00":Math.floor(Math.max(0,seconds)/60)+":"+String(Math.floor(Math.max(0,seconds)%60)).padStart(2,"0");
@@ -143,13 +131,13 @@ export default function UndergroundFM({locale="en"}){
  const queue=room?.queue||[];
  const queueMinutes=Math.round(queue.reduce((n,e)=>n+(Number(e.track.duration)||0),0)/60);
  const deck=selectedTrack||(room?room.track:null);
- const vars={"--crowd":CROWD,"--show-a":theme.a,"--show-b":theme.b,"--show-dark":theme.dark,"--show-beat":(60/(fx.beatBpm||116)).toFixed(3)+"s","--heat":heatScore/100};
+ const vars={"--crowd":CROWD,"--hue":(theme.hue||0)+"deg","--show-a":theme.a,"--show-b":theme.b,"--show-dark":theme.dark,"--show-beat":(60/(fx.beatBpm||116)).toFixed(3)+"s","--heat":heatScore/100};
  const mAt=room?.lights?.showMoment?.at,mKind=room?.lights?.showMoment?.kind;
 
  /* ── visual engines ── */
  useEffect(()=>{
   const quality=qualityFor();
-  stage.current=createStage(stageCv.current,{quality});
+  stage.current=createStage(stageCv.current,{quality,photo:true});
   overlay.current=createOverlay(overlayCv.current,{quality});
   return ()=>{stage.current?.destroy();overlay.current?.destroy();stage.current=overlay.current=null;};
  },[]);
@@ -391,6 +379,7 @@ export default function UndergroundFM({locale="en"}){
  const reactionBar=<div className="fx-react-bar" role="group" aria-label="Send a reaction">{REACTIONS.map(([kind,emoji])=><button key={kind} type="button" onClick={()=>react(kind)} disabled={!room} aria-label={"React "+kind}><span>{emoji}</span><b>{room?.reactionCounts?.[kind]||0}</b></button>)}</div>;
 
  return <div className={"fx-shell fx-"+view+" "+oswald.variable} style={vars} data-view={view} data-tab={tab} data-motion={motionOff?"reduced":"full"} data-playing={playing} data-heat={hottest} data-fab={view==="controller"&&Boolean(selectedTrack)}>
+  <div className="fx-photo" aria-hidden="true"/>
   <canvas ref={stageCv} className="fx-stage" aria-hidden="true"/>
   <div className="fx-scrim" aria-hidden="true"/>
   <canvas ref={overlayCv} className="fx-overlay" aria-hidden="true"/>
@@ -436,7 +425,7 @@ export default function UndergroundFM({locale="en"}){
      <div className="fx-now-body">
       <div className="fx-cover" data-playing={playing}>{current?.artwork?<img src={current.artwork} alt={current.title+" cover art"} referrerPolicy="no-referrer" onError={hideBroken}/>:<span className="fx-record"><i/></span>}<em/></div>
       <div className="fx-song">
-       <div className="fx-song-head"><div><h3>{current?.title||"Your next discovery."}</h3><p>{current?.artist||"Select a track. Let the night unfold."}</p></div>
+       <div className="fx-song-head"><div><h3 title={current?.title}>{current?.title||"Your next discovery."}</h3><p>{current?.artist||"Select a track. Let the night unfold."}</p></div>
         <div className="fx-song-tools"><button type="button" className={"fx-icon-btn"+(liked?" is-on":"")} onClick={()=>setLiked(v=>!v)} aria-pressed={liked} aria-label={liked?"Remove like":"Like this track"} disabled={!current}><Icon name="heart"/></button></div></div>
        <div className="fx-tags"><span>{current?.genre||"Underground"}</span><span>{room?"Live broadcast":"Discover"}</span><span>{theme.name}</span></div>
        <div className={"fx-wave"+(playing?" is-playing":"")} aria-hidden="true">{WAVE.map((b,i)=><i key={i} style={{"--h":b.h+"%","--d":b.d+"s"}}/>)}</div>
@@ -477,7 +466,7 @@ export default function UndergroundFM({locale="en"}){
 
     {view==="controller"&&<div className="fx-row fx-row-controller">
      <section className="fx-panel fx-lights" data-pane="vibe" aria-label="Light mode">
-      <header className="fx-panel-head"><h2>Light Mode</h2><span className="fx-dim">Transform the room's atmosphere</span><button type="button" className="fx-link" onClick={()=>styleChange({theme:"acid",fx:"march",intensity:2})}>Reset</button></header>
+      <header className="fx-panel-head"><h2>Light Mode</h2><span className="fx-dim">Transform the room's atmosphere</span><button type="button" className="fx-link" onClick={()=>styleChange({theme:"infrared",fx:"sweep",intensity:2})}>Reset</button></header>
       <div className="fx-scenes">{SCENES.map(scene=><button type="button" key={scene.id} onClick={()=>activateScene(scene)} aria-pressed={fx.theme===scene.theme&&fx.fx===scene.fx} className={"fx-scene fx-scene-"+scene.id}><span className="fx-scene-art"><i/><i/><i/></span><strong>{scene.name}</strong><small>{scene.subtitle}</small></button>)}</div>
       <div className="fx-moments" role="group" aria-label="Show moments"><span>MOMENTS</span>{MOMENTS.map(([kind,label])=><button type="button" key={kind} onClick={()=>fxTrigger(kind)}>{label}</button>)}</div>
       <button type="button" className="fx-link fx-tune-toggle" onClick={()=>setShowTune(v=>!v)} aria-expanded={showTune}>{showTune?"Hide fine-tune":"Fine-tune colors, pattern & power"}</button>

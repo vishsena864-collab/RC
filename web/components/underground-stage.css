@@ -29,10 +29,11 @@ body:has(.fx-shell)>.site-header,body:has(.fx-shell)>.site-footer{display:none}
 .fx-sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 /* ── stage layers ── */
-.fx-stage{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block;pointer-events:none;image-rendering:auto}
+.fx-photo{position:fixed;inset:0;z-index:0;pointer-events:none;background:#05030a url(/underground/stage-2400.webp) center 28%/cover no-repeat;filter:hue-rotate(var(--hue,0deg)) saturate(1.15) brightness(.92);transition:filter 1.4s ease}
+.fx-stage{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block;pointer-events:none;mix-blend-mode:screen}
 .fx-scrim{position:fixed;inset:0;z-index:1;pointer-events:none;background:
- radial-gradient(120% 60% at 50% 0,transparent 45%,rgba(5,3,10,.3) 100%),
- linear-gradient(180deg,rgba(5,3,10,0) 0,rgba(5,3,10,.14) 300px,rgba(5,3,10,.46) 700px,rgba(5,3,10,.6) 100%)}
+ radial-gradient(60% 55% at 18% 18%,rgba(5,3,10,.55),transparent 70%),
+ linear-gradient(180deg,rgba(5,3,10,.15) 0,rgba(5,3,10,.25) 260px,rgba(5,3,10,.6) 620px,rgba(5,3,10,.72) 100%)}
 .fx-overlay{position:fixed;inset:0;width:100%;height:100%;z-index:60;pointer-events:none;display:block}
 .fx-callout{position:fixed;left:50%;top:34%;z-index:70;transform:translate(-50%,-50%);text-align:center;pointer-events:none;animation:fx-callout 2.6s cubic-bezier(.2,.8,.2,1) forwards}
 .fx-callout strong{display:block;font:900 clamp(40px,7vw,100px)/.9 var(--display);letter-spacing:.04em;color:#fff}
@@ -354,19 +355,18 @@ body:has(.fx-shell)>.site-header,body:has(.fx-shell)>.site-footer{display:none}
 .fx-brand small,.fx-ctrl-kicker,.fx-big-action strong{font-family:var(--display);font-weight:600;letter-spacing:.12em}
 .fx-brand small{font-size:13px}.fx-ctrl-kicker{font-size:15px}.fx-big-action strong{font-size:17px}
 .fx-side nav a.current{color:var(--lime);background:rgba(212,255,58,.08);box-shadow:inset 3px 0 0 var(--lime);font-weight:600}
-.fx-side::before{content:"";position:absolute;left:0;right:0;top:46%;height:230px;background:var(--crowd) center bottom/auto 100% repeat-x;filter:invert(1) grayscale(1);opacity:.2;pointer-events:none;-webkit-mask:linear-gradient(transparent,#000 35%,#000 70%,transparent);mask:linear-gradient(transparent,#000 35%,#000 70%,transparent)}
+.fx-side::before{content:"";position:absolute;left:0;right:0;top:44%;height:260px;background:var(--crowd) 40% 70%/auto 100% no-repeat;filter:grayscale(1) brightness(1.4) contrast(1.1);opacity:.35;pointer-events:none;-webkit-mask:linear-gradient(transparent,#000 30%,#000 70%,transparent);mask:linear-gradient(transparent,#000 30%,#000 70%,transparent)}
 .fx-manifest{position:relative;font-family:var(--display);font-weight:700;color:#fff}
 .fx-hero{position:relative;isolation:isolate}
-.fx-hero::before{content:"";position:absolute;z-index:-1;left:0;right:0;bottom:-6px;height:120px;background:var(--crowd) center bottom/auto 100% repeat-x;opacity:.85;pointer-events:none}
 .fx-panel>:not(.fx-chat-inner){position:relative}
 .fx-shell :is(.fx-orb,.fx-mini-orb,.fx-scene,.fx-link,.fx-discover-tiles button){border:0;background:none}
-.fx-now{background:var(--crowd) right bottom/auto 42% repeat-x,radial-gradient(55% 75% at 78% 30%,rgba(170,50,220,.38),transparent 70%),radial-gradient(35% 50% at 95% 95%,rgba(255,60,140,.3),transparent 70%),linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.01)),var(--glass)}
-.fx-reactor{background:var(--crowd) center bottom/auto 30% repeat-x,radial-gradient(70% 34% at 50% 100%,rgba(255,50,40,.55),transparent 70%),radial-gradient(60% 40% at 50% 38%,rgba(150,40,190,.3),transparent 70%),var(--glass)}
-.fx-shape{background:var(--crowd) center bottom/auto 58% repeat-x,radial-gradient(22% 46% at 17% 52%,rgba(255,110,30,.4),transparent 70%),radial-gradient(22% 46% at 50% 52%,rgba(255,50,200,.4),transparent 70%),radial-gradient(22% 46% at 83% 52%,rgba(40,160,255,.4),transparent 70%),radial-gradient(80% 50% at 50% 100%,rgba(255,40,70,.35),transparent 70%),var(--glass)}
-.fx-live-react{background:var(--crowd) center bottom/auto 40% repeat-x,radial-gradient(70% 40% at 50% 100%,rgba(255,80,30,.4),transparent 70%),var(--glass)}
+.fx-now{background:linear-gradient(90deg,rgba(8,6,16,.94) 30%,rgba(8,6,16,.62) 70%,rgba(8,6,16,.4)),var(--crowd) 70% 70%/cover no-repeat,#08060f}
+.fx-reactor{background:linear-gradient(180deg,rgba(8,6,16,.9) 0,rgba(8,6,16,.7) 45%,rgba(8,6,16,.25) 100%),var(--crowd) 50% 80%/auto 120% no-repeat,#08060f}
+.fx-shape{background:linear-gradient(180deg,rgba(8,6,16,.82) 0,rgba(8,6,16,.4) 50%,rgba(8,6,16,.55) 100%),var(--crowd) 50% 78%/cover no-repeat,#08060f}
+.fx-live-react{background:linear-gradient(180deg,rgba(8,6,16,.88),rgba(8,6,16,.35)),var(--crowd) 50% 80%/cover no-repeat,#08060f}
 .fx-heat{width:clamp(170px,14vw,214px);margin:6px 0 4px}
 .fx-heat .fx-orb-canvas,.fx-orb-body .fx-orb-canvas,.fx-mini-body .fx-orb-canvas{position:absolute;inset:-25%;width:150%;height:150%}
-.fx-heat-core{inset:16%;background:radial-gradient(circle,rgba(8,2,12,.6),transparent 72%);box-shadow:none}
+.fx-heat-core{inset:16%;background:none;box-shadow:none}
 .fx-heat-core strong{font:800 clamp(46px,4.4vw,64px)/1 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;text-shadow:0 0 18px rgba(255,120,60,.8),0 2px 6px #000}
 .fx-heat-core span{font:600 14px var(--display);letter-spacing:.16em}
 .fx-heat-core em{font:normal 13px system-ui,sans-serif;letter-spacing:0;color:#fff;opacity:.9}
@@ -421,6 +421,7 @@ body:has(.fx-shell)>.site-header,body:has(.fx-shell)>.site-footer{display:none}
 
 /* ── tabbed (tablet + phone) ── */
 @media (max-width:1179px){
+ .fx-photo{background-image:url(/underground/stage-1200.webp);background-position:50% 30%}
  .fx-shell{grid-template-columns:minmax(0,1fr)}
  .fx-side{display:none}
  .fx-brand-mobile{display:block;margin:0 auto 0 0;padding:0;font-size:20px}
@@ -507,3 +508,21 @@ body:has(.fx-shell)>.site-header,body:has(.fx-shell)>.site-footer{display:none}
 .fx-shell[data-motion=reduced] .fx-wave i{transform:scaleY(.7)}
 .fx-shell[data-motion=reduced] .fx-callout{opacity:1}
 @media (prefers-reduced-motion:reduce){.fx-shell *{animation:none!important;transition:none!important}}
+
+/* ── scene thumbnails + discover tiles from the real venue photos, colour-graded per scene ── */
+.fx-scene-art{background:#05030a url(/underground/stage-1200.webp) 50% 45%/auto 135% no-repeat;filter:saturate(1.2)}
+.fx-scene-art i,.fx-scene-art::after{display:none}
+.fx-scene-supernova .fx-scene-art{background-position:22% 55%;filter:saturate(1.5) brightness(1.15) contrast(1.1)}
+.fx-scene-spectral .fx-scene-art{background-position:78% 55%;filter:hue-rotate(290deg) saturate(1.4)}
+.fx-scene-ion .fx-scene-art{background-position:50% 40%;filter:hue-rotate(185deg) saturate(1.5) brightness(1.1)}
+.fx-scene-blackout .fx-scene-art{background-position:50% 70%;filter:grayscale(1) contrast(1.4) brightness(.8)}
+.fx-scene-dreamscape .fx-scene-art{background-image:url(/underground/crowd-1200.webp);background-position:62% 60%;filter:hue-rotate(330deg) saturate(1.2) brightness(1.05)}
+.fx-dtile{background:url(/underground/crowd-1200.webp) 30% 60%/cover no-repeat}
+.fx-dtile-0{background-image:url(/underground/stage-1200.webp);background-position:50% 55%}
+.fx-dtile-1{filter:hue-rotate(185deg) saturate(1.3)}
+.fx-dtile-2{background-position:80% 60%;filter:hue-rotate(290deg)}
+.fx-dtile-3{background-image:url(/underground/stage-1200.webp);background-position:20% 50%;filter:hue-rotate(210deg) brightness(.85)}
+@media (prefers-reduced-motion:no-preference){.fx-scene[aria-pressed=true] .fx-scene-art{animation:fx-scene-live 2.4s ease-in-out infinite alternate}}
+@keyframes fx-scene-live{to{background-size:auto 150%}}
+/* real Audius titles can be very long */
+.fx-song h3,.fx-deck-meta strong{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
