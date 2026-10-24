@@ -595,10 +595,6 @@ body:has(.fx-shell)>.site-header,body:has(.fx-shell)>.site-footer{display:none}
 /* ── equal globe sizes + aligned stats ──
    Each clip frames its sphere differently (fire fills ~83% of the frame, chill ~73%, vibe and room ~62%),
    so normalise to one visual sphere size with the independent `scale` property (hover/press still use transform). */
-.fx-orb-video-fire video{scale:.88}
-.fx-orb-video-chill video{scale:1}
-.fx-orb-video-vibe video{scale:1.17}
-.fx-orb-video-room video{scale:1.16}
 .fx-orb-video video{-webkit-mask:radial-gradient(circle,#000 54%,transparent 68%);mask:radial-gradient(circle,#000 54%,transparent 68%)}
 .fx-mini-orbs{grid-template-columns:repeat(3,minmax(0,1fr));align-items:start;justify-items:center}
 .fx-mini-orb{display:grid;grid-template-rows:auto 34px 20px 18px;justify-items:center;align-items:center;width:100%;gap:0;padding:4px 0 6px}
@@ -617,9 +613,16 @@ body:has(.fx-shell)>.site-header,body:has(.fx-shell)>.site-footer{display:none}
  .fx-orb-name{line-height:1.1}
  .fx-orb-blurb{min-height:0}
 }
-.fx-orb-video-chill video{scale:.94}
 .fx-heat-core::before{content:"";position:absolute;inset:4%;z-index:-1;border-radius:50%;background:radial-gradient(circle,rgba(6,3,14,.72) 30%,rgba(6,3,14,.35) 58%,transparent 72%)}
 .fx-heat-core{isolation:isolate}
 .fx-heat-core strong{color:#f4f0ff;text-shadow:0 0 14px rgba(138,107,255,.9),0 0 30px rgba(79,217,255,.6),0 2px 4px #000}
 .fx-reactor-energy .fx-heat-core strong{text-shadow:0 0 14px rgba(255,122,26,.9),0 0 30px rgba(255,61,110,.6),0 2px 4px #000}
 .fx-reactor-chill .fx-heat-core strong{text-shadow:0 0 14px rgba(63,196,255,.9),0 0 30px rgba(59,107,255,.6),0 2px 4px #000}
+
+/* ── music-driven light: --bass/--kick come from the stage engine (live FFT, or the room BPM) ── */
+canvas.fx-wave{display:block;width:100%;height:62px}
+.fx-orb-video-fire{--fit:.88}.fx-orb-video-chill{--fit:.94}.fx-orb-video-vibe{--fit:1.17}.fx-orb-video-room{--fit:1.16}
+.fx-orb-video video{scale:calc(var(--fit,1) * (1 + var(--bass,0) * .07))}
+.fx-aura{opacity:calc(.7 + var(--bass,0) * .6)}
+.fx-cover[data-playing=true]{animation:none;transform:scale(calc(1 + var(--bass,0) * .03));box-shadow:0 0 0 1px rgba(255,255,255,.14),0 14px 44px rgba(0,0,0,.6),0 0 calc(30px + var(--bass,0) * 50px) color-mix(in srgb,var(--show-a,#ff625c) 45%,transparent)}
+.fx-shell[data-motion=reduced]{--bass:0!important}

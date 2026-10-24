@@ -266,11 +266,31 @@ export function createOverlay(canvas, { reduced = false, quality = 1 } = {}) {
 
 /* ───────────────────────── the concert rig ───────────────────────── */
 // photo: the venue photograph sits behind the canvas, so draw light only (no backdrop, truss, LED wall or crowd).
-export function createStage(canvas, { reduced = false, quality = 1, photo = false } = {}) {
+// Optional live audio: pass an AnalyserNode to stage.audio(); bass/mid/high, beat onsets and drops then drive the rig.
+// Without it (nobody pressed play on this device) the rig follows the room BPM. onLevels reports the drive each frame.
+const MOOD_RGB = { energy: [255, 96, 24], love: [255, 52, 200], chill: [60, 190, 255] };
+export function createStage(canvas, { reduced = false, quality = 1, photo = false, onLevels = null } = {}) {
   const g = canvas.getContext("2d", { alpha: photo });
   const S = { a: [221, 255, 115], b: [128, 255, 177], dark: [28, 50, 33], fx: "march", power: 2, bpm: 116, heat: 50, playing: false, still: reduced };
   const cur = { a: [...S.a], b: [...S.b], dark: [...S.dark] };
   let W = 2, H = 2, crowd = [], dust = [], mom = null, bolts = [], boltAt = 0, pulse = 0;
+  let an = null, buf = null, avgBass = 0, beatEnv = 0, lastBeat = -9, onset = false, fast = 0, slow = 0, lastDrop = -99, blind = 0, strobe = 0, lastStrobe = -9, moodT = null;
+  const L = { bass: 0, mid: 0, high: 0, level: 0, live: false };
+  // FFT bands → smoothed levels, kick onsets (bass jumping over its running average) and drops (energy surging over its slow average).
+  const listen = (dt, t) => {
+    onset = false; beatEnv *= Math.exp(-dt / .18);
+    if (!an) { L.live = false; return; }
+    an.getByteFrequencyData(buf);
+    const hz = an.context.sampleRate / an.fftSize, band = (lo, hi) => { let s = 0, n = 0; for (let i = Math.max(1, Math.round(lo / hz)), e = Math.min(buf.length - 1, Math.round(hi / hz)); i <= e; i++) { s += buf[i]; n++; } return n ? s / n / 255 : 0; };
+    const b = band(30, 150), m = band(400, 2000), h = band(5000, 12000), follow = (cur, to, up, down) => lerp(cur, to, 1 - Math.exp(-dt * (to > cur ? up : down)));
+    L.bass = follow(L.bass, b, 30, 6); L.mid = follow(L.mid, m, 20, 5); L.high = follow(L.high, h, 25, 6);
+    L.level = (L.bass * .5 + L.mid * .35 + L.high * .15); L.live = b + m + h > .03;
+    if (!L.live) return;
+    if (b > avgBass * 1.28 + .035 && b > .22 && t - lastBeat > .28) { beatEnv = 1; lastBeat = t; onset = true; }
+    avgBass = lerp(avgBass, b, 1 - Math.exp(-dt * 1.6));
+    fast = lerp(fast, L.level, 1 - Math.exp(-dt * 6)); slow = lerp(slow, L.level, 1 - Math.exp(-dt * .45));
+    if (fast > slow * 1.5 && fast > .42 && t - lastDrop > 8) { blind = 1; lastDrop = t; }
+  };
   const scale = quality < 1 ? .38 : .5;
   const mix = (c, k) => c.map(v => Math.round(v * k));
   const col = (c, k = 1) => `${Math.round(c[0] * k)},${Math.round(c[1] * k)},${Math.round(c[2] * k)}`;
@@ -280,12 +300,24 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
     for (const [lift, step, sc] of rows) for (let x = -step; x < W + step; x += step * (.75 + r() * .5)) crowd.push({ x, lift: lift * H, sc, ph: r() * TAU, arm: r() < .42 ? (r() < .5 ? 1 : 2) : 0, hh: .85 + r() * .3 });
   };
   const resize = () => { W = Math.max(2, Math.round(innerWidth * scale)); H = Math.max(2, Math.round(innerHeight * scale)); canvas.width = W; canvas.height = H; buildCrowd(); if (S.still) paint(2.2, 1 / 60); };
+  // volumetric beam: stacked cones (soft edge, brighter core) and a hot spot where it lands on the floor
   const beam = (ox, oy, ang, len, spread, c, a) => {
     if (a <= .004) return;
     const ex = ox + Math.sin(ang) * len, ey = oy + Math.cos(ang) * len, nx = Math.cos(ang), ny = -Math.sin(ang), w1 = len * spread;
     const gr = g.createLinearGradient(ox, oy, ex, ey);
     gr.addColorStop(0, `rgba(${col(c)},${a})`); gr.addColorStop(.55, `rgba(${col(c)},${a * .34})`); gr.addColorStop(1, `rgba(${col(c)},0)`);
-    g.fillStyle = gr; g.beginPath(); g.moveTo(ox + nx * 1.5, oy + ny * 1.5); g.lineTo(ex + nx * w1, ey + ny * w1); g.lineTo(ex - nx * w1, ey - ny * w1); g.lineTo(ox - nx * 1.5, oy - ny * 1.5); g.closePath(); g.fill();
+    g.fillStyle = gr;
+    for (const [f, al] of [[1, .4], [.5, .55], [.2, .85]]) { g.globalAlpha = al; g.beginPath(); g.moveTo(ox + nx * 1.5, oy + ny * 1.5); g.lineTo(ex + nx * w1 * f, ey + ny * w1 * f); g.lineTo(ex - nx * w1 * f, ey - ny * w1 * f); g.lineTo(ox - nx * 1.5, oy - ny * 1.5); g.closePath(); g.fill(); }
+    g.globalAlpha = 1;
+    const fy = H * (photo ? .8 : .92), ca = Math.cos(ang);
+    if (ca > .25) {
+      const d = (fy - oy) / ca, hw = d * spread * 1.2, hx = ox + Math.sin(ang) * d;
+      if (d > 0 && d < len * .9 && hx > -hw && hx < W + hw) {
+        g.save(); g.translate(hx, fy); g.scale(1, .26);
+        const hg = g.createRadialGradient(0, 0, 0, 0, 0, hw); hg.addColorStop(0, `rgba(${col(c)},${Math.min(1, a * 1.1)})`); hg.addColorStop(1, `rgba(${col(c)},0)`);
+        g.fillStyle = hg; g.fillRect(-hw, -hw, hw * 2, hw * 2); g.restore();
+      }
+    }
   };
   const flare = (x, y, c, r, a) => {
     const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, `rgba(255,255,255,${a})`); gr.addColorStop(.25, `rgba(${col(c)},${a * .6})`); gr.addColorStop(1, `rgba(${col(c)},0)`);
@@ -338,9 +370,12 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
   function paint(t, dt) {
     const e = mom ? (performance.now() - mom.at) / 1000 : 99, kind = e < 4.8 ? mom.kind : null;
     const m = [0, .55, .85, 1.15][S.power] * (kind === "drop" && e < 3 ? 1.5 : 1);
-    const beat = (t * S.bpm / 60) % 1, kick = Math.pow(1 - beat, 3) * (S.playing ? 1 : .35);
-    const heatK = .75 + S.heat / 100 * .6, flip = kind === "flip" && e < 3.2;
-    const A = flip ? cur.b : cur.a, B = flip ? cur.a : cur.b;
+    const beat = (t * S.bpm / 60) % 1, kick = L.live ? beatEnv : Math.pow(1 - beat, 3) * (S.playing ? 1 : .35);
+    const live = L.live ? .75 + L.level * .7 : 1;
+    // a vote tints the rig for a few seconds: fire hot and fast, chill blue and slow, vibe magenta
+    const mf = moodT ? clamp(1 - (performance.now() - moodT.at) / 3600, 0, 1) : 0, tint = (c) => mf ? c.map((v, i) => lerp(v, MOOD_RGB[moodT.kind][i], mf * .75)) : c;
+    const heatK = (.75 + S.heat / 100 * .6) * (mf && moodT.kind === "energy" ? 1 + mf * .8 : mf && moodT.kind === "chill" ? 1 - mf * .5 : 1), flip = kind === "flip" && e < 3.2;
+    const A = tint(flip ? cur.b : cur.a), B = tint(flip ? cur.a : cur.b);
     const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, `rgb(${col(cur.dark, .16)})`); bg.addColorStop(.6, `rgb(${col(cur.dark, .38)})`); bg.addColorStop(1, `rgb(${col(cur.dark, .62)})`);
     g.globalCompositeOperation = "source-over";
     if (photo) g.clearRect(0, 0, W, H); else { g.fillStyle = bg; g.fillRect(0, 0, W, H); }
@@ -359,7 +394,7 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
     }
     // beams
     if (S.power > 0) {
-      const n = [0, 5, 8, 12][S.power], sp = (kind === "drop" ? 1.9 : 1) * heatK, al = (.34 + kick * .42) * m, fx = S.fx, ty = H * .022, oy = ty + 12;
+      const n = [0, 5, 8, 12][S.power], sp = (kind === "drop" ? 1.9 : 1) * heatK, al = (.34 + kick * .42) * m * live, fx = S.fx, ty = H * .022, oy = ty + 12;
       if (!photo && fx !== "crossfire" && fx !== "tunnel") truss(ty, Array.from({ length: n }, (_, i) => W * (.08 + (n === 1 ? .5 : i / (n - 1)) * .84)));
       if (fx === "sweep" || fx === "crossfire" || fx === "pulse") lasers(t, A, B, m, kick, fx === "sweep" ? 0 : fx === "pulse" ? 3 : (Math.floor(t * S.bpm / 60 / 8) % 2 ? 2 : 1));
       for (let i = 0; i < n; i++) {
@@ -377,6 +412,14 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
       }
       if (fx === "tunnel") for (let r = 0; r < 5; r++) { const k = ((t * .25 * sp + r / 5) % 1); g.strokeStyle = `rgba(${col(r % 2 ? B : A)},${(1 - k) * .3 * m})`; g.lineWidth = 1 + k * 3; g.beginPath(); g.ellipse(W / 2, H * .5, W * .6 * k, H * .45 * k, 0, 0, TAU); g.stroke(); }
     }
+    // blinders on a detected drop, and a strobe on hard kicks at peak heat (capped at 3 flashes a second)
+    blind *= Math.exp(-dt / .4); strobe *= Math.exp(-dt / .05);
+    if (onset && S.power === 3 && S.heat >= 75 && t - lastStrobe > .34) { strobe = 1; lastStrobe = t; }
+    if (blind > .02) {
+      for (let i = 0; i < 6; i++) flare(W * (.12 + i * .152), H * .05, [255, 214, 160], H * .22 * (.6 + blind * .6), blind);
+      g.fillStyle = `rgba(255,220,180,${blind * .22})`; g.fillRect(0, 0, W, H);
+    }
+    if (strobe > .02) { g.fillStyle = `rgba(255,255,255,${strobe * .2})`; g.fillRect(0, 0, W, H); }
     // dust in the light
     g.fillStyle = "#fff";
     for (const d of dust) { d.y -= d.z * 6 * dt; d.x += Math.sin(t * .4 + d.p) * .2; if (d.y < -2) { d.y = H + 2; d.x = Math.random() * W; } g.globalAlpha = (.12 + .2 * Math.sin(t * 1.1 + d.p) ** 2) * d.z * Math.min(1, m + .2); g.fillRect(d.x, d.y, Math.max(1, d.z * 1.4), Math.max(1, d.z * 1.4)); }
@@ -429,7 +472,9 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
   }
   const loop = makeLoop((dt, ts) => {
     for (const k of ["a", "b", "dark"]) for (let i = 0; i < 3; i++) cur[k][i] = lerp(cur[k][i], S[k][i], 1 - Math.exp(-dt * 2.4));
-    paint(ts, dt); return true;
+    listen(dt, ts); paint(ts, dt);
+    onLevels?.(L.live ? { bass: L.bass, level: L.level, kick: beatEnv, live: true } : { bass: Math.pow(1 - (ts * S.bpm / 60) % 1, 3) * (S.playing ? .45 : .15), level: 0, kick: 0, live: false });
+    return true;
   });
   const vis = () => { if (document.hidden) loop.stop(); else if (!S.still) loop.start(); };
   resize(); addEventListener("resize", resize); document.addEventListener("visibilitychange", vis);
@@ -440,8 +485,49 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
       for (const k of ["fx", "power", "bpm", "heat", "playing"]) if (p[k] !== undefined) S[k] = p[k];
       if (S.still) { for (const k of ["a", "b", "dark"]) cur[k] = [...S[k]]; paint(2.2, 1 / 60); }
     },
+    audio(node) { an = node; buf = node ? new Uint8Array(node.frequencyBinCount) : null; },
+    mood(kind) { if (!S.still && MOOD_RGB[kind]) moodT = { kind, at: performance.now() }; },
     moment(kind, at) { if (S.still || mom?.sat === at) return; mom = { kind, sat: at, at: performance.now() - clamp(Date.now() - at, 0, 4800) }; boltAt = 0; bolts = []; },
     setReduced(v) { S.still = v; if (v) { loop.stop(); cur.a = [...S.a]; cur.b = [...S.b]; cur.dark = [...S.dark]; mom = null; paint(2.2, 1 / 60); } else loop.start(); },
     destroy() { loop.stop(); removeEventListener("resize", resize); document.removeEventListener("visibilitychange", vis); }
+  };
+}
+
+/* ───────────────────────── now-playing spectrum ───────────────────────── */
+// Mirrored bars, pink → orange → cyan. Real FFT when an analyser is attached and sounding, a soft synthetic pulse otherwise.
+export function createSpectrum(canvas, { reduced = false } = {}) {
+  const g = canvas.getContext("2d");
+  let an = null, buf = null, playing = false, still = reduced, visible = true, W = 2, H = 2, bars = [];
+  const n = () => Math.max(24, Math.min(72, Math.round(W / (window.devicePixelRatio > 1 ? 9 : 6))));
+  const draw = (t) => {
+    g.clearRect(0, 0, W, H);
+    const N = n(); if (bars.length !== N) bars = new Array(N).fill(0);
+    let live = false;
+    if (an && playing) { an.getByteFrequencyData(buf); live = buf.some(v => v > 4); }
+    const gr = g.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, "#ff3dd0"); gr.addColorStop(.5, "#ffae42"); gr.addColorStop(1, "#4fd9ff");
+    const step = W / N, bw = Math.max(1, step * .55), mid = H / 2;
+    g.fillStyle = gr; g.shadowColor = "rgba(255,61,208,.6)"; g.shadowBlur = 8;
+    for (let i = 0; i < N; i++) {
+      let v;
+      if (live) { const lo = Math.floor(Math.pow(i / N, 1.7) * buf.length * .55) + 1, hi = Math.max(lo + 1, Math.floor(Math.pow((i + 1) / N, 1.7) * buf.length * .55) + 1); let s = 0; for (let k = lo; k < hi; k++) s += buf[k]; v = Math.pow(s / (hi - lo) / 255, .8) * (1 + i / N * 1.8); } // tilt: lift the quieter highs
+      else v = (playing ? .35 : .14) + Math.sin(i * .9 + t * (playing ? 3.2 : 1.1)) * .12 * (playing ? 1 : .5) + Math.sin(i * .37 - t * 2.1) * .08;
+      bars[i] = lerp(bars[i], clamp(v, .03, 1), live ? .55 : .2);
+      const h = Math.max(2, bars[i] * H * .96);
+      g.fillRect(i * step + (step - bw) / 2, mid - h / 2, bw, h);
+    }
+    g.shadowBlur = 0;
+  };
+  const loop = makeLoop((dt, t) => { draw(t); return visible && !still; });
+  const resize = () => { const r = canvas.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1); W = Math.max(2, Math.round(r.width * dpr)); H = Math.max(2, Math.round(r.height * dpr)); canvas.width = W; canvas.height = H; draw(1); };
+  const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null; ro?.observe(canvas);
+  const io = typeof IntersectionObserver !== "undefined" ? new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible && !still) loop.start(); }) : null; io?.observe(canvas);
+  const vis = () => { if (document.hidden) loop.stop(); else if (visible && !still) loop.start(); };
+  document.addEventListener("visibilitychange", vis);
+  resize(); if (!still) loop.start();
+  return {
+    audio(node) { an = node; buf = node ? new Uint8Array(node.frequencyBinCount) : null; },
+    playing(v) { playing = v; if (still) draw(1); },
+    setReduced(v) { still = v; if (v) { loop.stop(); draw(1); } else loop.start(); },
+    destroy() { loop.stop(); ro?.disconnect(); io?.disconnect(); document.removeEventListener("visibilitychange", vis); }
   };
 }

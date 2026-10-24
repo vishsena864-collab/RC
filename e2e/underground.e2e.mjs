@@ -12,7 +12,7 @@ async function visitor(width=1440,motion='no-preference'){
  const context=await browser.newContext({viewport:{width,height:1000},reducedMotion:motion});
  await context.route('**/api/underground/tracks?*',r=>r.fulfill({json:{tracks,hasMore:false}}));
  await context.route('https://node.audius.co/**',r=>r.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480"><rect width="480" height="480" fill="#77795a"/><circle cx="240" cy="240" r="160" fill="#1b2119"/><circle cx="240" cy="240" r="52" fill="#ced9a0"/><path d="M0 340L480 50" stroke="#e2d4b8" stroke-width="12"/></svg>'}));
- await context.route('https://api.audius.co/v1/tracks/*/stream',r=>r.fulfill({contentType:'audio/wav',body:wav}));
+ await context.route('https://api.audius.co/v1/tracks/*/stream',r=>r.fulfill({contentType:'audio/wav',headers:{'Access-Control-Allow-Origin':'*'},body:wav}));
  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
  await page.goto((process.env.WEB_URL||'http://localhost:3000')+'/en/underground');
  await page.waitForFunction(()=>document.querySelector('.fx-join')&&!document.querySelector('.fx-join').disabled);
