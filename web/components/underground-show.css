@@ -1001,3 +1001,18 @@
 @media(max-width:760px){.fm-show-shell .fm-scene-studio{width:100%}.fm-scene-stage{height:80px}}
 @media(max-width:520px){.fm-scene-gallery{grid-template-columns:repeat(3,minmax(0,1fr))}.fm-scene-stage{height:76px}.fm-scene-preset strong{font-size:9px}.fm-scene-preset small{font-size:8px}}
 @media(prefers-reduced-motion:reduce){.fm-scene-stage i,.fm-live-reaction-particle{animation:none!important}.fm-live-reaction-particle{display:none}}
+
+/* Real top-level navigation and genre search chips – no inert decorative controls */
+.fm-show-shell .fm-show-top{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:12px 22px;min-height:58px}
+.fm-top-nav{display:flex;align-self:stretch;align-items:center;gap:6px;justify-content:center;margin-left:auto}
+.fm-top-nav a{display:grid;place-items:center;min-height:40px;color:#e0e8e7;text-decoration:none;border-bottom:2px solid transparent;padding:4px 12px;white-space:nowrap;font:800 10px Arial,sans-serif}
+.fm-top-nav a:hover{color:#e0ff8f}
+.fm-top-nav a.fm-top-nav-active{color:#ddff81;border-bottom-color:#cfff68;background:#23301580}
+.fm-show-shell .fm-top-right{flex:0 0 auto}
+.fm-genre-pills{display:flex;flex-wrap:wrap;align-items:center;gap:7px;position:relative;z-index:3;margin-top:10px}
+.fm-genre-pills button{border:1px solid #425968;background:#090c14de;color:#e2e8ee;border-radius:24px;padding:7px 15px;font:800 10px Arial,sans-serif;cursor:pointer}
+.fm-genre-pills button:hover{border-color:#c3ff7b}
+.fm-genre-pills button[aria-pressed=true]{background:#dbff69;border-color:#dbff69;color:#122008;box-shadow:0 0 12px #cffc634a}
+@media(max-width:1100px){.fm-top-nav{gap:0}.fm-top-nav a{padding:5px 8px;font-size:9px}.fm-show-shell .fm-top-right{display:none}}
+@media(max-width:760px){.fm-show-shell .fm-show-top{padding:9px 13px}.fm-top-nav{display:none}.fm-genre-pills{gap:5px}.fm-genre-pills button{padding:7px 11px}.fm-show-shell .show-current-controller{margin-left:0}}
+@media(max-width:400px){.fm-genre-pills button{font-size:9px;padding:6px 9px}}
