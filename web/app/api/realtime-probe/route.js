@@ -5,7 +5,7 @@ export const maxDuration=27;
 export const dynamic="force-dynamic";
 function connect(){
  return new Promise((resolve,reject)=>{
-  const client=io("https://chatspark-realtime-vercel.vercel.app",{path:"/api/socket",transports:["websocket"],timeout:9000,reconnection:false,forceNew:true,extraHeaders:{Origin:"https://chatspark-rc.vercel.app"}});
+  const client=io("https://chatspark-realtime.vercel.app",{path:"/api/socket",transports:["websocket"],timeout:9000,reconnection:false,forceNew:true,extraHeaders:{Origin:"https://chatspark-rc.vercel.app"}});
   const timeout=setTimeout(()=>{client.disconnect();reject(Error("connection_timeout"));},11500);
   client.once("connect",()=>{clearTimeout(timeout);resolve(client);});
   client.once("connect_error",err=>{clearTimeout(timeout);client.disconnect();reject(err);});
