@@ -4,6 +4,7 @@ const MAX_PEOPLE = 12;
 const ROOM_CODES = ["STATIC","MIDNIGHT","BASEMENT","ECHO","FREQUENCY","AFTERHOURS"];
 const TRACK_ID = /^[a-zA-Z0-9_-]{1,48}$/;
 const MAX_CHAT = 280;
+const MAX_QUEUE = 17;
 const DJ_TURN_MS = 4 * 60_000;
 const COLOR_THEMES = ["acid","infrared","ultraviolet","ocean","gold","rose","midnight","toxic"];
 const FX_MODES = ["pulse","march","sweep","crossfire","tunnel","bloom","drift"];
@@ -18,7 +19,7 @@ export function createUnderground(io) {
   const state = (room) => ({
     room: room.code, listeners: room.members.size,
     dj: room.dj, track: room.track, startedAt: room.startedAt,
-    queue: room.queue.slice(0, 12), lights:room.lights, mood:room.mood, djSince:room.djSince, djTurnMs:DJ_TURN_MS, updatedAt: Date.now()
+    queue: room.queue.slice(0, MAX_QUEUE), lights:room.lights, mood:room.mood, djSince:room.djSince, djTurnMs:DJ_TURN_MS, updatedAt: Date.now()
   });
   const publish = (room) => io.to("fm:" + room.code).emit("fm:state", state(room));
   const leave = (socket) => {
@@ -56,7 +57,19 @@ export function createUnderground(io) {
     const title = String(track.title || "").slice(0, 120).trim();
     const artist = String(track.artist || "").slice(0, 90).trim();
     if (!title || !artist) return null;
-    const artwork = typeof track.artwork==="string" && track.artwork.length<800 && /^https:\/\/[a-z0-9.-]+\/(?:[^\s?#]{1,600})(?:\?[^\s#]{0,100})?$/i.test(track.artwork) && (()=>{try { const host=new URL(track.artwork).hostname.toLowerCase();return host==="audius.co" || host.endsWith(".audius.co") || host==="audius.org" || host.endsWith(".audius.org") || host.endsWith(".audiususercontent.com"); } catch{return false;}})() ? track.artwork : null;
+    // Audius cover URLs are served by numerous content-node domains, not only audius.co.
+    // Accept image URLs only from verified Audius-operated/hosted content node patterns.
+    const artwork = typeof track.artwork==="string" && track.artwork.length<800 && (() => {
+      try {
+        const uri=new URL(track.artwork);
+        if(uri.protocol!=="https:" || uri.username || uri.password || uri.port) return false;
+        const host=uri.hostname.toLowerCase();
+        const allowed=host==="audius.co" || host.endsWith(".audius.co") ||
+          host.endsWith(".audiusindex.org") || host.endsWith(".audiususercontent.com") ||
+          host.endsWith(".figment.io") || host.endsWith(".monophonic.digital");
+        return allowed && /^\/content\/[a-z0-9/._-]+\/(?:150x150|480x480|1000x1000)\.(?:jpg|jpeg|png|webp)$/i.test(uri.pathname);
+      } catch {return false;}
+    })() ? track.artwork : null;
     const duration = Number.isFinite(Number(track.duration)) ? Math.max(0,Math.min(21600,Math.round(Number(track.duration)))) : 0;
     return { id:track.id, title, artist, artwork, duration, genre:String(track.genre||"").slice(0,50) };
   };
@@ -77,10 +90,32 @@ export function createUnderground(io) {
     socket.on("fm:request", (raw, ack) => {
       const room = rooms.get(bySocket.get(socket.id));
       const track = safeTrack(raw);
-      if (!room || !track || room.queue.length >= 12) return ack?.({ok:false,error:"invalid_request"});
+      if (!room || !track || room.queue.length >= MAX_QUEUE) return ack?.({ok:false,error:"invalid_request"});
       if (room.queue.some((item) => item.by === socket.id && item.track.id === track.id)) return ack?.({ok:false,error:"duplicate"});
       room.queue.push({track,by:socket.id});
       publish(room); ack?.({ok:true});
+    });
+    socket.on("fm:queue:add", (raw, ack) => {
+      const room=rooms.get(bySocket.get(socket.id));
+      if(!room || room.dj!==socket.id) return ack?.({ok:false,error:"dj_only"});
+      if(room.queue.length>=MAX_QUEUE) return ack?.({ok:false,error:"queue_full"});
+      const track=safeTrack(raw);
+      if(!track) return ack?.({ok:false,error:"invalid_track"});
+      if(room.queue.some(item=>item.track.id===track.id)) return ack?.({ok:false,error:"duplicate"});
+      room.queue.push({track,by:socket.id});publish(room);ack?.({ok:true});
+    });
+    socket.on("fm:queue:remove", (index, ack) => {
+      const room=rooms.get(bySocket.get(socket.id));
+      if(!room || room.dj!==socket.id) return ack?.({ok:false,error:"dj_only"});
+      if(!Number.isInteger(index)||index<0||index>=room.queue.length) return ack?.({ok:false,error:"invalid_index"});
+      room.queue.splice(index,1);publish(room);ack?.({ok:true});
+    });
+    socket.on("fm:queue:move", (payload, ack) => {
+      const room=rooms.get(bySocket.get(socket.id));
+      if(!room || room.dj!==socket.id) return ack?.({ok:false,error:"dj_only"});
+      const from=payload?.from,to=payload?.to;
+      if(!Number.isInteger(from)||!Number.isInteger(to)||from<0||to<0||from>=room.queue.length||to>=room.queue.length) return ack?.({ok:false,error:"invalid_index"});
+      const [entry]=room.queue.splice(from,1);room.queue.splice(to,0,entry);publish(room);ack?.({ok:true});
     });
     socket.on("fm:next", (ack) => {
       const room = rooms.get(bySocket.get(socket.id));
