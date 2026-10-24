@@ -2,7 +2,7 @@
 import {useEffect,useRef,useState} from "react";
 import Link from "next/link";
 import {io} from "socket.io-client";
-import {SERVER_URL} from "@/lib/site";
+import {SERVER_URL,SOCKET_PATH} from "@/lib/site";
 import "./underground.css";
 import "./underground-show.css";
 
@@ -77,7 +77,7 @@ export default function UndergroundFM({locale="en"}){
   if(!SERVER_URL || /^http:\/\/localhost/i.test(SERVER_URL)&&location.hostname!=="localhost"){
     setNotice("Live rooms are offline until the ChatSpark real-time server is deployed.");return;
   }
-  const s=io(SERVER_URL,{transports:["websocket","polling"],autoConnect:true,reconnectionAttempts:5,timeout:8000});
+  const s=io(SERVER_URL,{path:SOCKET_PATH,transports:["websocket","polling"],autoConnect:true,reconnection:true,reconnectionAttempts:Infinity,reconnectionDelayMax:6000,timeout:9000});
   socket.current=s;
   s.on("connect",()=>{setConnected(true);setNotice("");});
   s.on("disconnect",()=>{setConnected(false);setRoom(null);setIsDj(false);setPlaying(false);});
