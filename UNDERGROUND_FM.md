@@ -3,11 +3,13 @@
 A temporary listening-room experience for discovering independent music together.
 
 ## Shipped source
-- `web/app/[locale]/underground/page.jsx` — new room route.
-- `web/components/UndergroundFM.jsx` + `underground.css` — bespoke editorial music UI, player, room chat, shared queue and DJ controls.
+- `web/app/[locale]/underground/page.jsx` — room route.
+- `web/components/UndergroundFM.jsx` + `underground-stage.css` — the live-show UI: one console per role. **Controller** sees the library carousel (with play-now / add-to-queue on every cover), Light Mode scenes + show moments, Controller Panel, Live Queue and Next / Pass buttons all on one screen, no scrolling to find a song. **Listener** sees Shape the Vibe (three live orbs), reactions, track requests and discovery. Below 1180px the same panels become four panes (The Show / Library or Request / Lights or Vibe / Chat) behind a bottom dock with a mini player.
+- `web/components/underground-fx.js` — dependency-free Canvas 2D engine: `createStage` (moving-head beams, haze, backlit crowd, LED wall, strobe/lightning/blackout show moments), `createOverlay` (room-wide pyro flame cannons, cryo smoke and neon vibe bursts fired for everyone when anyone votes Fire / Vibe / Chill), `createOrb` (small always-alive versions inside the vote buttons). Renders at reduced resolution, pauses with the tab, draws one still frame under reduced motion.
 - `web/app/api/underground/tracks/route.js` — Audius metadata search and trending proxy (no audio relay).
-- `server/src/underground.js` — ephemeral Socket.IO rooms; random assignment and DJ rotation, server-side DJ enforcement, room chat throttling, queue validation, no audio files or stored chat logs.
+- `server/src/underground.js` — ephemeral Socket.IO rooms; random assignment and DJ rotation, server-side DJ enforcement, room chat throttling, queue validation, no audio files or stored chat logs. Each connection gets an anonymous, ephemeral stage name (`luna.42`) used in chat, the controller card and queue requests.
 - Header and homepage link into Underground FM.
+- Tests: `server/test/underground.test.js`; browser flow in `e2e/underground.e2e.mjs` (`CHROME_PATH=… SHOTS_DIR=… node underground.e2e.mjs` against web on :3000 and server on :4000).
 
 ## Cost and audio
 Music streams directly from Audius to each visitor's browser. ChatSpark doesn't store, download, transcode or rebroadcast audio. Free Audius API usage limits apply. Streaming permissions remain subject to artist controls and Audius API terms.

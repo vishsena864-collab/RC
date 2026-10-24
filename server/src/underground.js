@@ -16,6 +16,11 @@ const heatNow = (room, now=Date.now()) => {
   const elapsed=Math.max(0,now-(room.heatAt||now));
   return Math.max(0,Math.min(100,Math.round(50+(room.heatValue-50)*Math.exp(-elapsed/HEAT_DECAY_MS))));
 };
+// Ephemeral, anonymous stage names derived from the connection id. Never stored, never tied to an account.
+const HANDLE_WORDS = ["luna","mars","kiwi","neon","skye","jett","kael","rhea","miso","nova","echo","onyx","wren","zeal","vega","juno","pixel","ember","koda","sable"];
+const handleHash = (id) => { let h = 2166136261; for (const c of String(id)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+const handleFor = (id) => { const h = handleHash(id); return HANDLE_WORDS[h % HANDLE_WORDS.length] + "." + String((h >>> 8) % 90 + 10); };
+const hueFor = (id) => handleHash(id + "hue") % 360;
 const defaultLights = () => ({theme:"acid",fx:"march",intensity:2,beatBpm:116,updatedAt:Date.now(),showMoment:null});
 
 export function createUnderground(io) {
@@ -25,7 +30,7 @@ export function createUnderground(io) {
   const state = (room) => ({
     room: room.code, listeners: room.members.size,
     dj: room.dj, track: room.track, startedAt: room.startedAt,
-    queue: room.queue.slice(0, MAX_QUEUE), reactionCounts:room.reactionCounts, lights:room.lights, mood:room.mood, moodAt:room.moodAt, heat:heatNow(room), heatUpdatedAt:Date.now(), djSince:room.djSince, djTurnMs:DJ_TURN_MS, updatedAt: Date.now()
+    queue: room.queue.slice(0, MAX_QUEUE).map((q) => ({track:q.track,by:handleFor(q.by)})), djHandle: room.dj ? handleFor(room.dj) : null, djHue: room.dj ? hueFor(room.dj) : 0, reactionCounts:room.reactionCounts, lights:room.lights, mood:room.mood, moodAt:room.moodAt, heat:heatNow(room), heatUpdatedAt:Date.now(), djSince:room.djSince, djTurnMs:DJ_TURN_MS, updatedAt: Date.now()
   });
   const publish = (room) => io.to("fm:" + room.code).emit("fm:state", state(room));
   const leave = (socket) => {
@@ -55,7 +60,7 @@ export function createUnderground(io) {
     socket.join("fm:" + room.code);
     bySocket.set(socket.id, room.code);
     if (!room.dj) {room.dj = socket.id;room.djSince=Date.now();}
-    ack?.({ok:true,room:room.code});
+    ack?.({ok:true,room:room.code,handle:handleFor(socket.id),hue:hueFor(socket.id)});
     publish(room);
   };
   const safeTrack = (track) => {
@@ -102,7 +107,7 @@ export function createUnderground(io) {
       if (room.queue.some((item) => item.track.id === track.id)) return ack?.({ok:false,error:"duplicate"});
       room.queue.push({track,by:socket.id});
       publish(room); ack?.({ok:true});
-      io.to("fm:"+room.code).emit("fm:chat",{text:"🎵 Track requested: "+track.title+" — "+track.artist,at:Date.now(),from:"REQUEST"});
+      io.to("fm:"+room.code).emit("fm:chat",{text:"🎵 Track requested: "+track.title+" — "+track.artist,at:Date.now(),from:"REQUEST",handle:handleFor(socket.id),hue:hueFor(socket.id)});
     });
     socket.on("fm:queue:add", (raw, ack) => {
       const room=rooms.get(bySocket.get(socket.id));
@@ -185,7 +190,7 @@ export function createUnderground(io) {
       room.mood[choice]=Math.min(9999,room.mood[choice]+1);room.moodAt=now;
       const newHeat=heatNow(room,now);
       publish(room);
-      io.to("fm:"+room.code).emit("fm:mood:burst",{kind:choice,at:now,heat:newHeat,by:socket.id});
+      io.to("fm:"+room.code).emit("fm:mood:burst",{kind:choice,at:now,heat:newHeat,by:socket.id,handle:handleFor(socket.id)});
       ack?.({ok:true,heat:newHeat});
     });
     socket.on("fm:reaction", (reaction,ack) => {
@@ -205,7 +210,7 @@ export function createUnderground(io) {
       const now=Date.now();
       if(now-(lastChat.get(socket.id)||0)<1250) return ack?.({ok:false,error:"cooldown"});
       lastChat.set(socket.id,now);
-      io.to("fm:"+room.code).emit("fm:chat",{text,at:now,from:socket.id===room.dj?"DJ":"GUEST"});
+      io.to("fm:"+room.code).emit("fm:chat",{text,at:now,from:socket.id===room.dj?"DJ":"GUEST",handle:handleFor(socket.id),hue:hueFor(socket.id)});
       ack?.({ok:true});
     });
     socket.on("disconnect",()=>{leave(socket);lastChat.delete(socket.id);});
