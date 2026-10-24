@@ -58,7 +58,7 @@ function VibeConsole({room,heatScore,moodScore,moodTotal,moodBurst,castMood,vote
    <div className="fm-vibe-readout"><div className="fm-vibe-readout-top"><span>FREQUENCY ANALYSIS</span><b>{room?"ACTIVE":"STANDBY"}</b></div>
      <div className="fm-vibe-energy-bars" aria-hidden="true">{Array.from({length:42},(_,i)=><i key={i} style={{"--vibe-i":i,"--vibe-h":(17+(i*29%81))+"%","--vibe-delay":(i*17%19)/19+"s"}}/>)}</div>
      <div className="fm-vibe-levels">{[["energy","HEAT","#ff7c48"],["love","VIBE","#bd94ff"],["chill","CHILL","#58e4ff"]].map(([kind,label,color])=><div key={kind}><div><span>{label}</span><b>{moodScore(kind)}%</b></div><div className="fm-vibe-level-track"><span style={{width:moodScore(kind)+"%",background:color}}/></div></div>)}</div>
-     <p className="fm-vibe-vote-count">{moodTotal} {moodTotal===1?"VOTE":"VOTES"} IN THIS ROOM · SCORES REFLECT REAL ROOM INPUT</p>
+     <p className="fm-vibe-vote-count">{moodTotal} {moodTotal===1?"VOTE":"VOTES"} IN THIS ROOM · THE REACTOR RISES + FALLS WITH ROOM PULSES</p>
    </div>
   </div>
   <div className="fm-vibe-action-heading"><strong>SHAPE THE ATMOSPHERE</strong><span>TOUCH TO SEND A LIVE ENERGY WAVE</span></div>
@@ -87,8 +87,8 @@ export default function UndergroundFM({locale="en"}){
  const showMoment=Boolean(room?.lights?.showMoment&&clock-room.lights.showMoment.at<4800);
  const moodTotal=room?MOODS.reduce((n,[id])=>n+Number(room.mood?.[id]||0),0):0;
  const moodScore=id=>moodTotal?Math.round(Number(room?.mood?.[id]||0)/moodTotal*100):0;
- const hottest=room?MOODS.reduce((best,[id])=>Number(room?.mood?.[id]||0)>Number(room?.mood?.[best]||0)?id:best,"energy"):"energy";
- const heatScore=room?Math.round((Number(room.mood?.energy||0)*100+Number(room.mood?.love||0)*65+Number(room.mood?.chill||0)*25)/(moodTotal||1)):0;
+ const heatScore=room?clamp(Math.round(50+(Number(room.heat??50)-50)*Math.exp(-Math.max(0,clock-(room.heatUpdatedAt||clock))/18000)),0,100):0;
+ const hottest=heatScore>=72?"energy":heatScore<=34?"chill":"love";
  const momentKind=showMoment?room.lights.showMoment.kind:null;
  const vars={"--show-a":theme.a,"--show-b":theme.b,"--show-dark":theme.dark,"--show-beat":(60/(fx.beatBpm||116)).toFixed(3)+"s"};
  useEffect(()=>{
@@ -223,8 +223,9 @@ export default function UndergroundFM({locale="en"}){
  const castMood=kind=>{
   if(!room||voteBusy)return;
   setVoteBusy(true);
+  setMoodBurst({kind,nonce:Math.random(),at:Date.now()});
   socket.current?.emit("fm:mood",kind,ack=>{
-   if(!ack?.ok)setNotice(ack?.error==="cooldown"?"One vote every 3 seconds.":"Couldn't register your vote.");
+   if(!ack?.ok){setMoodBurst(null);setNotice(ack?.error==="cooldown"?"One vote every 3 seconds.":"Couldn't register your vote.");}
    setVoteBusy(false);
   });
   setTimeout(()=>setVoteBusy(false),4500);
@@ -270,7 +271,15 @@ export default function UndergroundFM({locale="en"}){
    </div>
    <audio ref={audio} preload="none" onEnded={()=>{setPlaying(false);if(isDj&&room)command("fm:next",undefined,"skip");}} onError={()=>setNotice("Track unavailable for external Audius streaming.")}/>
   </div>
-  <div className={"show-live-side fm-heat-teaser fm-heat-teaser-"+hottest}><div className="fm-heat-teaser-label"><span className="fm-heat-teaser-led"/> CROWD FREQUENCY</div><div className="fm-heat-teaser-figure">{heatScore}<small>%</small></div><div className="fm-heat-teaser-track"><span style={{width:heatScore+"%"}}/></div><div className="fm-heat-teaser-info"><span>{moodTotal} ROOM VOTES</span><strong>{hottest==="energy"?"HIGH VOLTAGE":hottest==="love"?"IN SYNC":"AFTERHOURS"}</strong></div><div className="fm-heat-teaser-sparks" aria-hidden="true">{Array.from({length:18},(_,i)=><i key={i} style={{"--i":i}}/>)}</div></div></div>
+  <div className={"show-live-side fm-heat-teaser fm-heat-teaser-"+hottest}>
+   <div className="fm-heat-teaser-label"><span className="fm-heat-teaser-led"/> LIVE ROOM REACTOR</div>
+   <div className="fm-heat-reactor-mini" style={{"--reactor-angle":(heatScore*3.6)+"deg","--reactor-energy":heatScore/100}}>
+    <span className="fm-heat-mini-aura"/><span className="fm-heat-mini-ring"/><span className="fm-heat-mini-core">{heatScore}<small>%</small></span>
+   </div>
+   <div className="fm-heat-teaser-track"><span style={{width:heatScore+"%"}}/></div>
+   <div className="fm-heat-teaser-info"><span>{moodTotal} ENERGY PULSES</span><strong>{heatScore>=78?"OVERDRIVE":heatScore>=57?"ELEVATED":heatScore>=38?"IN SYNC":"AFTERHOURS"}</strong></div>
+   <div className="fm-heat-teaser-sparks" aria-hidden="true">{Array.from({length:18},(_,i)=><i key={i} style={{"--i":i}}/>)}</div>
+  </div></div>
   <div className="show-content-grid">
    <div className="show-main-column">
     {room&&isDj?<section className="show-controller-board">
