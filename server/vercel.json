@@ -2,6 +2,9 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "functions": {
-    "api/socket.js": { "maxDuration": 300 }
+    "api/socket.js": {
+      "maxDuration": 300,
+      "includeFiles": "data/movie_trivia.sqlite"
+    }
   }
 }
