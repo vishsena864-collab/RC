@@ -6,6 +6,7 @@ import {SERVER_URL,SOCKET_PATH} from "@/lib/site";
 import "./underground.css";
 import "./underground-show.css";
 import "./underground-club.css";
+import "./underground-photographic.css";
 
 const THEMES=[
  {id:"acid",name:"Acid Lime",a:"#ddff73",b:"#80ffb1",dark:"#1c3221"},
@@ -44,44 +45,47 @@ function LightStage({lights,track,roomCode,reduceMotion=false,showMoment=false,m
 }
 
 
-function PlasmaOrb({kind="energy",large=false,percent=null,children}){
- return <span className={"fm-plasma-orb fm-plasma-"+kind+(large?" fm-plasma-large":"")} aria-hidden="true">
-  <i className="fm-plasma-corona"/><i className="fm-plasma-trail one"/><i className="fm-plasma-trail two"/><i className="fm-plasma-trail three"/><i className="fm-plasma-inner"/>
-  {percent!==null?<strong className="fm-plasma-percent">{percent}%</strong>:<span className="fm-plasma-glyph">{children}</span>}
- </span>;
+const MOOD_SCENES=[
+ {id:"energy",label:"FIRE IT UP",title:"FIRE",hint:"Push the room further",number:"01"},
+ {id:"love",label:"KEEP THE VIBE",title:"VIBE",hint:"Keep this energy alive",number:"02"},
+ {id:"chill",label:"CHILL IT DOWN",title:"CHILL",hint:"Ease into the afterhours",number:"03"}
+];
+function EnergyMark({kind}){
+ if(kind==="energy")return <svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M5 24L13 9L18 19L24 6L27 24M5 24H27" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+ if(kind==="love")return <svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M2 16H8L11 10L15 22L19 7L23 19L26 16H30" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+ return <svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M3 12C8 8 12 16 17 12S26 8 29 12M3 20C8 16 12 24 17 20S26 16 29 20" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>;
 }
 function RoomReactor({room,heatScore,moodScore,moodTotal,hottest,moodBurst}){
- const groups=[["energy","FIRE","IGNITION"],["love","VIBE","PULSE"],["chill","CHILL","DRIFT"]];
- return <div className={"show-live-side fm-club-reactor fm-club-reactor-"+hottest}>
-  <div className="fm-club-reactor-head"><strong>ROOM REACTOR</strong><span title="This score is calculated from live votes and cools gradually">ⓘ</span><small>Collective energy from everyone in the room.</small></div>
-  <div className="fm-club-reactor-center">
-   <PlasmaOrb kind={hottest} large percent={heatScore}/>
-   <strong>ROOM HEAT</strong><small>{heatScore>=78?"ELECTRIC TONIGHT":heatScore>=56?"THE CROWD IS RISING":heatScore>=38?"IN THE GROOVE":"AFTERHOURS"}</small>
+ const status=heatScore>=78?"PEAK HOURS":heatScore>=58?"THE ROOM IS RISING":heatScore>=38?"IN THE FLOW":"AFTERHOURS";
+ return <section className={"show-live-side fm-real-reactor fm-real-reactor-"+hottest} aria-label={"Room reactor, "+heatScore+" percent heat"}>
+  <header className="fm-real-reactor-header"><div><span className="fm-real-kicker">COLLECTIVE SIGNAL / LIVE</span><h3>ROOM REACTOR</h3></div><span className="fm-real-live-indicator"><i/>{room?"LIVE":"STANDBY"}</span></header>
+  <div className="fm-real-reactor-display">
+   <div className="fm-real-reactor-lightfield" aria-hidden="true"><i/><i/><i/></div>
+   <div className="fm-real-reactor-value"><strong>{heatScore}<small>%</small></strong><span>ROOM HEAT</span></div>
+   <p>{status}</p>
   </div>
-  <div className="fm-club-reactor-levels">
-   {groups.map(([kind,label,sub])=><div key={kind}><PlasmaOrb kind={kind}/><strong>{moodScore(kind)}%</strong><span>{label}</span><small>{sub}</small></div>)}
-  </div>
-  <div className="fm-club-reactor-footer"><i className={room?"on":""}/>{room?moodTotal+" LIVE ROOM VOTES":"JOIN TO ACTIVATE"}</div>
-  {moodBurst&&<span key={moodBurst.nonce} className={"fm-reactor-ripple fm-reactor-ripple-"+moodBurst.kind}/>}
- </div>;
+  <div className="fm-real-reactor-scale"><div className="fm-real-reactor-rail"><span style={{width:heatScore+"%"}}/></div><div className="fm-real-reactor-scale-labels"><span>CALM</span><strong>{moodTotal} ROOM VOTES</strong><span>MAX</span></div></div>
+  <div className="fm-real-reactor-breakdown">{MOOD_SCENES.map(({id,title,number})=><div key={id} className={"fm-real-reaction-measure fm-real-reaction-measure-"+id}><span>{number} / {title}</span><strong>{moodScore(id)}%</strong><i><b style={{width:moodScore(id)+"%"}}/></i></div>)}</div>
+  {moodBurst&&<div className={"fm-real-reactor-flash fm-real-reactor-flash-"+moodBurst.kind} key={moodBurst.nonce} aria-hidden="true"/>}
+ </section>;
 }
 function VibeConsole({room,heatScore,moodScore,moodTotal,moodBurst,castMood,voteBusy,reduceMotion=false}){
  const [showInfo,setShowInfo]=useState(false);
- const modes=[
-  {id:"energy",name:"IGNITION CORE",button:"FIRE IT UP",description:"Add energy and intensity to the room.",type:"fire"},
-  {id:"love",name:"VIBE PULSE",button:"KEEP THE VIBE",description:"Keep the current energy going strong.",type:"wave"},
-  {id:"chill",name:"COOL DRIFT",button:"CHILL IT DOWN",description:"Bring the energy down and mellow it out.",type:"snow"}
- ];
- const glyph=kind=>kind==="energy"?<svg viewBox="0 0 64 64" fill="none"><path d="M34 7C38 20 26 22 28 33c-8-3-9-9-8-14C6 33 12 52 29 57c18 5 31-11 23-28-1 10-7 11-8 12 3-14-1-24-10-34Z" fill="currentColor"/></svg>:kind==="love"?<svg viewBox="0 0 64 64" fill="none"><path d="M4 32h11l6-15 8 30 8-33 8 24 5-6h10" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/></svg>:<svg viewBox="0 0 64 64" fill="none"><path d="M32 5v54M5 32h54M13 13l38 38M51 13 13 51M25 12l7 8 7-8M25 52l7-8 7 8M12 25l8 7-8 7M52 25l-8 7 8 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>;
- return <div className={"fm-shape-vibe"+(moodBurst?" fm-shape-burst-"+moodBurst.kind:"")}>
-  <div className="fm-shape-head"><div><strong>SHAPE THE VIBE</strong><p>Your reactions directly influence the room's energy.</p></div><button type="button" aria-expanded={showInfo} onClick={()=>setShowInfo(v=>!v)}>{showInfo?"CLOSE GUIDE −":"HOW IT WORKS ↗"}</button></div>
-  {showInfo&&<div className="fm-shape-guide">Every vote changes the shared heat score. Fire increases room heat, Keep the Vibe sustains it, and Chill It Down cools it. Your choice triggers the same visual burst for connected listeners. One vote is allowed every three seconds; the heat gradually returns toward 50% between votes. Votes are temporary and never represent a permanent user profile.</div>}
-  <div className="fm-shape-actions">{modes.map(m=><button type="button" key={m.id} className={"fm-shape-control fm-shape-control-"+m.id} disabled={!room||voteBusy} onClick={()=>castMood(m.id)} aria-label={m.button+"; "+m.description}>
-   <PlasmaOrb kind={m.id}>{glyph(m.id)}</PlasmaOrb>
-   <strong>{m.name}</strong><small>{m.description}</small><span className="fm-shape-pill">{room?m.button:"JOIN A ROOM"}</span><span className="fm-shape-votes">{moodScore(m.id)}% OF VOTES</span>
+ return <div className={"fm-real-vibe fm-real-vibe-"+(moodBurst?.kind||"standby")}>
+  <header className="fm-real-vibe-head">
+   <div><span className="fm-real-kicker">YOU ARE PART OF THE SHOW</span><h3>SHAPE THE VIBE</h3><p>Every tap changes the atmosphere of the room.</p></div>
+   <button type="button" onClick={()=>setShowInfo(v=>!v)} aria-expanded={showInfo} className="fm-real-vibe-info">{showInfo?"CLOSE GUIDE":"HOW IT WORKS"} <span aria-hidden="true">↗</span></button>
+  </header>
+  {showInfo&&<p className="fm-real-vibe-guide">Fire raises room heat, Keep the Vibe sustains the energy, and Chill It Down lowers it. Every accepted vote updates the shared room heat and creates a light response for connected listeners. One vote is permitted every three seconds. Heat gradually returns toward 50%.</p>}
+  <div className="fm-real-vibe-grid">{MOOD_SCENES.map(m=><button key={m.id} type="button" className={"fm-real-mood fm-real-mood-"+m.id} disabled={!room||voteBusy} onClick={()=>castMood(m.id)} aria-label={m.label+": "+m.hint}>
+    <span className="fm-real-mood-backdrop" aria-hidden="true"/><span className="fm-real-mood-beam" aria-hidden="true"/>
+    <span className="fm-real-mood-top"><span>{m.number} / LIVE ENERGY</span><span>{moodScore(m.id)}%</span></span>
+    <span className="fm-real-mood-center"><EnergyMark kind={m.id}/></span>
+    <strong>{m.title}</strong><small>{m.hint}</small>
+    <span className="fm-real-mood-action">{room?m.label:"JOIN TO REACT"} <b aria-hidden="true">↗</b></span>
   </button>)}</div>
-  <div className="fm-shape-bottom"><span><i className={room?"on":""}/> {room?"LIVE · YOUR VOTE REACHES THE ROOM":"TUNE IN TO ACTIVATE"}</span><span>{moodTotal} TOTAL VOTES</span></div>
-  {moodBurst&&!reduceMotion&&<div key={moodBurst.nonce} className={"fm-shape-flash fm-shape-flash-"+moodBurst.kind}><i/><i/><i/></div>}
+  <div className="fm-real-vibe-footer"><span><i className={room?"active":""}/> {room?"CONNECTED TO THE CROWD":"ROOM SIGNAL WAITING"}</span><span>{moodTotal} TOTAL VOTES · CURRENT HEAT {heatScore}%</span></div>
+  {moodBurst&&!reduceMotion&&<div className={"fm-real-vibe-burst fm-real-vibe-burst-"+moodBurst.kind} key={moodBurst.nonce} aria-hidden="true"><i/><i/><i/></div>}
  </div>;
 }
 
