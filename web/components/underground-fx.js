@@ -1,7 +1,7 @@
 // Underground FM visual engine. Plain Canvas 2D, no dependencies, no network, no media.
 //   createStage   full-screen concert rig: moving-head beams, haze, backlit crowd, strobes, lightning, blackout
 //   createOverlay full-screen pyro / cryo-smoke / neon-vibe bursts fired when anybody in the room votes
-//   createOrb     small always-alive version of the same three effects, used inside the vote buttons
+//   createOrb     plasma-ring orbs (fire / vibe / chill core) for the vote buttons and the room reactor ring
 // Everything renders at reduced resolution (soft light does not need pixels), pauses with the tab, and
 // draws a single still frame when reduced motion is requested.
 const TAU = Math.PI * 2;
@@ -265,32 +265,129 @@ export function createOverlay(canvas, { reduced = false, quality = 1 } = {}) {
   };
 }
 
-/* ───────────────────────── always-alive vote orbs ───────────────────────── */
+/* ───────────────────────── plasma orbs (vote buttons + room reactor) ───────────────────────── */
+const PAL = {
+  energy: { ring: ["255,200,80", "255,120,30", "255,70,40", "255,232,160"], core: "255,110,30" },
+  love: { ring: ["255,95,225", "255,50,170", "205,105,255", "255,195,245"], core: "255,60,200" },
+  chill: { ring: ["95,228,255", "50,150,255", "175,242,255", "120,180,255"], core: "60,170,255" },
+  room: { ring: ["255,205,80", "255,95,40", "255,50,120", "255,70,230", "195,95,255", "255,165,60"], core: "255,70,150" }
+};
+class Plasma {
+  constructor(env, kind, q) {
+    const pal = PAL[kind], r = rng(kind.length * 97 + 7), F = Math.round((kind === "room" ? 22 : 15) * (q < 1 ? .6 : 1));
+    Object.assign(this, { env, kind, pal, q, level: .8, turb: 0, spk: [], shock: [], sacc: 0, steps: q < 1 ? 38 : 64 });
+    this.fil = Array.from({ length: F }, (_, i) => {
+      const arc = r() < .4;
+      return { k1: 2 + Math.floor(r() * 4), k2: 3 + Math.floor(r() * 5), p1: r() * TAU, p2: r() * TAU, s1: (r() - .5) * 2.4, s2: (r() - .5) * 3.2, a1: .025 + r() * .055, a2: .015 + r() * .035, c: pal.ring[i % pal.ring.length], from: arc ? r() * TAU : 0, span: arc ? 1.3 + r() * 2.8 : TAU, rot: (r() - .5) * .9, sq: .9 + r() * .2 };
+    });
+    this.orbits = Array.from({ length: kind === "room" ? 3 : 2 }, (_, i) => ({ tilt: r() * Math.PI, sp: (r() - .5) * .8, rx: 1.16 + i * .1 + r() * .06, ry: .22 + r() * .26, c: pal.ring[(i * 2) % pal.ring.length], bead: r() * TAU }));
+    this.hot = Array.from({ length: kind === "room" ? 6 : 3 }, () => ({ a: r() * TAU, s: (r() - .5) * 2.6, c: pal.ring[(Math.random() * pal.ring.length) | 0] }));
+  }
+  get R() { return Math.min(this.env.W, this.env.H) * this.env.ring; }
+  pulse(p = 1) {
+    this.turb = Math.min(1.8, this.turb + p); this.shock.push({ age: 0 });
+    for (let i = 0; i < 26 * this.q; i++) this.spark(2.2);
+  }
+  spark(boost = 1) {
+    const a = rnd(0, TAU), R = this.R;
+    this.spk.push({ a, r: R * rnd(.92, 1.08), v: R * rnd(.6, 1.6) * boost, age: 0, life: rnd(.25, .7), c: this.pal.ring[(Math.random() * this.pal.ring.length) | 0] });
+  }
+  update(dt) {
+    this.turb *= Math.exp(-dt / 1.1);
+    this.sacc += dt * (10 + this.level * 18 + this.turb * 40) * this.q; while (this.sacc > 1) { this.sacc--; if (this.spk.length < 90) this.spark(); }
+    for (const s of this.spk) { s.age += dt; s.r += s.v * dt; } this.spk = this.spk.filter(s => s.age < s.life);
+    for (const h of this.hot) h.a += h.s * dt * (1 + this.turb);
+    for (const o of this.orbits) o.bead += dt * (1.4 + this.turb);
+    for (const k of this.shock) k.age += dt; this.shock = this.shock.filter(k => k.age < .9);
+  }
+  draw(g, t) {
+    const { W, H } = this.env, cx = W / 2, cy = H / 2, R = this.R, L = clamp(this.level, .3, 1.3), turb = 1 + this.turb, core = this.pal.core;
+    g.globalCompositeOperation = "lighter";
+    const halo = g.createRadialGradient(cx, cy, R * .55, cx, cy, R * 1.6);
+    halo.addColorStop(0, `rgba(${core},0)`); halo.addColorStop(.3, `rgba(${core},${.2 * L + this.turb * .1})`); halo.addColorStop(1, `rgba(${core},0)`);
+    g.fillStyle = halo; g.fillRect(0, 0, W, H);
+    for (const o of this.orbits) {
+      g.save(); g.translate(cx, cy); g.rotate(o.tilt + t * o.sp);
+      g.strokeStyle = `rgba(${o.c},${.07 * L})`; g.lineWidth = R * .07; g.beginPath(); g.ellipse(0, 0, R * o.rx, R * o.ry, 0, 0, TAU); g.stroke();
+      g.strokeStyle = `rgba(${o.c},${.55 * L})`; g.lineWidth = Math.max(1, R * .012); g.beginPath(); g.ellipse(0, 0, R * o.rx, R * o.ry, 0, 0, TAU); g.stroke();
+      const bx = Math.cos(o.bead) * R * o.rx, by = Math.sin(o.bead) * R * o.ry;
+      g.drawImage(FIRE[0](), bx - R * .09, by - R * .09, R * .18, R * .18);
+      g.restore();
+    }
+    const amp = turb * (.75 + L * .45);
+    for (const f of this.fil) {
+      const p = new Path2D();
+      for (let j = 0; j <= this.steps; j++) {
+        const th = f.from + f.span * j / this.steps, rr = R * (1 + (f.a1 * Math.sin(f.k1 * th + f.p1 + t * f.s1) + f.a2 * Math.sin(f.k2 * th - f.p2 + t * f.s2)) * amp), ang = th + t * f.rot;
+        const x = cx + Math.cos(ang) * rr, y = cy + Math.sin(ang) * rr * f.sq;
+        j ? p.lineTo(x, y) : p.moveTo(x, y);
+      }
+      if (f.span >= TAU) p.closePath();
+      g.strokeStyle = `rgba(${f.c},${.045 * L})`; g.lineWidth = R * .1; g.stroke(p);
+      g.strokeStyle = `rgba(${f.c},${.28 * L})`; g.lineWidth = R * .03; g.stroke(p);
+      g.strokeStyle = `rgba(${f.c},${Math.min(1, .75 * L)})`; g.lineWidth = Math.max(.8, R * .008); g.stroke(p);
+    }
+    for (const h of this.hot) {
+      const d = R * (.32 + this.turb * .1), x = cx + Math.cos(h.a) * R, y = cy + Math.sin(h.a) * R;
+      g.globalAlpha = .55 + .45 * Math.sin(t * 6 + h.a); g.drawImage(FIRE[0](), x - d / 2, y - d / 2, d, d);
+    }
+    g.globalAlpha = 1; g.lineCap = "round";
+    for (const s of this.spk) {
+      const k = s.age / s.life, x = cx + Math.cos(s.a) * s.r, y = cy + Math.sin(s.a) * s.r, tl = R * .06;
+      g.strokeStyle = `rgba(${s.c},${1 - k})`; g.lineWidth = Math.max(.8, R * .012);
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x - Math.cos(s.a) * tl, y - Math.sin(s.a) * tl); g.stroke();
+    }
+    for (const k of this.shock) { const e = k.age / .9; g.strokeStyle = `rgba(255,255,255,${(1 - e) * .8})`; g.lineWidth = R * .03 * (1 - e) + 1; g.beginPath(); g.arc(cx, cy, R * (1 + e * .6), 0, TAU); g.stroke(); }
+    g.globalCompositeOperation = "source-over";
+  }
+}
+
+// kind: energy | love | chill → plasma ring with a live fire / cryo smoke / neon core inside. kind room → the big reactor ring.
+// The canvas is drawn larger than the orb itself so the glow can spill past it (CSS sets inset:-25%).
 export function createOrb(canvas, kind, { reduced = false, quality = 1 } = {}) {
-  const g = canvas.getContext("2d"), env = { W: 1, H: 1, u: 30, q: Math.min(1, quality + .1) };
-  const layer = kind === "energy" ? new Fire(env, { jets: [.5], ember: true }) : kind === "chill" ? new Mist(env, { banks: true }) : new Vibe(env, { origin: [.5, .55] });
+  const g = canvas.getContext("2d"), env = { W: 1, H: 1, ring: kind === "room" ? .32 : .3 };
+  const q = Math.min(1, quality + .1), plasma = new Plasma(env, kind, q);
+  const inner = kind === "room" ? null : document.createElement("canvas"), ig = inner?.getContext("2d"), ienv = { W: 1, H: 1, u: 20, q };
+  const layer = kind === "energy" ? new Fire(ienv, { jets: [.5], ember: true }) : kind === "chill" ? new Mist(ienv, { banks: true }) : kind === "love" ? new Vibe(ienv, { origin: [.5, .55] }) : null;
   let level = .8, nextPulse = 0, visible = true, still = reduced;
-  const loop = makeLoop((dt, t) => {
-    layer.amb = level;
-    if (t > nextPulse) { nextPulse = t + (kind === "energy" ? rnd(1.6, 2.6) : kind === "chill" ? rnd(2.8, 4) : rnd(2.2, 3.2)); layer.burst(.4, kind === "love" ? undefined : env.W / 2); }
-    layer.update(dt, t);
+  const paint = (t) => {
     g.clearRect(0, 0, env.W, env.H);
-    layer.draw(g, t);
-    return visible;
-  });
-  const frame = () => { layer.amb = level; for (let i = 0; i < 24; i++) layer.update(.04, i * .04); layer.burst(.5, kind === "love" ? undefined : env.W / 2); for (let i = 0; i < 16; i++) layer.update(.04, 1 + i * .04); g.clearRect(0, 0, env.W, env.H); layer.draw(g, 1.4); };
-  const resize = () => { const r = canvas.getBoundingClientRect(); env.W = Math.max(2, Math.round(r.width * .8)); env.H = Math.max(2, Math.round(r.height * .8)); env.u = Math.min(env.W, env.H) * .2; canvas.width = env.W; canvas.height = env.H; if (still) frame(); };
+    if (env.W < 12) return;
+    if (layer) {
+      ig.clearRect(0, 0, ienv.W, ienv.H); layer.draw(ig, t);
+      const R = plasma.R, cx = env.W / 2, cy = env.H / 2;
+      g.save(); g.beginPath(); g.arc(cx, cy, R * .94, 0, TAU); g.clip();
+      const bg = g.createRadialGradient(cx, cy, 0, cx, cy, R); bg.addColorStop(0, "rgba(10,4,14,.55)"); bg.addColorStop(1, `rgba(${PAL[kind].core},.14)`); g.fillStyle = bg; g.fillRect(cx - R, cy - R, R * 2, R * 2);
+      g.globalAlpha = .9; g.drawImage(inner, cx - R, cy - R, R * 2, R * 2); g.restore(); g.globalAlpha = 1;
+    }
+    plasma.draw(g, t);
+  };
+  const step = (dt, t) => {
+    if (layer) { layer.amb = level * .85; if (t > nextPulse) { nextPulse = t + (kind === "energy" ? rnd(1.4, 2.4) : kind === "chill" ? rnd(2.6, 3.8) : rnd(2, 3)); layer.burst(.35, kind === "love" ? undefined : ienv.W / 2); } layer.update(dt, t); }
+    plasma.level = level; plasma.update(dt);
+  };
+  const loop = makeLoop((dt, t) => { step(dt, t); paint(t); return visible; });
+  const frame = () => { for (let i = 0; i < 30; i++) step(.04, i * .04); paint(1.2); };
+  const resize = () => {
+    const r = canvas.getBoundingClientRect(), dpr = Math.min(1.5, window.devicePixelRatio || 1) * (quality < 1 ? .8 : 1);
+    env.W = Math.max(2, Math.round(r.width * dpr)); env.H = Math.max(2, Math.round(r.height * dpr)); canvas.width = env.W; canvas.height = env.H;
+    if (inner) { const R = Math.round(plasma.R); ienv.W = ienv.H = inner.width = inner.height = Math.max(2, R * 2); ienv.u = R * .42; }
+    if (still) frame();
+  };
   resize();
   const io = typeof IntersectionObserver !== "undefined" ? new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible && !still) loop.start(); else loop.stop(); }) : null;
   io?.observe(canvas);
   const vis = () => { if (document.hidden) loop.stop(); else if (visible && !still) loop.start(); };
-  document.addEventListener("visibilitychange", vis); addEventListener("resize", resize);
+  // Panes on phones start hidden (0×0), so size from the element itself rather than the window.
+  const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
+  ro ? ro.observe(canvas) : addEventListener("resize", resize);
+  document.addEventListener("visibilitychange", vis);
   if (still) frame(); else loop.start();
   return {
-    level(v) { level = clamp(v, .25, 1); if (still) frame(); },
-    pulse(p = 1) { if (!still) { layer.burst(p, kind === "love" ? undefined : env.W / 2); loop.start(); } },
+    level(v) { level = clamp(v, .3, 1.3); if (still) frame(); },
+    pulse(p = 1) { if (still) return; plasma.pulse(p); layer?.burst(p, kind === "love" ? undefined : ienv.W / 2); loop.start(); },
     setReduced(v) { still = v; if (v) { loop.stop(); frame(); } else loop.start(); },
-    destroy() { loop.stop(); io?.disconnect(); document.removeEventListener("visibilitychange", vis); removeEventListener("resize", resize); }
+    destroy() { loop.stop(); io?.disconnect(); ro?.disconnect(); document.removeEventListener("visibilitychange", vis); removeEventListener("resize", resize); }
   };
 }
 
