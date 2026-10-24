@@ -88,8 +88,8 @@ export default function UndergroundFM({locale="en"}){
  const [tracks,setTracks]=useState([]),[query,setQuery]=useState(""),[term,setTerm]=useState(""),[loading,setLoading]=useState(false),[notice,setNotice]=useState("");
  const [preview,setPreview]=useState(null),[connected,setConnected]=useState(false),[room,setRoom]=useState(null),[isDj,setIsDj]=useState(false),[messages,setMessages]=useState([]),[draft,setDraft]=useState(""),[playing,setPlaying]=useState(false),[clock,setClock]=useState(Date.now());
  const [reactions,setReactions]=useState([]),[reduced,setReduced]=useState(false),[openChat,setOpenChat]=useState(false),[showDiscover,setShowDiscover]=useState(true);
- const [visualMode,setVisualMode]=useState("rhythm"),[selectedTrack,setSelectedTrack]=useState(null),[page,setPage]=useState(0),[hasMore,setHasMore]=useState(true),[loadingMore,setLoadingMore]=useState(false),[requestText,setRequestText]=useState(""),[tab,setTab]=useState("discover"),[discoverTab,setDiscoverTab]=useState("For You"),[moodBurst,setMoodBurst]=useState(null),[momentBurst,setMomentBurst]=useState(null),[voteBusy,setVoteBusy]=useState(false);
- const socket=useRef(null),audio=useRef(null),streamTrackId=useRef(null),joining=useRef(false),wantsRoom=useRef(false);
+ const [visualMode,setVisualMode]=useState("rhythm"),[selectedTrack,setSelectedTrack]=useState(null),[page,setPage]=useState(0),[hasMore,setHasMore]=useState(true),[loadingMore,setLoadingMore]=useState(false),[requestText,setRequestText]=useState(""),[tab,setTab]=useState("discover"),[discoverTab,setDiscoverTab]=useState("For You"),[moodBurst,setMoodBurst]=useState(null),[momentBurst,setMomentBurst]=useState(null),[voteBusy,setVoteBusy]=useState(false),[requestMatches,setRequestMatches]=useState([]),[requestSearching,setRequestSearching]=useState(false),[requestSent,setRequestSent]=useState(null);
+ const socket=useRef(null),audio=useRef(null),streamTrackId=useRef(null),joining=useRef(false),wantsRoom=useRef(false),lastVoteAt=useRef(0);
  const fx=room?.lights||defaults;
  const theme=THEMES.find(t=>t.id===fx.theme)||THEMES[0];
  const current=room?room.track:preview;
@@ -154,6 +154,21 @@ export default function UndergroundFM({locale="en"}){
   a.addEventListener("loadedmetadata",sync);sync();
   return ()=>a.removeEventListener("loadedmetadata",sync);
  },[current?.id,room?.startedAt]);
+ useEffect(()=>{
+  if(!room||isDj||requestText.trim().length<2){setRequestMatches([]);setRequestSearching(false);return;}
+  const signal=new AbortController();
+  const timer=setTimeout(async()=>{
+    setRequestSearching(true);
+    try{
+      const res=await fetch("/api/underground/tracks?q="+encodeURIComponent(requestText.trim())+"&page=0",{signal:signal.signal});
+      if(!res.ok)throw new Error("Music search is unavailable");
+      const result=await res.json();
+      if(!signal.signal.aborted)setRequestMatches((result.tracks||[]).slice(0,6));
+    }catch(err){if(err.name!=="AbortError")setNotice("Couldn't search Audius. Try again.");}
+    finally{if(!signal.signal.aborted)setRequestSearching(false);}
+  },400);
+  return ()=>{clearTimeout(timer);signal.abort();};
+ },[requestText,room?.room,isDj]);
  const join=()=>{
   if(!connected||joining.current)return;
   joining.current=true;wantsRoom.current=true;setMessages([]);setReactions([]);
@@ -220,7 +235,13 @@ export default function UndergroundFM({locale="en"}){
    else{audio.current.pause();setPlaying(false);}
   }catch{setNotice("The stream could not play. Try another track or tap play again.");}
  };
- const submitChat=()=>{const text=draft.trim();if(!text||!room)return;socket.current?.emit("fm:chat",text);setDraft("");};
+ const submitChat=()=>{
+  const text=draft.trim();if(!text||!room)return;
+  socket.current?.emit("fm:chat",text,ack=>{
+   if(ack?.ok)setDraft("");
+   else setNotice(ack?.error==="cooldown"?"You're sending messages too quickly.":"Message couldn't be delivered.");
+  });
+ };
  const react=kind=>{
   if(!room)return;
   command("fm:reaction",kind,"send reaction");
@@ -234,19 +255,32 @@ export default function UndergroundFM({locale="en"}){
   });
  };
  const castMood=kind=>{
-  if(!room||voteBusy)return;
-  setVoteBusy(true);
-  setMoodBurst({kind,nonce:Math.random(),at:Date.now()});
+  if(!room||voteBusy||Date.now()-lastVoteAt.current<3000)return;
+  lastVoteAt.current=Date.now();setVoteBusy(true);
   socket.current?.emit("fm:mood",kind,ack=>{
-   if(!ack?.ok){setMoodBurst(null);setNotice(ack?.error==="cooldown"?"One vote every 3 seconds.":"Couldn't register your vote.");}
-   setVoteBusy(false);
+   if(!ack?.ok){lastVoteAt.current=0;setNotice(ack?.error==="cooldown"?"One vote every 3 seconds.":"Couldn't register your vote.");setVoteBusy(false);}
   });
-  setTimeout(()=>setVoteBusy(false),4500);
+  setTimeout(()=>setVoteBusy(false),3050);
  };
  const addSelected=()=>{if(room&&isDj&&selectedTrack)command("fm:queue:add",selectedTrack,"queue song");};
  const removeQueue=i=>{if(room&&isDj)command("fm:queue:remove",i,"remove queued song");};
  const moveQueue=(from,to)=>{if(room&&isDj)command("fm:queue:move",{from,to},"reorder queue");};
- const sendRequest=()=>{const text=requestText.trim();if(!room||!text)return;socket.current?.emit("fm:chat","🎵 Track suggestion: "+text.slice(0,220));setRequestText("");setNotice("Sent your suggestion to room chat. The controller decides what to play.");};
+ const requestTrack=track=>{
+  if(!room||!track)return;
+  socket.current?.emit("fm:request",track,ack=>{
+   if(ack?.ok){setRequestSent(track.title);setRequestText("");setRequestMatches([]);setNotice("Track requested: "+track.title+" — added to the controller's queue.");}
+   else setNotice(ack?.error==="duplicate"?"Already in the room queue.":ack?.error==="invalid_request"?"Queue is full or the track is unavailable.":"Couldn't send the request.");
+  });
+ };
+ const sendRequest=()=>{
+  if(!room||!requestText.trim())return;
+  if(!requestMatches.length){setNotice("Choose a matching Audius track from the suggestions.");return;}
+  requestTrack(requestMatches[0]);
+ };
+ const chooseDiscovery=type=>{
+  setRequestSent(null);
+  setRequestText(({"Underground Picks":"underground","This Week":"new music","Global Sounds":"world music","Deep & Dreamy":"ambient chill"})[type]||type);
+ };
 
  return <div className="fm-shell fm-show-shell" style={vars}>
   <nav className="show-desktop-nav" aria-label="Underground navigation">
@@ -272,6 +306,7 @@ export default function UndergroundFM({locale="en"}){
     </div>
    </div>
   </div>
+  <div className="fm-dashboard">
   <div className="show-now-section"><div className="show-now-main">
    <div className="show-section-label"><span>● NOW PLAYING</span><span>{room?"SHARED RADIO / "+room.room:preview?"SOLO PREVIEW / AUDIUS":"WAITING FOR A SIGNAL"}</span></div>
    <div className="show-now-content">
@@ -300,12 +335,11 @@ export default function UndergroundFM({locale="en"}){
      {showDiscover&&<><div className="fm-selected-play">{selectedTrack?<><button type="button" className="fm-play-cover" onClick={playSelected} aria-label={"Play "+selectedTrack.title+" for the whole room"}>{selectedTrack.artwork?<img src={selectedTrack.artwork} alt={selectedTrack.title+" artwork"} referrerPolicy="no-referrer"/>:<span>♫</span>}<i>▶</i></button><div><span className="fm-selected-label">READY TO BROADCAST</span><strong>{selectedTrack.title}</strong><small>{selectedTrack.artist}</small><p>Tap the album cover to play for the whole room.</p><button disabled={room.queue?.length>=17} onClick={addSelected}>+ ADD TO QUEUE</button></div></>:<div className="fm-select-placeholder"><strong>SELECT A FREQUENCY</strong><p>Choose a song below. Its album artwork appears here—tap the artwork to play it for everyone.</p></div>}</div><div className="show-discover-feature"><div className="show-feature-head"><span>✳ DISCOVER</span><small>UNDERGROUND PICKS / FRESH FREQUENCIES</small></div><div className="show-discover-tabs" role="group" aria-label="Explore music by mood">{discoverTabs.map(item=><button key={item} onClick={()=>chooseDiscoverTab(item)} aria-pressed={item===discoverTab}>{item}</button>)}</div><div className="show-discovery-carousel">{tracks.slice(0,6).map((track,i)=><button key={track.id} type="button" className={"show-discovery-album "+(selectedTrack?.id===track.id?"chosen":"")} onClick={()=>selectTrack(track)}><span className="show-discovery-image">{track.artwork?<img src={track.artwork} alt="" loading="lazy" referrerPolicy="no-referrer" onError={e=>{e.currentTarget.style.display="none";}}/>:<span>♫</span>}<i>+</i></span><strong>{track.title}</strong><small>{track.artist}</small></button>)}</div></div><form className="show-music-search" onSubmit={e=>{e.preventDefault();setTerm(query.trim());}}><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="SEARCH ARTISTS, TRACKS, MOODS…" aria-label="Search music"/><button>DISCOVER ↗</button></form><div className="show-tracks">{loading?<p>FINDING UNDERGROUND SOUNDS…</p>:tracks.map((track,i)=><button type="button" key={track.id} className={"show-track "+(selectedTrack?.id===track.id?"chosen":"")} onClick={()=>selectTrack(track)}><span className="show-track-icon">{track.artwork?<img src={track.artwork} alt="" loading="lazy" referrerPolicy="no-referrer" onError={e=>{e.currentTarget.style.display="none";}}/>:"♫"}</span><span className="show-track-info"><strong>{track.title}</strong><small>{track.artist}{track.genre?" · "+track.genre:""}</small></span><span className="show-track-choose">{selectedTrack?.id===track.id?"SELECTED ✓":"SELECT +"}</span></button>)}</div>{hasMore&&<button className="show-load-more" onClick={loadMore} disabled={loadingMore}>{loadingMore?"FINDING MORE MUSIC…":"LOAD MORE AUDIUS TRACKS + "}</button>}</>}
      </div>
      <div className="show-queue"><span>LIVE QUEUE / {room.queue?.length||0} OF 17 SONGS</span><div className="show-queue-current">{room.track?.artwork?<img src={room.track.artwork} alt="" loading="lazy" referrerPolicy="no-referrer" onError={e=>{e.currentTarget.style.display="none";}}/>:<span className="show-queue-current-fallback">♫</span>}<span><strong>{room.track?.title||"Nothing on air"}</strong><small>{room.track?.artist||"Select a song to start the set"}</small></span><b>{room.track?"NOW PLAYING":"OFF AIR"}</b></div>{room.queue?.length?room.queue.map((entry,i)=><div key={i} className="show-queue-item"><span className="show-queue-number">{i+1}</span><span className="show-queue-art">{entry.track.artwork?<img src={entry.track.artwork} alt="" loading="lazy" referrerPolicy="no-referrer" onError={e=>{e.currentTarget.style.display="none";}}/>:"♫"}</span><span><strong>{entry.track.title}</strong><small>{entry.track.artist}</small></span><span className="show-queue-duration">{clockFmt(entry.track.duration)}</span><span className="show-queue-edit"><button disabled={i===0} onClick={()=>moveQueue(i,i-1)} aria-label={"Move "+entry.track.title+" up"}>↑</button><button disabled={i===room.queue.length-1} onClick={()=>moveQueue(i,i+1)} aria-label={"Move "+entry.track.title+" down"}>↓</button><button onClick={()=>removeQueue(i)} aria-label={"Remove "+entry.track.title+" from queue"}>×</button></span></div>):<p>Room requests appear here when listeners suggest songs.</p>}</div>
-    </section>:room?<section className="show-listener-board">
-     <div className="show-mode-title"><span>◉ LISTENER MODE</span><small>YOU FEEL THE SHOW · THE CONTROLLER DIRECTS IT</small></div>
-     <div className="show-listener-intro"><strong>THE ROOM IS ALIVE.</strong><p>Every beat, reaction and color belongs to this moment. Tune in. Leave a mark on the vibe.</p></div>
-     <div className="show-listener-tiles"><div><span>✳ DISCOVER MODE</span><strong>THE STRANGERS MAKE THE SOUNDTRACK.</strong><small>Explore a new track every time the controller changes.</small></div><div><span>♛ CONTROLLER CURRENTLY</span><strong>AN ANONYMOUS DJ</strong><small>LIGHTS: {theme.name.toUpperCase()}</small></div></div>
-     <div className="show-react-section"><h3>INSTANT REACTIONS</h3><p>Drop a quick reaction—or change the room's heat below.</p><div className="show-reaction-buttons">{REACTIONS.map(([kind,emoji])=><button key={kind} onClick={()=>react(kind)} aria-label={"React "+kind}>{emoji}</button>)}</div></div>
-     <div className="show-request-section"><span>♫ REQUEST A TRACK</span><p>Suggest a song or artist. Only the controller can see the music library and decide which track plays.</p><form className="show-request-form" onSubmit={e=>{e.preventDefault();sendRequest();}}><input type="text" maxLength={220} aria-label="Suggest a song or artist" value={requestText} onChange={e=>setRequestText(e.target.value)} placeholder="SONG / ARTIST NAME"/><button disabled={!requestText.trim()}>SEND REQUEST ↗</button></form></div>
+    </section>:room?<section className="show-listener-board fm-listener-tiles">
+     <div className="fm-listener-card fm-listener-mode"><span className="fm-card-icon">◉</span><strong>LISTENER MODE</strong><p>You're tuned in. React, talk, request tracks and shape the room's atmosphere with everyone else.</p></div>
+     <div className="fm-listener-card fm-listener-reactions"><strong>LIVE REACTIONS</strong><p>Instant signals from the crowd.</p><div className="fm-live-reaction-cloud" aria-hidden="true"><span>♡</span><span>✦</span><span>🔥</span><span>✺</span><span>♡</span></div><div className="fm-listener-reaction-buttons">{REACTIONS.map(([kind,emoji])=><button key={kind} type="button" title={"React "+kind} onClick={()=>react(kind)}><span>{emoji}</span><small>{room.reactionCounts?.[kind]||0}</small></button>)}</div></div>
+     <div className="fm-listener-card fm-listener-request"><strong>REQUEST A TRACK</strong><p>Find a song the controller could play next.</p><form onSubmit={e=>{e.preventDefault();sendRequest();}}><label className="fm-sr-only" htmlFor="fm-request">Song or artist</label><input id="fm-request" value={requestText} onChange={e=>{setRequestText(e.target.value);setRequestSent(null);}} placeholder="Search Audius tracks…" maxLength={80}/><button type="submit" disabled={!requestMatches.length||requestSearching}>REQUEST TRACK ↗</button></form>{requestSearching&&<small>SEARCHING MUSIC…</small>}{requestSent&&<small className="fm-request-confirm">✓ SENT: {requestSent}</small>}{requestMatches.length>0&&<div className="fm-request-results">{requestMatches.map(track=><button key={track.id} type="button" onClick={()=>requestTrack(track)}>{track.artwork?<img src={track.artwork} alt="" loading="lazy"/>:<span>♫</span>}<span><b>{track.title}</b><small>{track.artist}</small></span><i>+</i></button>)}</div>}</div>
+     <div className="fm-listener-card fm-listener-discover"><strong>DISCOVER MODE</strong><p>Find sounds to suggest for the next set.</p><div className="fm-discover-tiles">{["Underground Picks","This Week","Global Sounds","Deep & Dreamy"].map((item,i)=><button key={item} type="button" onClick={()=>chooseDiscovery(item)}><span className={"fm-discover-tile-scene fm-dscene-"+i}/><small>{item}</small></button>)}</div></div>
     </section>:<section className="show-solo-discovery">
       <div className="show-mode-title"><span>✳ UNDERGROUND DISCOVER</span><small>LISTEN TO ARTISTS WHILE ROOMS ARE OFFLINE</small></div>
       <h3>NEW SOUNDS, EVEN WITHOUT A CROWD.</h3><p>The live show needs the ChatSpark Socket.IO server. You can still explore Audius music here and preview tracks individually.</p>
@@ -321,6 +355,7 @@ export default function UndergroundFM({locale="en"}){
     <div className="show-chat-foot">Temporary room chat. No recordings or user profiles. Be respectful.</div>
     {room&&<button className="show-mobile-chat-close" onClick={()=>setOpenChat(false)}>↓ RETURN TO THE SHOW</button>}
    </aside>
+  </div>
   </div>
   <div className="show-mobile-dock"><button onClick={()=>setOpenChat(false)}>◉ <span>THE SHOW</span></button><button onClick={()=>{if(room)setOpenChat(true);else join();}}>{room?"☰":"♧"} <span>{room?"ROOM CHAT":"JOIN ROOM"}</span></button><button onClick={()=>{setVisualMode(v=>v==="off"?"rhythm":"off");setReduced(v=>!v)}}>{reduced||visualMode==="off"?"◌":"✳"} <span>VISUAL FX</span></button></div>
   {notice&&<div className="fm-toast show-notice" role="status"><span>{notice}</span><button onClick={()=>setNotice("")} aria-label="Dismiss notice">×</button></div>}
