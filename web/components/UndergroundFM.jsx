@@ -1,20 +1,25 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
 import Link from "next/link";
+import {Oswald} from "next/font/google";
 import {io} from "socket.io-client";
 import {SERVER_URL,SOCKET_PATH} from "@/lib/site";
-import {createOrb,createOverlay,createStage,qualityFor} from "./underground-fx";
+import {createOverlay,createStage,qualityFor} from "./underground-fx";
 import "./underground-stage.css";
 
+const oswald=Oswald({subsets:["latin"],weight:["500","600","700"],variable:"--fx-oswald",display:"swap"});
+// Real venue photography (web/public/underground). The stage photo is tinted to the controller's light colour.
+const CROWD="url(/underground/crowd-1200.webp)";
+
 const THEMES=[
- {id:"acid",name:"Acid Lime",a:"#ddff73",b:"#80ffb1",dark:"#1c3221"},
- {id:"infrared",name:"Infrared Red",a:"#ff625c",b:"#ffb467",dark:"#381d29"},
- {id:"ultraviolet",name:"Ultraviolet",a:"#cf7cff",b:"#ff70cf",dark:"#251738"},
- {id:"ocean",name:"Ocean Cyan",a:"#2de5ee",b:"#72aaff",dark:"#122837"},
- {id:"gold",name:"Solar Gold",a:"#ffe77a",b:"#ff9c55",dark:"#362819"},
- {id:"rose",name:"Velvet Pulse",a:"#ff84c8",b:"#ffb9a5",dark:"#36202c"},
- {id:"midnight",name:"Midnight Tunnel",a:"#83a5ff",b:"#75d0ff",dark:"#111b34"},
- {id:"toxic",name:"Neon Riot",a:"#9cff2d",b:"#fe52b8",dark:"#2c1536"}
+ {id:"acid",name:"Acid Lime",a:"#ddff73",b:"#80ffb1",dark:"#1c3221",hue:95},
+ {id:"infrared",name:"Infrared Red",a:"#ff625c",b:"#ffb467",dark:"#381d29",hue:0},
+ {id:"ultraviolet",name:"Ultraviolet",a:"#cf7cff",b:"#ff70cf",dark:"#251738",hue:290},
+ {id:"ocean",name:"Ocean Cyan",a:"#2de5ee",b:"#72aaff",dark:"#122837",hue:185},
+ {id:"gold",name:"Solar Gold",a:"#ffe77a",b:"#ff9c55",dark:"#362819",hue:35},
+ {id:"rose",name:"Velvet Pulse",a:"#ff84c8",b:"#ffb9a5",dark:"#36202c",hue:330},
+ {id:"midnight",name:"Midnight Tunnel",a:"#83a5ff",b:"#75d0ff",dark:"#111b34",hue:225},
+ {id:"toxic",name:"Neon Riot",a:"#9cff2d",b:"#fe52b8",dark:"#2c1536",hue:100}
 ];
 const FX=[["march","Marching lasers"],["pulse","Pulse"],["sweep","Wave sweep"],["crossfire","Crossfire"],["tunnel","Tunnel"],["bloom","Soft bloom"],["drift","Drift"]];
 const MOODS=["energy","love","chill"];
@@ -44,7 +49,7 @@ const DISCOVER_TABS=["For You","Underground Picks","New This Week","Global Sound
 const DISCOVER_TERMS={"For You":"","Underground Picks":"underground","New This Week":"new music","Global Sounds":"world","Chill":"ambient","High Energy":"electronic"};
 const GENRES=["Electronic","Indie","Alt","House","Techno","Beats"];
 const WAVE=Array.from({length:60},(_,i)=>({h:18+((i*37+Math.round(Math.sin(i*.8)*30+30))%78),d:((i*11)%19)/19}));
-const defaults={theme:"acid",fx:"march",intensity:2,beatBpm:116,showMoment:null};
+const defaults={theme:"infrared",fx:"sweep",intensity:2,beatBpm:116,showMoment:null};
 const shuffle=list=>{const a=[...list];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 const clamp=(n,min,max)=>Math.max(min,Math.min(n,max));
 const clockFmt=seconds=>!Number.isFinite(seconds)?"0:00":Math.floor(Math.max(0,seconds)/60)+":"+String(Math.floor(Math.max(0,seconds)%60)).padStart(2,"0");
@@ -79,6 +84,7 @@ function Icon({name}){
   close:<path d="M6 6l12 12M18 6L6 18" {...p}/>,
   bulb:<path d="M9 18h6M10 21h4M12 3a6 6 0 00-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0012 3z" {...p}/>,
   note:<path d="M9 18V6l10-2v12M9 18a3 3 0 11-6 0 3 3 0 016 0zM19 16a3 3 0 11-6 0 3 3 0 016 0z" {...p}/>,
+  eq:<path d="M2 12h3M19 12h3M8 8v8M11 4v16M14 7v10M17 10v4M5 10v4" {...p}/>,
   volume:<path d="M4 9v6h4l5 4V5L8 9zM16 9a4 4 0 010 6" {...p}/>
  };
  return <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">{paths[name]}</svg>;
@@ -92,13 +98,28 @@ function Art({track,className=""}){
  return <span className={"fx-art "+className}>{track?.artwork?<img src={track.artwork} alt="" loading="lazy" referrerPolicy="no-referrer" onError={hideBroken}/>:<Icon name="note"/>}</span>;
 }
 
-function OrbCanvas({kind,motionOff,level=.8,pulseKey=0}){
- const ref=useRef(null),orb=useRef(null);
- useEffect(()=>{orb.current=createOrb(ref.current,kind,{reduced:motionOff,quality:qualityFor()});return ()=>{orb.current?.destroy();orb.current=null;};},[kind]);
- useEffect(()=>{orb.current?.setReduced(motionOff);},[motionOff]);
- useEffect(()=>{orb.current?.level(level);},[level]);
- useEffect(()=>{if(pulseKey)orb.current?.pulse(1);},[pulseKey]);
- return <canvas ref={ref} className="fx-orb-canvas" aria-hidden="true"/>;
+// Energy-globe loops (web/public/underground/orbs). Black backgrounds drop out with mix-blend-mode:screen,
+// so nothing between the video and its panel may create an isolated group (no transform/opacity/filter on ancestors).
+const ORB_VIDEO={energy:"fire",love:"vibe",chill:"chill",room:"room"};
+// Sparks orbiting each globe on a tilted ellipse: fixed angles/radii/speeds so server and client render the same.
+const SPARKS=Array.from({length:12},(_,i)=>({"--a":(i*137)%360+"deg","--r":(39+(i*7)%9)+"%","--d":(5+(i*3)%6)+"s","--t":(-(i*.83)).toFixed(2)+"s","--s":(i%3?3:5)+"px","--k":i%2?"var(--g1)":"var(--g2)"}));
+function OrbVideo({kind,motionOff,level=.8,pulseKey=0,small=false}){
+ const ref=useRef(null),[flare,setFlare]=useState(0),name=ORB_VIDEO[kind];
+ useEffect(()=>{
+  const v=ref.current;if(!v)return;
+  v.muted=true;
+  if(motionOff){v.pause();return;}
+  const io=new IntersectionObserver(([e])=>{if(e.isIntersecting)v.play().catch(()=>{});else v.pause();});
+  io.observe(v);return ()=>io.disconnect();
+ },[motionOff]);
+ useEffect(()=>{if(pulseKey)setFlare(n=>n+1);},[pulseKey]);
+ return <span className={"fx-orb-video fx-orb-video-"+name} style={{"--lvl":level}} aria-hidden="true">
+  <i className="fx-aura"/><i className="fx-floor"/>
+  <video ref={ref} src={"/underground/orbs/"+name+"-"+(small?320:480)+".mp4"} poster={"/underground/orbs/"+name+"-poster.jpg"} muted loop playsInline preload="auto" disablePictureInPicture/>
+  <i className="fx-corona"/><i className="fx-corona fx-corona-b"/>
+  <span className="fx-sparks">{SPARKS.slice(0,small?6:12).map((p,i)=><i key={i} style={p}/>)}</span>
+  {flare>0&&!motionOff&&<i key={flare} className="fx-orb-flare"/>}
+ </span>;
 }
 
 export default function UndergroundFM({locale="en"}){
@@ -119,19 +140,19 @@ export default function UndergroundFM({locale="en"}){
  const moodScore=id=>moodTotal?Math.round(Number(room?.mood?.[id]||0)/moodTotal*100):0;
  const heatScore=room?clamp(Math.round(50+(Number(room.heat??50)-50)*Math.exp(-Math.max(0,clock-(room.heatUpdatedAt||clock))/18000)),0,100):0;
  const hottest=heatScore>=72?"energy":heatScore<=34?"chill":"love";
- const status=heatScore>=78?"PEAK HOURS":heatScore>=58?"THE ROOM IS RISING":heatScore>=38?"IN THE FLOW":"AFTERHOURS";
+ const status=heatScore>=80?"Peak Hours":heatScore>=60?"Electric Tonight":heatScore>=40?"In the Flow":"Afterhours";
  const [roomName,roomTagline]=ROOMS[room?.room]||["Underground FM","Different strangers. Same frequency."];
  const view=room?(isDj?"controller":"listener"):"discover";
  const queue=room?.queue||[];
  const queueMinutes=Math.round(queue.reduce((n,e)=>n+(Number(e.track.duration)||0),0)/60);
  const deck=selectedTrack||(room?room.track:null);
- const vars={"--show-a":theme.a,"--show-b":theme.b,"--show-dark":theme.dark,"--show-beat":(60/(fx.beatBpm||116)).toFixed(3)+"s","--heat":heatScore/100};
+ const vars={"--crowd":CROWD,"--hue":(theme.hue||0)+"deg","--show-a":theme.a,"--show-b":theme.b,"--show-dark":theme.dark,"--show-beat":(60/(fx.beatBpm||116)).toFixed(3)+"s","--heat":heatScore/100};
  const mAt=room?.lights?.showMoment?.at,mKind=room?.lights?.showMoment?.kind;
 
  /* ── visual engines ── */
  useEffect(()=>{
   const quality=qualityFor();
-  stage.current=createStage(stageCv.current,{quality});
+  stage.current=createStage(stageCv.current,{quality,photo:true});
   overlay.current=createOverlay(overlayCv.current,{quality});
   return ()=>{stage.current?.destroy();overlay.current?.destroy();stage.current=overlay.current=null;};
  },[]);
@@ -366,13 +387,14 @@ export default function UndergroundFM({locale="en"}){
   </div>
  </section>;
  const vibeOrb=m=><button type="button" key={m.id} className={"fx-orb fx-orb-"+m.id} disabled={!room||voteBusy} onClick={()=>castMood(m.id)} aria-label={m.cta+": "+m.short}>
-  <span className="fx-orb-body"><OrbCanvas kind={m.id} motionOff={motionOff} level={clamp(.55+moodScore(m.id)/100,.55,1)} pulseKey={pulses[m.id]}/><span className="fx-orb-icon"><Icon name={m.id==="energy"?"fire":m.id==="love"?"wave":"snow"}/></span>{voteBusy&&<i key={cooldownKey} className="fx-orb-cooldown"/>}</span>
+  <span className="fx-orb-body"><OrbVideo kind={m.id} motionOff={motionOff} level={clamp(.55+moodScore(m.id)/100,.55,1)} pulseKey={pulses[m.id]}/><span className="fx-orb-icon"><Icon name={m.id==="energy"?"fire":m.id==="love"?"eq":"snow"}/></span>{voteBusy&&<i key={cooldownKey} className="fx-orb-cooldown"/>}</span>
   <span className="fx-orb-name">{m.core}</span><span className="fx-orb-blurb">{m.blurb}</span>
   <span className="fx-orb-cta">{room?(voteBusy?"Recharging…":m.cta):"Join to react"}</span>
  </button>;
  const reactionBar=<div className="fx-react-bar" role="group" aria-label="Send a reaction">{REACTIONS.map(([kind,emoji])=><button key={kind} type="button" onClick={()=>react(kind)} disabled={!room} aria-label={"React "+kind}><span>{emoji}</span><b>{room?.reactionCounts?.[kind]||0}</b></button>)}</div>;
 
- return <div className={"fx-shell fx-"+view} style={vars} data-view={view} data-tab={tab} data-motion={motionOff?"reduced":"full"} data-playing={playing} data-heat={hottest}>
+ return <div className={"fx-shell fx-"+view+" "+oswald.variable} style={vars} data-view={view} data-tab={tab} data-motion={motionOff?"reduced":"full"} data-playing={playing} data-heat={hottest} data-fab={view==="controller"&&Boolean(selectedTrack)}>
+  <div className="fx-photo" aria-hidden="true"/>
   <canvas ref={stageCv} className="fx-stage" aria-hidden="true"/>
   <div className="fx-scrim" aria-hidden="true"/>
   <canvas ref={overlayCv} className="fx-overlay" aria-hidden="true"/>
@@ -418,7 +440,7 @@ export default function UndergroundFM({locale="en"}){
      <div className="fx-now-body">
       <div className="fx-cover" data-playing={playing}>{current?.artwork?<img src={current.artwork} alt={current.title+" cover art"} referrerPolicy="no-referrer" onError={hideBroken}/>:<span className="fx-record"><i/></span>}<em/></div>
       <div className="fx-song">
-       <div className="fx-song-head"><div><h3>{current?.title||"Your next discovery."}</h3><p>{current?.artist||"Select a track. Let the night unfold."}</p></div>
+       <div className="fx-song-head"><div><h3 title={current?.title}>{current?.title||"Your next discovery."}</h3><p>{current?.artist||"Select a track. Let the night unfold."}</p></div>
         <div className="fx-song-tools"><button type="button" className={"fx-icon-btn"+(liked?" is-on":"")} onClick={()=>setLiked(v=>!v)} aria-pressed={liked} aria-label={liked?"Remove like":"Like this track"} disabled={!current}><Icon name="heart"/></button></div></div>
        <div className="fx-tags"><span>{current?.genre||"Underground"}</span><span>{room?"Live broadcast":"Discover"}</span><span>{theme.name}</span></div>
        <div className={"fx-wave"+(playing?" is-playing":"")} aria-hidden="true">{WAVE.map((b,i)=><i key={i} style={{"--h":b.h+"%","--d":b.d+"s"}}/>)}</div>
@@ -433,9 +455,9 @@ export default function UndergroundFM({locale="en"}){
     <section className={"fx-panel fx-reactor fx-reactor-"+hottest} data-pane="show" aria-label={room?"Room heat, "+heatScore+" percent":"Room heat, waiting for listeners"}>
      <header className="fx-panel-head"><h2>Room Reactor</h2><span className="fx-dim">Collective energy from everyone in the room</span></header>
      <div className="fx-reactor-body">
-      <div className="fx-heat" role="img" aria-label={"Room vibe "+(room?heatScore+"%":"waiting")}><i className="fx-heat-ring"/><i className="fx-heat-ring fx-heat-ring-b"/><div className="fx-heat-core"><strong>{room?heatScore:"—"}<small>{room?"%":""}</small></strong><span>ROOM VIBE</span><em>{room?status:"WAITING FOR THE CROWD"}</em></div></div>
+      <div className="fx-heat" role="img" aria-label={"Room vibe "+(room?heatScore+"%":"waiting")}><OrbVideo kind="room" motionOff={motionOff} level={room?.45+heatScore/110:.45} pulseKey={pulses.energy+pulses.love+pulses.chill}/><div className="fx-heat-core"><strong>{room?heatScore:"—"}<small>{room?"%":""}</small></strong><span>ROOM VIBE</span><em>{room?status:"WAITING FOR THE CROWD"}</em></div></div>
       <div className="fx-mini-orbs">{MOOD_SCENES.map(m=><button type="button" key={m.id} className={"fx-mini-orb fx-mini-"+m.id} disabled={!room||voteBusy} onClick={()=>castMood(m.id)} aria-label={"Vote "+m.title+": "+m.short}>
-       <span className="fx-mini-body"><OrbCanvas kind={m.id} motionOff={motionOff} level={clamp(.5+moodScore(m.id)/100,.5,1)} pulseKey={pulses[m.id]}/></span>
+       <span className="fx-mini-body"><OrbVideo kind={m.id} small motionOff={motionOff} level={clamp(.5+moodScore(m.id)/100,.5,1)} pulseKey={pulses[m.id]}/></span>
        <b>{moodScore(m.id)}%</b><strong>{m.title}</strong><small>{m.core}</small></button>)}</div>
       <p className="fx-reactor-foot"><i className={room?"on":""}/>{room?moodTotal+" room votes · heat settles back to 50%":"Join a room to light it up"}</p>
      </div>
@@ -459,7 +481,7 @@ export default function UndergroundFM({locale="en"}){
 
     {view==="controller"&&<div className="fx-row fx-row-controller">
      <section className="fx-panel fx-lights" data-pane="vibe" aria-label="Light mode">
-      <header className="fx-panel-head"><h2>Light Mode</h2><span className="fx-dim">Transform the room's atmosphere</span><button type="button" className="fx-link" onClick={()=>styleChange({theme:"acid",fx:"march",intensity:2})}>Reset</button></header>
+      <header className="fx-panel-head"><h2>Light Mode</h2><span className="fx-dim">Transform the room's atmosphere</span><button type="button" className="fx-link" onClick={()=>styleChange({theme:"infrared",fx:"sweep",intensity:2})}>Reset</button></header>
       <div className="fx-scenes">{SCENES.map(scene=><button type="button" key={scene.id} onClick={()=>activateScene(scene)} aria-pressed={fx.theme===scene.theme&&fx.fx===scene.fx} className={"fx-scene fx-scene-"+scene.id}><span className="fx-scene-art"><i/><i/><i/></span><strong>{scene.name}</strong><small>{scene.subtitle}</small></button>)}</div>
       <div className="fx-moments" role="group" aria-label="Show moments"><span>MOMENTS</span>{MOMENTS.map(([kind,label])=><button type="button" key={kind} onClick={()=>fxTrigger(kind)}>{label}</button>)}</div>
       <button type="button" className="fx-link fx-tune-toggle" onClick={()=>setShowTune(v=>!v)} aria-expanded={showTune}>{showTune?"Hide fine-tune":"Fine-tune colors, pattern & power"}</button>
@@ -520,6 +542,14 @@ export default function UndergroundFM({locale="en"}){
    </div>
   </div>
 
+  {view==="controller"&&selectedTrack&&<div className={"fx-fab"+(current&&tab!=="show"?" has-mini":"")} role="region" aria-label="Selected track">
+   <button type="button" className="fx-fab-play" onClick={()=>broadcast(selectedTrack)} aria-label={"Broadcast "+selectedTrack.title+" to the room now"}>
+    <span className="fx-fab-cover"><Art track={selectedTrack}/><i><Icon name="play"/></i></span>
+    <span className="fx-fab-text"><small>TAP TO PLAY FOR THE ROOM</small><strong>{selectedTrack.title}</strong><em>{selectedTrack.artist}</em></span>
+   </button>
+   <button type="button" className="fx-fab-mini" onClick={()=>{queueTrack(selectedTrack);setSelectedTrack(null);}} disabled={queue.length>=17} aria-label={"Queue "+selectedTrack.title+" instead"} title="Add to queue"><Icon name="plus"/></button>
+   <button type="button" className="fx-fab-mini" onClick={()=>setSelectedTrack(null)} aria-label="Clear selected track" title="Clear"><Icon name="close"/></button>
+  </div>}
   {current&&tab!=="show"&&<div className="fx-miniplayer"><Art track={current}/><span><strong>{current.title}</strong><small>{current.artist}</small></span><button type="button" onClick={togglePlay} aria-label={playing?"Pause audio from mini player":"Play audio from mini player"}><Icon name={playing?"pause":"play"}/></button></div>}
   <nav className="fx-dock" aria-label="Sections">
    <button type="button" aria-pressed={tab==="show"} onClick={()=>setTab("show")}><Icon name="wave"/><span>The Show</span></button>

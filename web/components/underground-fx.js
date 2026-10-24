@@ -1,7 +1,6 @@
 // Underground FM visual engine. Plain Canvas 2D, no dependencies, no network, no media.
 //   createStage   full-screen concert rig: moving-head beams, haze, backlit crowd, strobes, lightning, blackout
 //   createOverlay full-screen pyro / cryo-smoke / neon-vibe bursts fired when anybody in the room votes
-//   createOrb     small always-alive version of the same three effects, used inside the vote buttons
 // Everything renders at reduced resolution (soft light does not need pixels), pauses with the tab, and
 // draws a single still frame when reduced motion is requested.
 const TAU = Math.PI * 2;
@@ -265,38 +264,10 @@ export function createOverlay(canvas, { reduced = false, quality = 1 } = {}) {
   };
 }
 
-/* ───────────────────────── always-alive vote orbs ───────────────────────── */
-export function createOrb(canvas, kind, { reduced = false, quality = 1 } = {}) {
-  const g = canvas.getContext("2d"), env = { W: 1, H: 1, u: 30, q: Math.min(1, quality + .1) };
-  const layer = kind === "energy" ? new Fire(env, { jets: [.5], ember: true }) : kind === "chill" ? new Mist(env, { banks: true }) : new Vibe(env, { origin: [.5, .55] });
-  let level = .8, nextPulse = 0, visible = true, still = reduced;
-  const loop = makeLoop((dt, t) => {
-    layer.amb = level;
-    if (t > nextPulse) { nextPulse = t + (kind === "energy" ? rnd(1.6, 2.6) : kind === "chill" ? rnd(2.8, 4) : rnd(2.2, 3.2)); layer.burst(.4, kind === "love" ? undefined : env.W / 2); }
-    layer.update(dt, t);
-    g.clearRect(0, 0, env.W, env.H);
-    layer.draw(g, t);
-    return visible;
-  });
-  const frame = () => { layer.amb = level; for (let i = 0; i < 24; i++) layer.update(.04, i * .04); layer.burst(.5, kind === "love" ? undefined : env.W / 2); for (let i = 0; i < 16; i++) layer.update(.04, 1 + i * .04); g.clearRect(0, 0, env.W, env.H); layer.draw(g, 1.4); };
-  const resize = () => { const r = canvas.getBoundingClientRect(); env.W = Math.max(2, Math.round(r.width * .8)); env.H = Math.max(2, Math.round(r.height * .8)); env.u = Math.min(env.W, env.H) * .2; canvas.width = env.W; canvas.height = env.H; if (still) frame(); };
-  resize();
-  const io = typeof IntersectionObserver !== "undefined" ? new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible && !still) loop.start(); else loop.stop(); }) : null;
-  io?.observe(canvas);
-  const vis = () => { if (document.hidden) loop.stop(); else if (visible && !still) loop.start(); };
-  document.addEventListener("visibilitychange", vis); addEventListener("resize", resize);
-  if (still) frame(); else loop.start();
-  return {
-    level(v) { level = clamp(v, .25, 1); if (still) frame(); },
-    pulse(p = 1) { if (!still) { layer.burst(p, kind === "love" ? undefined : env.W / 2); loop.start(); } },
-    setReduced(v) { still = v; if (v) { loop.stop(); frame(); } else loop.start(); },
-    destroy() { loop.stop(); io?.disconnect(); document.removeEventListener("visibilitychange", vis); removeEventListener("resize", resize); }
-  };
-}
-
 /* ───────────────────────── the concert rig ───────────────────────── */
-export function createStage(canvas, { reduced = false, quality = 1 } = {}) {
-  const g = canvas.getContext("2d", { alpha: false });
+// photo: the venue photograph sits behind the canvas, so draw light only (no backdrop, truss, LED wall or crowd).
+export function createStage(canvas, { reduced = false, quality = 1, photo = false } = {}) {
+  const g = canvas.getContext("2d", { alpha: photo });
   const S = { a: [221, 255, 115], b: [128, 255, 177], dark: [28, 50, 33], fx: "march", power: 2, bpm: 116, heat: 50, playing: false, still: reduced };
   const cur = { a: [...S.a], b: [...S.b], dark: [...S.dark] };
   let W = 2, H = 2, crowd = [], dust = [], mom = null, bolts = [], boltAt = 0, pulse = 0;
@@ -319,6 +290,45 @@ export function createStage(canvas, { reduced = false, quality = 1 } = {}) {
   const flare = (x, y, c, r, a) => {
     const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, `rgba(255,255,255,${a})`); gr.addColorStop(.25, `rgba(${col(c)},${a * .6})`); gr.addColorStop(1, `rgba(${col(c)},0)`);
     g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2);
+    // anamorphic streak: how a bright lamp reads on camera
+    g.save(); g.translate(x, y); g.scale(1, .05);
+    const st = g.createRadialGradient(0, 0, 0, 0, 0, r * 3.5); st.addColorStop(0, `rgba(${col(c)},${a * .45})`); st.addColorStop(1, `rgba(${col(c)},0)`);
+    g.fillStyle = st; g.beginPath(); g.arc(0, 0, r * 3.5, 0, TAU); g.fill(); g.restore();
+  };
+  // a laser in haze: razor-thin saturated line, faint scatter halo, sparkles off the particles
+  const SPARKLE = [3, 70, 2, 110, 5, 45];
+  const laser = (x, y, a, len, c, k, wid, phase) => {
+    const x1 = x + Math.cos(a) * len, y1 = y + Math.sin(a) * len, rc = col(c);
+    const gr = g.createLinearGradient(x, y, x1, y1); gr.addColorStop(0, `rgba(${rc},${.85 * k})`); gr.addColorStop(1, `rgba(${rc},${.35 * k})`);
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x1, y1);
+    g.lineWidth = wid * 7; g.strokeStyle = `rgba(${rc},${.035 * k})`; g.stroke();
+    g.lineWidth = wid * 2.4; g.strokeStyle = `rgba(${rc},${.11 * k})`; g.stroke();
+    g.lineWidth = wid; g.strokeStyle = gr; g.stroke();
+    g.setLineDash(SPARKLE); g.lineDashOffset = -phase; g.lineWidth = wid * 1.5; g.strokeStyle = `rgba(255,255,255,${.7 * k})`; g.stroke(); g.setLineDash([]);
+  };
+  const EMITTERS = [{ x: .14, y: .8, dir: -1 }, { x: .5, y: .8, dir: -1 }, { x: .86, y: .8, dir: -1 }, { x: .32, y: .03, dir: 1 }, { x: .68, y: .03, dir: 1 }];
+  const lasers = (t, A, B, m, kick, mode) => {
+    const n = W < 360 ? 7 : 11, len = Math.hypot(W, H) * 1.1, open = .6 + kick * .45 + S.heat / 250, wid = Math.max(.8, W / 900);
+    g.lineCap = "round";
+    EMITTERS.forEach((e, ei) => {
+      const ex = e.x * W, ey = e.y * H, base = e.dir < 0 ? -Math.PI / 2 : Math.PI / 2, c = ei % 2 ? B : A;
+      for (let i = 0; i < n; i++) {
+        const u = i / (n - 1) - .5; let a;
+        if (mode === 0) a = base + Math.sin(t * .9 + ei * 1.3) * .55 + u * (.9 + kick * .7);
+        else if (mode === 1) a = base + Math.sin(t * 1.7 + i * .42 + ei) * (.55 + kick * .4);
+        else if (mode === 2) a = base + Math.sin(t * 2.2 + i / n * TAU + ei) * (.35 + kick * .5);
+        else a = base + u * (.12 + kick * 1.5) + Math.sin(t * .6 + ei) * .15;
+        laser(ex, ey, a, len, c, Math.min(1, open * (.82 + .18 * Math.sin(t * 6 + i * .9 + ei)) * Math.min(1, m)), wid, t * 130 + i * 53);
+      }
+      flare(ex, ey, c, H * .05 * (.7 + kick * .6), .9 * Math.min(1, m));
+    });
+  };
+  const truss = (y, xs) => {
+    g.globalCompositeOperation = "source-over";
+    g.strokeStyle = "rgba(150,160,195,.42)"; g.lineWidth = 1.2; g.beginPath(); g.moveTo(0, y - 7); g.lineTo(W, y - 7); g.moveTo(0, y + 1); g.lineTo(W, y + 1); g.stroke();
+    g.strokeStyle = "rgba(120,130,165,.3)"; g.lineWidth = .8; g.beginPath(); for (let x = 0; x < W; x += 17) { g.moveTo(x, y + 1); g.lineTo(x + 8.5, y - 7); g.lineTo(x + 17, y + 1); } g.stroke();
+    for (const hx of xs) { g.fillStyle = "#0d0f18"; g.fillRect(hx - 5, y + 1, 10, 12); g.strokeStyle = "rgba(90,98,130,.6)"; g.strokeRect(hx - 5, y + 1, 10, 12); }
+    g.globalCompositeOperation = "lighter";
   };
   const bolt = () => {
     const x0 = rnd(.15, .85) * W, pts = [[x0, 0]]; let x = x0, y = 0;
@@ -332,7 +342,8 @@ export function createStage(canvas, { reduced = false, quality = 1 } = {}) {
     const heatK = .75 + S.heat / 100 * .6, flip = kind === "flip" && e < 3.2;
     const A = flip ? cur.b : cur.a, B = flip ? cur.a : cur.b;
     const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, `rgb(${col(cur.dark, .16)})`); bg.addColorStop(.6, `rgb(${col(cur.dark, .38)})`); bg.addColorStop(1, `rgb(${col(cur.dark, .62)})`);
-    g.globalCompositeOperation = "source-over"; g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    g.globalCompositeOperation = "source-over";
+    if (photo) g.clearRect(0, 0, W, H); else { g.fillStyle = bg; g.fillRect(0, 0, W, H); }
     g.globalCompositeOperation = "lighter";
     for (let i = 0; i < 4; i++) {
       const hx = W * (.15 + i * .24) + Math.sin(t * .13 + i * 2) * W * .06, hy = H * (.42 + Math.cos(t * .17 + i) * .08), hr = W * .34;
@@ -340,15 +351,17 @@ export function createStage(canvas, { reduced = false, quality = 1 } = {}) {
       g.fillStyle = hz; g.fillRect(hx - hr, hy - hr, hr * 2, hr * 2);
     }
     // LED wall
-    if (W > 520 && S.power > 0) {
-      const sw = W * .17, sh = H * .075, sx = W * .5 - sw / 2, sy = H * .012;
+    if (!photo && W > 520 && S.power > 0) {
+      const sw = W * .17, sh = H * .062, sx = W * .5 - sw / 2, sy = H * .042;
       g.globalAlpha = (.28 + kick * .22) * Math.min(1, m); g.fillStyle = `rgb(${col(A, .35)})`; g.fillRect(sx, sy, sw, sh);
       g.font = `900 ${Math.round(sh * .3)}px Impact,'Arial Narrow',sans-serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = `rgb(${col(B)})`; g.globalAlpha = .8 * Math.min(1, m);
       ["MUSIC BRINGS", "BETTER STRANGERS"].forEach((line, i) => g.fillText(line, sx + sw / 2, sy + sh * (.3 + i * .42), sw * .92)); g.globalAlpha = 1;
     }
     // beams
     if (S.power > 0) {
-      const n = [0, 5, 8, 12][S.power], sp = (kind === "drop" ? 1.9 : 1) * heatK, al = (.34 + kick * .42) * m, fx = S.fx, oy = -H * .03;
+      const n = [0, 5, 8, 12][S.power], sp = (kind === "drop" ? 1.9 : 1) * heatK, al = (.34 + kick * .42) * m, fx = S.fx, ty = H * .022, oy = ty + 12;
+      if (!photo && fx !== "crossfire" && fx !== "tunnel") truss(ty, Array.from({ length: n }, (_, i) => W * (.08 + (n === 1 ? .5 : i / (n - 1)) * .84)));
+      if (fx === "sweep" || fx === "crossfire" || fx === "pulse") lasers(t, A, B, m, kick, fx === "sweep" ? 0 : fx === "pulse" ? 3 : (Math.floor(t * S.bpm / 60 / 8) % 2 ? 2 : 1));
       for (let i = 0; i < n; i++) {
         const f = n === 1 ? .5 : i / (n - 1), c = i % 2 ? B : A, ox = W * (.08 + f * .84);
         let ang = 0, len = H * 1.45, spr = .07, a = al;
@@ -360,7 +373,7 @@ export function createStage(canvas, { reduced = false, quality = 1 } = {}) {
         else if (fx === "bloom") { spr = .16; a = al * .6; ang = Math.sin(t * .5 + i) * .35; }
         else { ang = Math.sin(t * .35 * sp + i * .9) * .55; spr = .11; a = al * .7; len = H * 1.2; }
         beam(ox, oy, ang, len, spr, c, a); beam(ox, oy, ang, len, spr * .18, [255, 255, 255], a * .75);
-        flare(ox, 0, c, H * .1, Math.min(1, .45 + kick * .5) * Math.min(1, m));
+        flare(ox, oy, c, H * .08, Math.min(1, .45 + kick * .5) * Math.min(1, m));
       }
       if (fx === "tunnel") for (let r = 0; r < 5; r++) { const k = ((t * .25 * sp + r / 5) % 1); g.strokeStyle = `rgba(${col(r % 2 ? B : A)},${(1 - k) * .3 * m})`; g.lineWidth = 1 + k * 3; g.beginPath(); g.ellipse(W / 2, H * .5, W * .6 * k, H * .45 * k, 0, 0, TAU); g.stroke(); }
     }
@@ -370,6 +383,7 @@ export function createStage(canvas, { reduced = false, quality = 1 } = {}) {
     g.globalAlpha = 1;
     // floor wash
     const fl = g.createLinearGradient(0, H * .62, 0, H); fl.addColorStop(0, `rgba(${col(B)},0)`); fl.addColorStop(1, `rgba(${col(A)},${(.26 + kick * .16) * Math.min(1.2, m)})`); g.fillStyle = fl; g.fillRect(0, H * .62, W, H * .38);
+    if (!photo) {
     // backlit crowd
     g.globalCompositeOperation = "source-over";
     const bob = S.heat / 100 * 2 + .6, armL = H * .085;
@@ -387,6 +401,7 @@ export function createStage(canvas, { reduced = false, quality = 1 } = {}) {
           for (const side of p.arm === 1 ? [-1] : [-1, 1]) { g.beginPath(); g.moveTo(p.x + side * 6 * rowSc, sy + 4 * rowSc + off); g.lineTo(p.x + side * (9 + 5 * pump) * rowSc, sy - armL * lift * rowSc + off); g.stroke(); }
         }
       }
+    }
     }
     // show moments
     g.globalCompositeOperation = "lighter";

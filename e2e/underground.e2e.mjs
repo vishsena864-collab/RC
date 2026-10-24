@@ -40,6 +40,15 @@ try{
  await btn(a,'Add '+tracks[2].title+' to the queue').click({force:true});
  await a.locator('.fx-queue-item').filter({hasText:tracks[2].title}).waitFor();
  await b.locator('.fx-ctrl-who strong').waitFor();
+ // floating cover button: stays on screen while scrolling and broadcasts the selected track
+ await btn(a,'Select '+tracks[3].title+' by '+tracks[3].artist).click();
+ await a.evaluate(()=>scrollTo(0,document.body.scrollHeight));
+ const fab=a.getByRole('button',{name:'Broadcast '+tracks[3].title+' to the room now'});
+ assert.equal(await fab.evaluate(el=>{const r=el.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight;}),true,'play button stays in view');
+ assert.equal(await a.locator('.fx-fab img').getAttribute('src'),tracks[3].artwork);
+ await shot(a,'desktop-fab');await fab.click();
+ await b.getByRole('heading',{name:tracks[3].title,exact:true}).waitFor();
+ await a.locator('.fx-fab').waitFor({state:'detached'});
  // vote: every connected client gets the room-wide effect + heat moves
  await btn(b,'Fire It Up: Push the room further').click();
  await a.locator('.fx-callout-energy').waitFor();await shot(a,'desktop-fire');

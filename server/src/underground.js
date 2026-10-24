@@ -21,7 +21,7 @@ const HANDLE_WORDS = ["luna","mars","kiwi","neon","skye","jett","kael","rhea","m
 const handleHash = (id) => { let h = 2166136261; for (const c of String(id)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
 const handleFor = (id) => { const h = handleHash(id); return HANDLE_WORDS[h % HANDLE_WORDS.length] + "." + String((h >>> 8) % 90 + 10); };
 const hueFor = (id) => handleHash(id + "hue") % 360;
-const defaultLights = () => ({theme:"acid",fx:"march",intensity:2,beatBpm:116,updatedAt:Date.now(),showMoment:null});
+const defaultLights = () => ({theme:"infrared",fx:"sweep",intensity:2,beatBpm:116,updatedAt:Date.now(),showMoment:null});
 
 export function createUnderground(io) {
   const rooms = new Map();
