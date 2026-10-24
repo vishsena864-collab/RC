@@ -4,7 +4,7 @@ import Link from "next/link";
 import {Oswald} from "next/font/google";
 import {io} from "socket.io-client";
 import {SERVER_URL,SOCKET_PATH} from "@/lib/site";
-import {createOverlay,createSpectrum,createStage,qualityFor} from "./underground-fx";
+import {createOverlay,createSpectrum,createStage,photoFit,qualityFor} from "./underground-fx";
 import "./underground-stage.css";
 
 const oswald=Oswald({subsets:["latin"],weight:["500","600","700"],variable:"--fx-oswald",display:"swap"});
@@ -21,7 +21,7 @@ const THEMES=[
  {id:"midnight",name:"Midnight Tunnel",a:"#83a5ff",b:"#75d0ff",dark:"#111b34",hue:225},
  {id:"toxic",name:"Neon Riot",a:"#9cff2d",b:"#fe52b8",dark:"#2c1536",hue:100}
 ];
-const FX=[["march","Marching lasers"],["pulse","Pulse"],["sweep","Wave sweep"],["crossfire","Crossfire"],["tunnel","Tunnel"],["bloom","Soft bloom"],["drift","Drift"]];
+const FX=[["march","Marching lasers"],["pulse","Pulse"],["sweep","Wave sweep"],["crossfire","Crossfire"],["tunnel","Tunnel"],["bloom","Soft bloom"],["drift","Drift"],["cone","Laser tunnel"],["matrix","Beam matrix"],["chase","LED chase"],["follow","Follow spots"]];
 const MOODS=["energy","love","chill"];
 const MOOD_SCENES=[
  {id:"energy",title:"FIRE",core:"Ignition Core",blurb:"Add energy and intensity to the room.",cta:"Fire It Up",short:"Push the room further"},
@@ -42,7 +42,11 @@ const SCENES=[
  {id:"spectral",name:"Spectral Shift",subtitle:"Euphoric",theme:"ultraviolet",fx:"sweep",intensity:2,moment:"flip"},
  {id:"ion",name:"Ion Storm",subtitle:"Raw Energy",theme:"ocean",fx:"march",intensity:3,moment:"storm"},
  {id:"blackout",name:"Blackout / Reveal",subtitle:"Dramatic",theme:"midnight",fx:"tunnel",intensity:1,moment:"fade"},
- {id:"dreamscape",name:"Dreamscape",subtitle:"Deep & Hypnotic",theme:"rose",fx:"drift",intensity:2,moment:"fade"}
+ {id:"dreamscape",name:"Dreamscape",subtitle:"Deep & Hypnotic",theme:"rose",fx:"drift",intensity:2,moment:"fade"},
+ {id:"tunnel",name:"Laser Tunnel",subtitle:"Hypnotic",theme:"toxic",fx:"cone",intensity:3,moment:"flip"},
+ {id:"matrix",name:"Beam Matrix",subtitle:"Precision",theme:"ocean",fx:"matrix",intensity:3,moment:"drop"},
+ {id:"chase",name:"Strobe Wall",subtitle:"Relentless",theme:"infrared",fx:"chase",intensity:3,moment:"storm"},
+ {id:"follow",name:"Follow Spot",subtitle:"Spotlight",theme:"gold",fx:"follow",intensity:2,moment:"fade"}
 ];
 const MOMENTS=[["drop","Drop"],["flip","Color shift"],["storm","Ion storm"],["fade","Blackout"]];
 const DISCOVER_TABS=["For You","Underground Picks","New This Week","Global Sounds","Chill","High Energy"];
@@ -126,7 +130,7 @@ export default function UndergroundFM({locale="en"}){
  const [preview,setPreview]=useState(null),[connected,setConnected]=useState(false),[room,setRoom]=useState(null),[isDj,setIsDj]=useState(false),[me,setMe]=useState(null),[messages,setMessages]=useState([]),[draft,setDraft]=useState(""),[playing,setPlaying]=useState(false),[clock,setClock]=useState(Date.now());
  const [volume,setVolume]=useState(80),[liked,setLiked]=useState(false),[reactions,setReactions]=useState([]),[reduced,setReduced]=useState(false),[motionPref,setMotionPref]=useState(null);
  const [selectedTrack,setSelectedTrack]=useState(null),[page,setPage]=useState(0),[hasMore,setHasMore]=useState(true),[loadingMore,setLoadingMore]=useState(false),[requestText,setRequestText]=useState(""),[discoverTab,setDiscoverTab]=useState("For You"),[moodBurst,setMoodBurst]=useState(null),[pulses,setPulses]=useState({energy:0,love:0,chill:0}),[voteBusy,setVoteBusy]=useState(false),[heroGenre,setHeroGenre]=useState("Electronic"),[requestMatches,setRequestMatches]=useState([]),[requestSearching,setRequestSearching]=useState(false),[requestSent,setRequestSent]=useState(null),[tab,setTab]=useState("show"),[showGuide,setShowGuide]=useState(false),[showTune,setShowTune]=useState(false),[cooldownKey,setCooldownKey]=useState(0);
- const socket=useRef(null),audio=useRef(null),streamTrackId=useRef(null),joining=useRef(false),wantsRoom=useRef(false),lastVoteAt=useRef(0),stageCv=useRef(null),overlayCv=useRef(null),stage=useRef(null),overlay=useRef(null),rail=useRef(null),chatList=useRef(null),shellRef=useRef(null),specCv=useRef(null),spectrum=useRef(null),actx=useRef(null),analyser=useRef(null);
+ const socket=useRef(null),audio=useRef(null),streamTrackId=useRef(null),joining=useRef(false),wantsRoom=useRef(false),lastVoteAt=useRef(0),stageCv=useRef(null),overlayCv=useRef(null),stage=useRef(null),overlay=useRef(null),rail=useRef(null),chatList=useRef(null),shellRef=useRef(null),photoRef=useRef(null),specCv=useRef(null),spectrum=useRef(null),actx=useRef(null),analyser=useRef(null);
  const motionOff=motionPref===null?reduced:motionPref;
  const fx=room?.lights||defaults;
  const theme=THEMES.find(t=>t.id===fx.theme)||THEMES[0];
@@ -156,8 +160,10 @@ export default function UndergroundFM({locale="en"}){
   stage.current=createStage(stageCv.current,{quality,photo:true,onLevels});
   overlay.current=createOverlay(overlayCv.current,{quality});
   spectrum.current=createSpectrum(specCv.current);
+  const place=()=>{const f=photoFit(innerWidth,innerHeight),el=photoRef.current;if(el){el.style.backgroundSize=f.dw+"px "+f.dh+"px";el.style.backgroundPosition=f.ox+"px "+f.oy+"px";}};
+  place();addEventListener("resize",place);
   if(analyser.current){stage.current.audio(analyser.current);spectrum.current.audio(analyser.current);}
-  return ()=>{stage.current?.destroy();overlay.current?.destroy();spectrum.current?.destroy();stage.current=overlay.current=spectrum.current=null;};
+  return ()=>{removeEventListener("resize",place);stage.current?.destroy();overlay.current?.destroy();spectrum.current?.destroy();stage.current=overlay.current=spectrum.current=null;};
  },[]);
  useEffect(()=>{stage.current?.setReduced(motionOff);overlay.current?.setReduced(motionOff);spectrum.current?.setReduced(motionOff);if(motionOff)shellRef.current?.style.setProperty("--bass","0");},[motionOff]);
  useEffect(()=>{spectrum.current?.playing(playing);},[playing]);
@@ -201,7 +207,7 @@ export default function UndergroundFM({locale="en"}){
   s.on("connect_error",()=>setNotice("Live rooms are offline. Solo Audius discovery is still available."));
   s.on("fm:state",data=>{setRoom(data);setIsDj(data.dj===s.id);});
   s.on("fm:chat",entry=>setMessages(v=>[...v.slice(-79),entry]));
-  s.on("fm:reaction",entry=>{setReactions(v=>[...v.slice(-11),{...entry,id:Math.random()}]);});
+  s.on("fm:reaction",entry=>{setReactions(v=>[...v.slice(-11),{...entry,id:Math.random()}]);stage.current?.react(entry.kind);});
   s.on("fm:mood:burst",entry=>{
    setMoodBurst({...entry,nonce:Math.random()});
    setPulses(v=>({...v,[entry.kind]:v[entry.kind]+1}));
@@ -412,7 +418,7 @@ export default function UndergroundFM({locale="en"}){
  const reactionBar=<div className="fx-react-bar" role="group" aria-label="Send a reaction">{REACTIONS.map(([kind,emoji])=><button key={kind} type="button" onClick={()=>react(kind)} disabled={!room} aria-label={"React "+kind}><span>{emoji}</span><b>{room?.reactionCounts?.[kind]||0}</b></button>)}</div>;
 
  return <div ref={shellRef} className={"fx-shell fx-"+view+" "+oswald.variable} style={vars} data-view={view} data-tab={tab} data-motion={motionOff?"reduced":"full"} data-playing={playing} data-heat={hottest} data-fab={view==="controller"&&Boolean(selectedTrack)}>
-  <div className="fx-photo" aria-hidden="true"/>
+  <div ref={photoRef} className="fx-photo" aria-hidden="true"/>
   <canvas ref={stageCv} className="fx-stage" aria-hidden="true"/>
   <div className="fx-scrim" aria-hidden="true"/>
   <canvas ref={overlayCv} className="fx-overlay" aria-hidden="true"/>

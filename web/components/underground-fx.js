@@ -264,13 +264,46 @@ export function createOverlay(canvas, { reduced = false, quality = 1 } = {}) {
   };
 }
 
+/* ───────────────────────── haze + LED textures ───────────────────────── */
+// Tileable smoke: periodic value noise, three octaves. Alpha = density (0.45–1) so beams drawn through it break up.
+let hazeTileCache = null;
+const hazeTile = () => {
+  if (hazeTileCache) return hazeTileCache;
+  const size = 256, c = document.createElement("canvas"); c.width = c.height = size;
+  const x = c.getContext("2d"), img = x.createImageData(size, size), r = rng(42);
+  const octave = (n) => { const lat = Array.from({ length: n * n }, () => r()); return (u, v) => { const fx = u * n, fy = v * n, x0 = Math.floor(fx), y0 = Math.floor(fy), tx = fx - x0, ty = fy - y0, sx = tx * tx * (3 - 2 * tx), sy = ty * ty * (3 - 2 * ty), at = (i, j) => lat[((j % n + n) % n) * n + ((i % n + n) % n)]; return lerp(lerp(at(x0, y0), at(x0 + 1, y0), sx), lerp(at(x0, y0 + 1), at(x0 + 1, y0 + 1), sx), sy); }; };
+  const o = [[octave(4), .55], [octave(8), .3], [octave(16), .15]];
+  for (let py = 0; py < size; py++) for (let px = 0; px < size; px++) {
+    let v = 0; for (const [f, w] of o) v += f(px / size, py / size) * w;
+    const i = (py * size + px) * 4; img.data[i] = img.data[i + 1] = img.data[i + 2] = 255; img.data[i + 3] = Math.round(clamp(.45 + Math.pow(v, 1.6) * .9, 0, 1) * 255);
+  }
+  x.putImageData(img, 0, 0); return (hazeTileCache = c);
+};
+const ledTile = (p) => { const c = document.createElement("canvas"); c.width = c.height = p; const x = c.getContext("2d"); x.fillStyle = "#fff"; x.beginPath(); x.arc(p / 2, p / 2, p * .36, 0, TAU); x.fill(); return c; };
+
+// Where things are in the venue photo (fractions of the image) and how the CSS places it (cover, x 50%, y 28% / 30% on narrow screens).
+const PHOTO = { ratio: 670 / 1200, screens: [{ u0: .37, v0: .36, u1: .63, v1: .56, main: true }, { u0: .16, v0: .37, u1: .25, v1: .68 }, { u0: .74, v0: .37, u1: .84, v1: .68 }], bars: [[.375, .358], [.63, .358], [.785, .358]], dj: [.5, .55] };
+// Photo placement shared by the CSS backdrop and the rig: zoomed so the stage, LED screens and DJ sit in the hero
+// (about a third of the way down the viewport) while the image still covers the whole screen.
+export const photoFit = (w, h) => {
+  let dh = Math.max(h * 1.6, w * PHOTO.ratio), dw = dh / PHOTO.ratio;
+  if (dw < w) { dw = w; dh = dw * PHOTO.ratio; }
+  return { dw, dh, ox: (w - dw) / 2, oy: clamp(h * .33 - PHOTO.dj[1] * dh, h - dh, 0) };
+};
+const REACT_RGB = { heart: [255, 40, 150], fire: [255, 110, 20], spark: [255, 250, 235], wave: [40, 200, 255] };
+
 /* ───────────────────────── the concert rig ───────────────────────── */
 // photo: the venue photograph sits behind the canvas, so draw light only (no backdrop, truss, LED wall or crowd).
 // Optional live audio: pass an AnalyserNode to stage.audio(); bass/mid/high, beat onsets and drops then drive the rig.
 // Without it (nobody pressed play on this device) the rig follows the room BPM. onLevels reports the drive each frame.
+const SPECIAL = new Set(["cone", "matrix", "chase", "follow"]);
 const MOOD_RGB = { energy: [255, 96, 24], love: [255, 52, 200], chill: [60, 190, 255] };
 export function createStage(canvas, { reduced = false, quality = 1, photo = false, onLevels = null } = {}) {
-  const g = canvas.getContext("2d", { alpha: photo });
+  const main = canvas.getContext("2d", { alpha: photo });
+  let g = main; // beams and lasers are drawn into `bl` first so the haze can break them up, then composited onto `main`
+  const bl = document.createElement("canvas"), blg = bl.getContext("2d"), led = document.createElement("canvas"), ledg = led.getContext("2d");
+  const rich = quality >= 1; // haze modulation, god rays and LED wall detail on capable devices
+  let hazePat = null, hazeMain = null, dotPat = null, beats = 0, reacts = [];
   const S = { a: [221, 255, 115], b: [128, 255, 177], dark: [28, 50, 33], fx: "march", power: 2, bpm: 116, heat: 50, playing: false, still: reduced };
   const cur = { a: [...S.a], b: [...S.b], dark: [...S.dark] };
   let W = 2, H = 2, crowd = [], dust = [], mom = null, bolts = [], boltAt = 0, pulse = 0;
@@ -286,7 +319,7 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
     L.bass = follow(L.bass, b, 30, 6); L.mid = follow(L.mid, m, 20, 5); L.high = follow(L.high, h, 25, 6);
     L.level = (L.bass * .5 + L.mid * .35 + L.high * .15); L.live = b + m + h > .03;
     if (!L.live) return;
-    if (b > avgBass * 1.28 + .035 && b > .22 && t - lastBeat > .28) { beatEnv = 1; lastBeat = t; onset = true; }
+    if (b > avgBass * 1.28 + .035 && b > .22 && t - lastBeat > .28) { beatEnv = 1; lastBeat = t; onset = true; beats++; }
     avgBass = lerp(avgBass, b, 1 - Math.exp(-dt * 1.6));
     fast = lerp(fast, L.level, 1 - Math.exp(-dt * 6)); slow = lerp(slow, L.level, 1 - Math.exp(-dt * .45));
     if (fast > slow * 1.5 && fast > .42 && t - lastDrop > 8) { blind = 1; lastDrop = t; }
@@ -299,7 +332,13 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
     crowd = []; dust = Array.from({ length: Math.round(46 * quality) }, () => ({ x: r() * W, y: r() * H, z: .3 + r() * .7, p: r() * TAU }));
     for (const [lift, step, sc] of rows) for (let x = -step; x < W + step; x += step * (.75 + r() * .5)) crowd.push({ x, lift: lift * H, sc, ph: r() * TAU, arm: r() < .42 ? (r() < .5 ? 1 : 2) : 0, hh: .85 + r() * .3 });
   };
-  const resize = () => { W = Math.max(2, Math.round(innerWidth * scale)); H = Math.max(2, Math.round(innerHeight * scale)); canvas.width = W; canvas.height = H; buildCrowd(); if (S.still) paint(2.2, 1 / 60); };
+  const resize = () => {
+    W = Math.max(2, Math.round(innerWidth * scale)); H = Math.max(2, Math.round(innerHeight * scale)); canvas.width = W; canvas.height = H; bl.width = W; bl.height = H; buildCrowd();
+    hazePat = blg.createPattern(hazeTile(), "repeat"); hazeMain = main.createPattern(hazeTile(), "repeat"); dotPat = ledg.createPattern(ledTile(W > 600 ? 3 : 2), "repeat");
+    if (S.still) paint(2.2, 1 / 60);
+  };
+  // photo fractions → canvas pixels, matching the CSS background placement
+  const at = (u, v) => { const f = photoFit(innerWidth, innerHeight), k = W / innerWidth; return [(f.ox + u * f.dw) * k, (f.oy + v * f.dh) * k]; };
   // volumetric beam: stacked cones (soft edge, brighter core) and a hot spot where it lands on the floor
   const beam = (ox, oy, ang, len, spread, c, a) => {
     if (a <= .004) return;
@@ -362,6 +401,110 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
     for (const hx of xs) { g.fillStyle = "#0d0f18"; g.fillRect(hx - 5, y + 1, 10, 12); g.strokeStyle = "rgba(90,98,130,.6)"; g.strokeRect(hx - 5, y + 1, 10, 12); }
     g.globalCompositeOperation = "lighter";
   };
+  // LED wall content mapped onto the photo's screens: spectrum, kick rings or a marquee, cycling every 8 beats
+  const ledWall = (t, A, B, m, kick, bi) => {
+    if (!photo || S.power === 0) return;
+    const mode = Math.floor(bi / 8) % 3;
+    PHOTO.screens.forEach((sc, si) => {
+      const [x0, y0] = at(sc.u0, sc.v0), [x1, y1] = at(sc.u1, sc.v1), w = Math.round(x1 - x0), h = Math.round(y1 - y0);
+      if (w < 8 || h < 8 || x1 < 0 || x0 > W) return;
+      if (led.width < w || led.height < h) { led.width = Math.max(led.width, w); led.height = Math.max(led.height, h); dotPat = ledg.createPattern(ledTile(W > 600 ? 3 : 2), "repeat"); }
+      ledg.globalCompositeOperation = "source-over"; ledg.clearRect(0, 0, w, h);
+      const gr = ledg.createLinearGradient(0, h, 0, 0); gr.addColorStop(0, `rgb(${col(A)})`); gr.addColorStop(1, `rgb(${col(B)})`);
+      ledg.fillStyle = gr;
+      if (!sc.main) {
+        // side screens: VU columns for bass / mid / high + a wash on the kick
+        const lv = L.live ? [L.bass, L.mid, L.high * 1.6] : [.35 + kick * .5, .3 + Math.sin(t * 3) * .15, .25 + Math.sin(t * 5.3) * .12];
+        lv.forEach((v, k) => { const bh = clamp(v, 0, 1) * h; ledg.fillRect(k * w / 3 + w * .04, h - bh, w / 3 - w * .08, bh); });
+        ledg.globalAlpha = kick * .35; ledg.fillRect(0, 0, w, h); ledg.globalAlpha = 1;
+      } else if (mode === 0) {
+        const n = 24; for (let i = 0; i < n; i++) {
+          let v; if (L.live && buf) { const k = Math.floor(Math.pow(i / n, 1.7) * buf.length * .5) + 1; v = Math.pow(buf[k] / 255, .8) * (1 + i / n * 1.5); } else v = .3 + Math.sin(i * .8 + t * 3) * .18 + kick * .35;
+          const bh = clamp(v, .05, 1) * h * .92; ledg.fillRect(i * w / n + 1, (h - bh) / 2, w / n - 2, bh);
+        }
+      } else if (mode === 1) {
+        ledg.strokeStyle = gr; ledg.lineWidth = Math.max(2, h * .06);
+        for (let r = 0; r < 4; r++) { const k = (t * .9 + r / 4) % 1; ledg.globalAlpha = (1 - k) * (.6 + kick * .4); ledg.beginPath(); ledg.ellipse(w / 2, h / 2, w * .55 * k + 2, h * .55 * k + 2, 0, 0, TAU); ledg.stroke(); }
+        ledg.globalAlpha = 1;
+      } else {
+        const txt = "UNDERGROUND FM  ✦  MUSIC BRINGS BETTER STRANGERS  ✦  ";
+        ledg.font = `900 ${Math.round(h * .5)}px Impact,'Arial Narrow',sans-serif`; ledg.textBaseline = "middle";
+        const tw = ledg.measureText(txt).width, off = -((t * h * 1.6) % tw);
+        for (let x = off; x < w; x += tw) ledg.fillText(txt, x, h / 2);
+      }
+      ledg.globalCompositeOperation = "destination-in"; ledg.fillStyle = dotPat; ledg.fillRect(0, 0, w, h);
+      main.globalCompositeOperation = "lighter"; main.globalAlpha = (.5 + kick * .3) * Math.min(1, m); main.drawImage(led, 0, 0, w, h, x0, y0, w, h); main.globalAlpha = 1;
+    });
+    // the white LED bars over the screens hit on the kick
+    for (const [u, v] of PHOTO.bars) { const [x, y] = at(u, v); flare(x, y, B, H * .035 * (.6 + kick), .25 + kick * .6); }
+  };
+  // light shafts radiating from behind the DJ
+  const godRays = (t, A, B, m) => {
+    const [ox, oy] = photo ? at(...PHOTO.dj) : [W / 2, H * .45], len = Math.max(W, H) * .9, k = (.5 + (L.live ? L.bass : .3)) * Math.min(1, m);
+    for (let i = 0; i < 14; i++) {
+      const a = i / 14 * TAU + t * .05 + Math.sin(t * .3 + i) * .08, w = .035 + (i % 3) * .015, c = i % 2 ? A : B;
+      const gr = g.createRadialGradient(ox, oy, 0, ox, oy, len); gr.addColorStop(0, `rgba(${col(c)},${.16 * k})`); gr.addColorStop(1, `rgba(${col(c)},0)`);
+      g.fillStyle = gr; g.beginPath(); g.moveTo(ox, oy); g.lineTo(ox + Math.cos(a - w) * len, oy + Math.sin(a - w) * len); g.lineTo(ox + Math.cos(a + w) * len, oy + Math.sin(a + w) * len); g.closePath(); g.fill();
+    }
+  };
+  // the four extra rigs
+  const special = (fx, t, A, B, m, kick, bi, sp, ty) => {
+    const ctr = photo ? at(.5, .48) : [W / 2, H * .45], wid = Math.max(.8, W / 900);
+    if (fx === "cone") {
+      const n = W < 360 ? 14 : 22, len = Math.hypot(W, H);
+      for (let i = 0; i < n; i++) laser(ctr[0], ctr[1], t * .6 * sp + i / n * TAU, len, i % 2 ? A : B, Math.min(1, (.55 + kick * .5) * m), wid, t * 160 + i * 41);
+      if (S.power > 1) for (let i = 0; i < n; i += 2) laser(ctr[0], ctr[1], -t * .4 * sp + i / n * TAU + .07, len, B, Math.min(1, .35 * m), wid, t * 120 + i * 29);
+      g.lineWidth = wid * 1.4;
+      for (let r = 0; r < 6; r++) { const k = (t * .35 * sp + r / 6) % 1, c = r % 2 ? A : B; g.strokeStyle = `rgba(${col(c)},${(1 - k) * .55 * Math.min(1, m)})`; g.beginPath(); g.ellipse(ctr[0], ctr[1], W * .75 * k * k + 2, H * .6 * k * k + 2, 0, 0, TAU); g.stroke(); }
+      flare(ctr[0], ctr[1], A, H * .08 * (.7 + kick), .8);
+    } else if (fx === "matrix") {
+      const n = W < 360 ? 7 : 12, len = H * 1.4;
+      for (let i = 0; i < n; i++) { if ((i + bi) % 2) continue; const ox = W * (.06 + i / (n - 1) * .88); beam(ox, ty + 12, Math.sin(t * .6 + i) * .04, len, .028, i % 4 < 2 ? A : B, (.45 + kick * .5) * m); beam(ox, ty + 12, 0, len, .006, [255, 255, 255], .5 * m); }
+      for (let r = 0; r < 4; r++) { if ((r + bi) % 2 === 0) continue; const y = H * (.22 + r * .14), from = r % 2 ? 0 : W; laser(from, y, r % 2 ? 0 : Math.PI, W, r % 2 ? A : B, Math.min(1, (.6 + kick * .4) * m), wid, t * 200 + r * 77); }
+    } else if (fx === "chase") {
+      // LED batten chase around the frame; steps on the beat, never a full-screen flash
+      const seg = 18, head = (bi * 2 + Math.floor(t * 6)) % (seg * 2), pts = [];
+      for (let i = 0; i < seg; i++) pts.push([W * (.04 + i / (seg - 1) * .92), H * .03]);
+      for (let i = 0; i < 8; i++) pts.push([W * .015, H * (.1 + i * .1)], [W * .985, H * (.1 + i * .1)]);
+      pts.forEach(([x, y], i) => { const d = Math.min(Math.abs(i - head), Math.abs(i + pts.length - head)), k = Math.exp(-d * .7) * (.5 + kick * .5) + .06; flare(x, y, i % 2 ? A : B, H * .05 * (.6 + k), Math.min(1, k * m)); });
+    } else if (fx === "follow") {
+      main.globalCompositeOperation = "source-over"; main.fillStyle = `rgba(0,0,0,${.32 * Math.min(1, m)})`; main.fillRect(0, 0, W, H); main.globalCompositeOperation = "lighter";
+      const fy = H * (photo ? .8 : .9), warm = [255, 240, 220];
+      for (let i = 0; i < 3; i++) {
+        const sx = W * (.5 + Math.sin(t * (.23 + i * .07) * sp + i * 2.1) * .38), sy = fy + Math.sin(t * .4 + i) * H * .04, ox = W * (.2 + i * .3), oy = ty + 12;
+        const ang = Math.atan2(sx - ox, sy - oy), d = Math.hypot(sx - ox, sy - oy), spr = H * .07 / d;
+        beam(ox, oy, ang, d * 1.05, spr, warm, (.32 + kick * .18) * m);
+        g.save(); g.translate(sx, sy); g.scale(1, .3); const sg = g.createRadialGradient(0, 0, 0, 0, 0, H * .12); sg.addColorStop(0, `rgba(255,248,235,${.8 * Math.min(1, m)})`); sg.addColorStop(.6, `rgba(${col(A)},${.25 * m})`); sg.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = sg; g.fillRect(-H * .12, -H * .12, H * .24, H * .24); g.restore();
+        flare(ox, oy, warm, H * .05, .9);
+      }
+    }
+  };
+  // a reaction from anyone in the room fires a matching light: heart sweep, fire floor flames, sparkle burst, wave of light
+  // a reaction from anyone in the room fires a matching light in the visible top of the stage
+  const drawReacts = (t) => {
+    const now = performance.now(), wid = Math.max(1, W / 700);
+    reacts = reacts.filter(r => now - r.at < 1800);
+    for (const r of reacts) {
+      const k = (now - r.at) / 1800, c = REACT_RGB[r.kind], a = Math.pow(1 - k, 1.4);
+      if (r.kind === "heart") {
+        // two pink beams sweep in from the top corners and cross over the stage
+        for (const s of [-1, 1]) { const ang = -s * (1.05 - k * 1.5); for (let j = 0; j < 3; j++) beam(s < 0 ? W * .02 : W * .98, -H * .02, ang - j * .09 * s, H * 1.5, .07, c, a); beam(s < 0 ? W * .02 : W * .98, -H * .02, ang, H * 1.5, .016, [255, 255, 255], .9 * a); }
+        g.fillStyle = `rgba(${col(c)},${.22 * a})`; g.fillRect(0, 0, W, H);
+      } else if (r.kind === "fire") {
+        // flame flares burst along the truss line and a warm wash rolls down
+        for (let i = 0; i < 7; i++) { const x = W * (.08 + i * .14), fl = 1 + Math.sin(k * 26 + i * 1.7) * .25; flare(x, H * .05, c, H * .24 * fl, a); flare(x, H * .05, [255, 230, 160], H * .08 * fl, a); beam(x, H * .05, (i - 3) * .06, H * .8 * (1 - k * .5), .11, c, a); }
+        const wg = g.createLinearGradient(0, 0, 0, H * .6); wg.addColorStop(0, `rgba(255,140,40,${.5 * a})`); wg.addColorStop(1, "rgba(255,80,0,0)"); g.fillStyle = wg; g.fillRect(0, 0, W, H * .6);
+      } else if (r.kind === "spark") {
+        for (const p of r.pts) { const tw = Math.max(0, Math.sin((k * 3 + p[2]) * Math.PI)); flare(p[0] * W, p[1] * H, c, H * .07 * (1 + tw), Math.min(1, tw * a * 2)); flare(p[0] * W, p[1] * H, [255, 220, 120], H * .025 * (1 + tw), Math.min(1, tw * a * 2)); }
+      } else {
+        // a band of cyan light rolls across the room with a laser riding it
+        const x = -W * .2 + k * W * 1.4, wg = g.createLinearGradient(x - W * .18, 0, x + W * .18, 0);
+        wg.addColorStop(0, `rgba(${col(c)},0)`); wg.addColorStop(.5, `rgba(${col(c)},${.8 * a})`); wg.addColorStop(1, `rgba(${col(c)},0)`); g.fillStyle = wg; g.fillRect(0, 0, W, H);
+        g.fillStyle = `rgba(255,255,255,${.06 * a})`; g.fillRect(0, 0, W, H);
+        for (let i = 0; i < 3; i++) laser(0, H * (.12 + i * .1) + Math.sin(k * 8 + i) * H * .05, Math.sin(k * 4 + i) * .08, W * 1.1, c, a, wid * 2.6, t * 220 + i * 90);
+      }
+    }
+  };
   const bolt = () => {
     const x0 = rnd(.15, .85) * W, pts = [[x0, 0]]; let x = x0, y = 0;
     while (y < H * rnd(.55, .9)) { y += rnd(.04, .09) * H; x += rnd(-.07, .07) * W; pts.push([x, y]); }
@@ -392,8 +535,12 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
       g.font = `900 ${Math.round(sh * .3)}px Impact,'Arial Narrow',sans-serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = `rgb(${col(B)})`; g.globalAlpha = .8 * Math.min(1, m);
       ["MUSIC BRINGS", "BETTER STRANGERS"].forEach((line, i) => g.fillText(line, sx + sw / 2, sy + sh * (.3 + i * .42), sw * .92)); g.globalAlpha = 1;
     }
-    // beams
-    if (S.power > 0) {
+    // beams (into the haze layer on capable devices)
+    const bi = L.live ? beats : Math.floor(t * S.bpm / 60);
+    ledWall(t, A, B, m, kick, bi);
+    if (rich) { blg.globalCompositeOperation = "source-over"; blg.clearRect(0, 0, W, H); g = blg; g.globalCompositeOperation = "lighter"; godRays(t, A, B, m); }
+    if (S.power > 0 && SPECIAL.has(S.fx)) special(S.fx, t, A, B, m * live, kick, bi, heatK, H * .022);
+    else if (S.power > 0) {
       const n = [0, 5, 8, 12][S.power], sp = (kind === "drop" ? 1.9 : 1) * heatK, al = (.34 + kick * .42) * m * live, fx = S.fx, ty = H * .022, oy = ty + 12;
       if (!photo && fx !== "crossfire" && fx !== "tunnel") truss(ty, Array.from({ length: n }, (_, i) => W * (.08 + (n === 1 ? .5 : i / (n - 1)) * .84)));
       if (fx === "sweep" || fx === "crossfire" || fx === "pulse") lasers(t, A, B, m, kick, fx === "sweep" ? 0 : fx === "pulse" ? 3 : (Math.floor(t * S.bpm / 60 / 8) % 2 ? 2 : 1));
@@ -412,6 +559,16 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
       }
       if (fx === "tunnel") for (let r = 0; r < 5; r++) { const k = ((t * .25 * sp + r / 5) % 1); g.strokeStyle = `rgba(${col(r % 2 ? B : A)},${(1 - k) * .3 * m})`; g.lineWidth = 1 + k * 3; g.beginPath(); g.ellipse(W / 2, H * .5, W * .6 * k, H * .45 * k, 0, 0, TAU); g.stroke(); }
     }
+    if (rich) {
+      // smoke: keep the light only where there is haze, drifting at two speeds, then add it to the stage
+      hazePat.setTransform?.(new DOMMatrix([2.2, 0, 0, 2.2, -t * 9 % (256 * 2.2), Math.sin(t * .05) * 30]));
+      g.globalCompositeOperation = "destination-in"; g.fillStyle = hazePat; g.fillRect(0, 0, W, H);
+      g = main; g.globalCompositeOperation = "lighter"; g.drawImage(bl, 0, 0);
+      // and a faint lit haze over everything
+      hazeMain.setTransform?.(new DOMMatrix([3, 0, 0, 3, t * 6 % (256 * 3), 0]));
+      g.globalAlpha = .05 + (L.live ? L.level * .05 : .02); g.fillStyle = hazeMain; g.fillRect(0, 0, W, H); g.globalAlpha = 1;
+    }
+    g = main; g.globalCompositeOperation = "lighter"; drawReacts(t);
     // blinders on a detected drop, and a strobe on hard kicks at peak heat (capped at 3 flashes a second)
     blind *= Math.exp(-dt / .4); strobe *= Math.exp(-dt / .05);
     if (onset && S.power === 3 && S.heat >= 75 && t - lastStrobe > .34) { strobe = 1; lastStrobe = t; }
@@ -486,6 +643,7 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
       if (S.still) { for (const k of ["a", "b", "dark"]) cur[k] = [...S[k]]; paint(2.2, 1 / 60); }
     },
     audio(node) { an = node; buf = node ? new Uint8Array(node.frequencyBinCount) : null; },
+    react(kind) { if (S.still || !REACT_RGB[kind]) return; reacts.push({ kind, at: performance.now(), pts: Array.from({ length: 40 }, () => [Math.random(), .02 + Math.random() * .4, Math.random()]) }); if (reacts.length > 8) reacts.shift(); },
     mood(kind) { if (!S.still && MOOD_RGB[kind]) moodT = { kind, at: performance.now() }; },
     moment(kind, at) { if (S.still || mom?.sat === at) return; mom = { kind, sat: at, at: performance.now() - clamp(Date.now() - at, 0, 4800) }; boltAt = 0; bolts = []; },
     setReduced(v) { S.still = v; if (v) { loop.stop(); cur.a = [...S.a]; cur.b = [...S.b]; cur.dark = [...S.dark]; mom = null; paint(2.2, 1 / 60); } else loop.start(); },

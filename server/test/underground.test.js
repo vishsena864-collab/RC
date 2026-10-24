@@ -77,3 +77,10 @@ test("only the controller can play a queued track right now", async () => {
   assert.equal(state.track.id, "fmtest2");
   assert.equal(state.queue.some((q) => q.track.id === "fmtest2"), false, "playing a queued track removes it from the queue");
 });
+
+test("the controller can switch to every light pattern, including the new rigs", async () => {
+  const a = await client();
+  await ask(a, "fm:join");
+  for (const fx of ["sweep", "cone", "matrix", "chase", "follow"]) assert.equal((await ask(a, "fm:lights", { fx })).ok, true, fx);
+  assert.equal((await ask(a, "fm:lights", { fx: "lasers-everywhere" })).error, "invalid_fx");
+});

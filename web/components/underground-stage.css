@@ -626,3 +626,13 @@ canvas.fx-wave{display:block;width:100%;height:62px}
 .fx-aura{opacity:calc(.7 + var(--bass,0) * .6)}
 .fx-cover[data-playing=true]{animation:none;transform:scale(calc(1 + var(--bass,0) * .03));box-shadow:0 0 0 1px rgba(255,255,255,.14),0 14px 44px rgba(0,0,0,.6),0 0 calc(30px + var(--bass,0) * 50px) color-mix(in srgb,var(--show-a,#ff625c) 45%,transparent)}
 .fx-shell[data-motion=reduced]{--bass:0!important}
+
+/* ── nine Light Mode scenes: compact square thumbnails ── */
+.fx-scenes{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.fx-scene strong{font-size:11.5px}
+.fx-scene-art{aspect-ratio:1}
+.fx-scene-tunnel .fx-scene-art{background-position:50% 50%;background-size:auto 170%;filter:hue-rotate(100deg) saturate(1.6) brightness(1.1)}
+.fx-scene-matrix .fx-scene-art{background-position:35% 40%;filter:hue-rotate(185deg) saturate(1.3) contrast(1.2)}
+.fx-scene-chase .fx-scene-art{background-position:80% 50%;filter:saturate(1.8) contrast(1.35) brightness(1.15)}
+.fx-scene-follow .fx-scene-art{background-image:url(/underground/crowd-1200.webp);background-position:30% 70%;filter:sepia(.9) saturate(1.6) hue-rotate(-10deg) brightness(1.15)}
+@media (max-width:699px){.fx-scene{width:96px}}
