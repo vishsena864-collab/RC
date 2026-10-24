@@ -6,5 +6,23 @@
       "maxDuration": 300,
       "includeFiles": "data/movie_trivia.sqlite"
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/socket.io",
+      "destination": "/api/socket"
+    },
+    {
+      "source": "/socket.io/:path*",
+      "destination": "/api/socket"
+    },
+    {
+      "source": "/healthz",
+      "destination": "/api/socket"
+    },
+    {
+      "source": "/config",
+      "destination": "/api/socket"
+    }
+  ]
 }
