@@ -89,7 +89,7 @@ export default function UndergroundFM({locale="en"}){
  const [tracks,setTracks]=useState([]),[query,setQuery]=useState(""),[term,setTerm]=useState(""),[loading,setLoading]=useState(false),[notice,setNotice]=useState("");
  const [preview,setPreview]=useState(null),[connected,setConnected]=useState(false),[room,setRoom]=useState(null),[isDj,setIsDj]=useState(false),[messages,setMessages]=useState([]),[draft,setDraft]=useState(""),[playing,setPlaying]=useState(false),[clock,setClock]=useState(Date.now());
  const [reactions,setReactions]=useState([]),[reduced,setReduced]=useState(false),[openChat,setOpenChat]=useState(false),[showDiscover,setShowDiscover]=useState(true);
- const [visualMode,setVisualMode]=useState("rhythm"),[selectedTrack,setSelectedTrack]=useState(null),[page,setPage]=useState(0),[hasMore,setHasMore]=useState(true),[loadingMore,setLoadingMore]=useState(false),[requestText,setRequestText]=useState(""),[tab,setTab]=useState("discover"),[discoverTab,setDiscoverTab]=useState("For You"),[moodBurst,setMoodBurst]=useState(null),[momentBurst,setMomentBurst]=useState(null),[voteBusy,setVoteBusy]=useState(false),[requestMatches,setRequestMatches]=useState([]),[requestSearching,setRequestSearching]=useState(false),[requestSent,setRequestSent]=useState(null);
+ const [visualMode,setVisualMode]=useState("rhythm"),[selectedTrack,setSelectedTrack]=useState(null),[page,setPage]=useState(0),[hasMore,setHasMore]=useState(true),[loadingMore,setLoadingMore]=useState(false),[requestText,setRequestText]=useState(""),[tab,setTab]=useState("discover"),[discoverTab,setDiscoverTab]=useState("For You"),[moodBurst,setMoodBurst]=useState(null),[momentBurst,setMomentBurst]=useState(null),[voteBusy,setVoteBusy]=useState(false),[heroGenre,setHeroGenre]=useState("Electronic"),[requestMatches,setRequestMatches]=useState([]),[requestSearching,setRequestSearching]=useState(false),[requestSent,setRequestSent]=useState(null);
  const socket=useRef(null),audio=useRef(null),streamTrackId=useRef(null),joining=useRef(false),wantsRoom=useRef(false),lastVoteAt=useRef(0);
  const fx=room?.lights||defaults;
  const theme=THEMES.find(t=>t.id===fx.theme)||THEMES[0];
@@ -294,6 +294,11 @@ export default function UndergroundFM({locale="en"}){
   if(!requestMatches.length){setNotice("Choose a matching Audius track from the suggestions.");return;}
   requestTrack(requestMatches[0]);
  };
+ const selectGenre=genre=>{
+  setHeroGenre(genre);
+  if(room&&!isDj){setRequestText(genre);setRequestSent(null);return;}
+  setQuery(genre);setTerm(genre);setShowDiscover(true);
+ };
  const chooseDiscovery=type=>{
   setRequestSent(null);
   setRequestText(({"Underground Picks":"underground","This Week":"new music","Global Sounds":"world music","Deep & Dreamy":"ambient chill"})[type]||type);
@@ -310,13 +315,13 @@ export default function UndergroundFM({locale="en"}){
     <div className="show-nav-manifest">MUSIC<br/>PEOPLE<br/>STRANGERS<br/><strong>ALWAYS<br/>A GOOD MIX.</strong></div>
    </nav>
   <div className="show-display">
-  <div className="fm-top fm-show-top"><span><strong>ChatSpark ⚡</strong> <span className="fm-brand-divider">/</span> UNDERGROUND <em>FM</em></span><span className="fm-top-right"><span className="fm-blink"/> RANDOM PEOPLE. REAL MUSIC.</span></div>
+  <div className="fm-top fm-show-top"><span><strong>ChatSpark ⚡</strong> <span className="fm-brand-divider">/</span> UNDERGROUND <em>FM</em></span><nav className="fm-top-nav" aria-label="Site sections"><Link href={"/"+locale}>EXPLORE</Link><Link className="fm-top-nav-active" href={"/"+locale+"/underground"} aria-current="page">UNDERGROUND FM</Link><Link href={"/"+locale+"/poem-wall"}>COMMUNITY</Link></nav><span className="fm-top-right"><span className="fm-blink"/> RANDOM PEOPLE. REAL MUSIC.</span></div>
   <div className="show-room-top">
    <div className="show-room-visual"><LightStage lights={fx} track={current} roomCode={room?.room} reduceMotion={reduced||visualMode==="off"} showMoment={showMoment} momentKind={momentKind} moodBurst={moodBurst}/></div><div className="show-hero-slogan" aria-hidden="true">MUSIC<br/>BRINGS<br/>BETTER<br/>STRANGERS</div>
    <div className="show-room-copy">
     <div className="show-live-row"><span className={"show-live-pill "+(connected&&room?"":"show-unplugged")}>● {room?"ON AIR":"DISCOVER MODE"}</span><span className="show-count">♧ {fmtListeners(room?.listeners)} LISTENERS</span><span className="show-room-identifier">{room?room.room:"THE UNDERGROUND"}</span></div>
     <h1>{room?room.room==="MIDNIGHT"?"The Midnight Lobby":room.room+" Frequency":"The Midnight Lobby"}</h1>
-    <p>Good music. Strange people. A room that moves to the rhythm.</p>
+    <p>Late night music for random souls.</p><div className="fm-genre-pills" role="group" aria-label="Discover by genre">{["Electronic","Indie","Alt","House","Techno","Beats"].map(genre=><button type="button" key={genre} aria-pressed={heroGenre===genre} onClick={()=>selectGenre(genre)}>{genre}</button>)}</div>
     <div className="show-hero-foot">
      <div className="show-current-controller"><span>{room?(isDj?"♛ YOU ARE THE CONTROLLER":"♛ CURRENT CONTROLLER"):"✳ FIND YOUR FREQUENCY"}</span><strong>{room?(isDj?"YOUR SET":"A STRANGER IS LIVE"):"DISCOVER THE UNKNOWN"}</strong>{room&&<small>{turnLeft!==null?"ROTATES IN "+clockFmt(turnLeft):"THE AUX CHANGES HANDS"}</small>}</div>
      <div className="show-hero-join">{room?<button onClick={leave} className="show-join show-leave">LEAVE ROOM ↗</button>:<button onClick={join} disabled={!connected} className="show-join">{connected?"TUNE INTO LIVE ROOM ↗":"ROOMS OFFLINE"}</button>}</div>
