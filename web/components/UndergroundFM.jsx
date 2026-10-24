@@ -5,6 +5,7 @@ import {io} from "socket.io-client";
 import {SERVER_URL,SOCKET_PATH} from "@/lib/site";
 import "./underground.css";
 import "./underground-show.css";
+import "./underground-club.css";
 
 const THEMES=[
  {id:"acid",name:"Acid Lime",a:"#ddff73",b:"#80ffb1",dark:"#1c3221"},
@@ -282,7 +283,7 @@ export default function UndergroundFM({locale="en"}){
   setRequestText(({"Underground Picks":"underground","This Week":"new music","Global Sounds":"world music","Deep & Dreamy":"ambient chill"})[type]||type);
  };
 
- return <div className="fm-shell fm-show-shell" style={vars}>
+ return <div className={"fm-shell fm-show-shell "+(room?(isDj?"fm-controller-view":"fm-listener-view"):"fm-discover-view")} style={vars}>
   <nav className="show-desktop-nav" aria-label="Underground navigation">
     <div className="show-nav-brand">ChatSpark <span>⚡</span><small>UNDERGROUND FM</small></div>
     <Link href={"/"+locale}>⌂ <span>Home</span></Link>
@@ -323,6 +324,7 @@ export default function UndergroundFM({locale="en"}){
 </div>
   <div className="show-content-grid">
    <div className="show-main-column">
+    {room&&!isDj&&<section className="show-room-aura fm-vibe-section fm-listener-vibes"><VibeConsole room={room} heatScore={heatScore} moodScore={moodScore} moodTotal={moodTotal} moodBurst={moodBurst} castMood={castMood} voteBusy={voteBusy} reduceMotion={reduced||visualMode==="off"}/></section>}
     {room&&isDj?<section className="show-controller-board">
      <div className="show-mode-title"><span>♛ CONTROLLER MODE</span><small>YOU SHAPE THE SOUND + LIGHTS</small></div>
      <div className="show-dj-actions"><button onClick={nextTrack} disabled={!room.queue?.length&&!tracks.some(t=>t.id!==room.track?.id)}>⏭ NEXT TRACK</button><button onClick={()=>command("fm:pass",undefined,"pass controller")} disabled={room.listeners<2}>⟳ PASS CONTROLLER</button></div>
@@ -346,7 +348,7 @@ export default function UndergroundFM({locale="en"}){
       <form className="show-music-search" onSubmit={e=>{e.preventDefault();setTerm(query.trim());}}><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="SEARCH AUDIUS MUSIC…" aria-label="Search Audius tracks"/><button>SEARCH ↗</button></form>
       <div className="show-tracks">{loading?<p>FINDING UNDERGROUND SOUNDS…</p>:tracks.map(t=><button key={t.id} className={"show-track "+(selectedTrack?.id===t.id?"chosen":"")} onClick={()=>selectTrack(t)}><span className="show-track-icon">{t.artwork?<img src={t.artwork} alt="" loading="lazy" referrerPolicy="no-referrer" onError={e=>{e.currentTarget.style.display="none";}}/>:"♫"}</span><span className="show-track-info"><strong>{t.title}</strong><small>{t.artist}</small></span><span className="show-track-choose">PREVIEW ▶</span></button>)}</div>{hasMore&&<button className="show-load-more" onClick={loadMore} disabled={loadingMore}>{loadingMore?"FINDING MORE MUSIC…":"LOAD MORE TRACKS +"}</button>}
      </section>}
-    <section className="show-room-aura fm-vibe-section"><VibeConsole room={room} heatScore={heatScore} moodScore={moodScore} moodTotal={moodTotal} moodBurst={moodBurst} castMood={castMood} voteBusy={voteBusy} reduceMotion={reduced||visualMode==="off"}/></section>
+    {(!room||isDj)&&<section className="show-room-aura fm-vibe-section"><VibeConsole room={room} heatScore={heatScore} moodScore={moodScore} moodTotal={moodTotal} moodBurst={moodBurst} castMood={castMood} voteBusy={voteBusy} reduceMotion={reduced||visualMode==="off"}/></section>}
    </div>
    <aside className={"show-chat-column "+(openChat?"chat-expanded":"")}><div className="show-section-head"><div><span>ROOM CHAT</span><small>CONTROLLER + LISTENERS · ALL WELCOME</small></div><span>{room?.listeners||0} HERE</span></div>
     <div className="show-message-list" role="log" aria-live="polite" aria-label="Room conversation">{messages.length?messages.map((msg,i)=><div className="show-message" key={msg.at+"-"+i}><span className={"show-chat-avatar "+(msg.from==="DJ"?"show-chat-dj":"")}>{msg.from==="DJ"?"♛":"✳"}</span><div><small>{msg.from==="DJ"?"CONTROLLER":"STRANGER"} · {new Date(msg.at).toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"})}</small><p>{msg.text}</p></div></div>):<div className="show-empty-chat"><strong>NO VOICES YET.</strong><p>{room?"Be the first to say hello. Everyone in this room can chat.":"When the rooms come online, strangers and the controller can talk together here."}</p></div>}</div>
