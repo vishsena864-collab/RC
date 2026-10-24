@@ -4,7 +4,7 @@ import Link from "next/link";
 import {Oswald} from "next/font/google";
 import {io} from "socket.io-client";
 import {SERVER_URL,SOCKET_PATH} from "@/lib/site";
-import {createOrb,createOverlay,createStage,qualityFor} from "./underground-fx";
+import {createOverlay,createStage,qualityFor} from "./underground-fx";
 import "./underground-stage.css";
 
 const oswald=Oswald({subsets:["latin"],weight:["500","600","700"],variable:"--fx-oswald",display:"swap"});
@@ -98,13 +98,23 @@ function Art({track,className=""}){
  return <span className={"fx-art "+className}>{track?.artwork?<img src={track.artwork} alt="" loading="lazy" referrerPolicy="no-referrer" onError={hideBroken}/>:<Icon name="note"/>}</span>;
 }
 
-function OrbCanvas({kind,motionOff,level=.8,pulseKey=0}){
- const ref=useRef(null),orb=useRef(null);
- useEffect(()=>{orb.current=createOrb(ref.current,kind,{reduced:motionOff,quality:qualityFor()});return ()=>{orb.current?.destroy();orb.current=null;};},[kind]);
- useEffect(()=>{orb.current?.setReduced(motionOff);},[motionOff]);
- useEffect(()=>{orb.current?.level(level);},[level]);
- useEffect(()=>{if(pulseKey)orb.current?.pulse(1);},[pulseKey]);
- return <canvas ref={ref} className="fx-orb-canvas" aria-hidden="true"/>;
+// Energy-globe loops (web/public/underground/orbs). Black backgrounds drop out with mix-blend-mode:screen,
+// so nothing between the video and its panel may create an isolated group (no transform/opacity/filter on ancestors).
+const ORB_VIDEO={energy:"fire",love:"vibe",chill:"chill",room:"room"};
+function OrbVideo({kind,motionOff,level=.8,pulseKey=0,small=false}){
+ const ref=useRef(null),[flare,setFlare]=useState(0),name=ORB_VIDEO[kind];
+ useEffect(()=>{
+  const v=ref.current;if(!v)return;
+  v.muted=true;
+  if(motionOff){v.pause();return;}
+  const io=new IntersectionObserver(([e])=>{if(e.isIntersecting)v.play().catch(()=>{});else v.pause();});
+  io.observe(v);return ()=>io.disconnect();
+ },[motionOff]);
+ useEffect(()=>{if(pulseKey)setFlare(n=>n+1);},[pulseKey]);
+ return <span className={"fx-orb-video fx-orb-video-"+name} style={{"--lvl":level}} aria-hidden="true">
+  <video ref={ref} src={"/underground/orbs/"+name+"-"+(small?320:480)+".mp4"} poster={"/underground/orbs/"+name+"-poster.jpg"} muted loop playsInline preload="auto" disablePictureInPicture/>
+  {flare>0&&!motionOff&&<i key={flare} className="fx-orb-flare"/>}
+ </span>;
 }
 
 export default function UndergroundFM({locale="en"}){
@@ -372,7 +382,7 @@ export default function UndergroundFM({locale="en"}){
   </div>
  </section>;
  const vibeOrb=m=><button type="button" key={m.id} className={"fx-orb fx-orb-"+m.id} disabled={!room||voteBusy} onClick={()=>castMood(m.id)} aria-label={m.cta+": "+m.short}>
-  <span className="fx-orb-body"><OrbCanvas kind={m.id} motionOff={motionOff} level={clamp(.55+moodScore(m.id)/100,.55,1)} pulseKey={pulses[m.id]}/><span className="fx-orb-icon"><Icon name={m.id==="energy"?"fire":m.id==="love"?"eq":"snow"}/></span>{voteBusy&&<i key={cooldownKey} className="fx-orb-cooldown"/>}</span>
+  <span className="fx-orb-body"><OrbVideo kind={m.id} motionOff={motionOff} level={clamp(.55+moodScore(m.id)/100,.55,1)} pulseKey={pulses[m.id]}/><span className="fx-orb-icon"><Icon name={m.id==="energy"?"fire":m.id==="love"?"eq":"snow"}/></span>{voteBusy&&<i key={cooldownKey} className="fx-orb-cooldown"/>}</span>
   <span className="fx-orb-name">{m.core}</span><span className="fx-orb-blurb">{m.blurb}</span>
   <span className="fx-orb-cta">{room?(voteBusy?"Recharging…":m.cta):"Join to react"}</span>
  </button>;
@@ -440,9 +450,9 @@ export default function UndergroundFM({locale="en"}){
     <section className={"fx-panel fx-reactor fx-reactor-"+hottest} data-pane="show" aria-label={room?"Room heat, "+heatScore+" percent":"Room heat, waiting for listeners"}>
      <header className="fx-panel-head"><h2>Room Reactor</h2><span className="fx-dim">Collective energy from everyone in the room</span></header>
      <div className="fx-reactor-body">
-      <div className="fx-heat" role="img" aria-label={"Room vibe "+(room?heatScore+"%":"waiting")}><OrbCanvas kind="room" motionOff={motionOff} level={room?.45+heatScore/110:.45} pulseKey={pulses.energy+pulses.love+pulses.chill}/><div className="fx-heat-core"><strong>{room?heatScore:"—"}<small>{room?"%":""}</small></strong><span>ROOM VIBE</span><em>{room?status:"WAITING FOR THE CROWD"}</em></div></div>
+      <div className="fx-heat" role="img" aria-label={"Room vibe "+(room?heatScore+"%":"waiting")}><OrbVideo kind="room" motionOff={motionOff} level={room?.45+heatScore/110:.45} pulseKey={pulses.energy+pulses.love+pulses.chill}/><div className="fx-heat-core"><strong>{room?heatScore:"—"}<small>{room?"%":""}</small></strong><span>ROOM VIBE</span><em>{room?status:"WAITING FOR THE CROWD"}</em></div></div>
       <div className="fx-mini-orbs">{MOOD_SCENES.map(m=><button type="button" key={m.id} className={"fx-mini-orb fx-mini-"+m.id} disabled={!room||voteBusy} onClick={()=>castMood(m.id)} aria-label={"Vote "+m.title+": "+m.short}>
-       <span className="fx-mini-body"><OrbCanvas kind={m.id} motionOff={motionOff} level={clamp(.5+moodScore(m.id)/100,.5,1)} pulseKey={pulses[m.id]}/></span>
+       <span className="fx-mini-body"><OrbVideo kind={m.id} small motionOff={motionOff} level={clamp(.5+moodScore(m.id)/100,.5,1)} pulseKey={pulses[m.id]}/></span>
        <b>{moodScore(m.id)}%</b><strong>{m.title}</strong><small>{m.core}</small></button>)}</div>
       <p className="fx-reactor-foot"><i className={room?"on":""}/>{room?moodTotal+" room votes · heat settles back to 50%":"Join a room to light it up"}</p>
      </div>
