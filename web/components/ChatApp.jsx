@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { fmt } from "@/lib/format";
-import { SERVER_URL } from "@/lib/site";
+import { SERVER_URL, SOCKET_PATH } from "@/lib/site";
 import { SPARK_GOAL, sparkIdentity } from "@/lib/sparks";
 import { getSticker } from "@/lib/stickers";
 import { NeonIcon } from "./Art";
@@ -125,7 +125,7 @@ export default function ChatApp({ locale, t, home, topics, links }) {
   // ----- socket -----
   useEffect(() => {
     // An empty SERVER_URL means "same origin as this page"; socket.io needs undefined (not "") for that.
-    const socket = io(SERVER_URL || undefined, { transports: ["websocket", "polling"] });
+    const socket = io(SERVER_URL || undefined, { path: SOCKET_PATH, transports: ["websocket", "polling"], reconnection: true, reconnectionDelayMax: 6000, timeout: 9000 });
     socketRef.current = socket;
 
     socket.on("connect", () => {
