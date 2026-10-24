@@ -219,3 +219,54 @@
 .fm-show-shell .fm-plasma-orb *, .fm-show-shell .fm-plasma-orb:before,.fm-show-shell .fm-plasma-orb:after,.fm-show-shell .fm-club-reactor:before,.fm-show-shell .fm-shape-vibe:before,.fm-show-shell .fm-shape-flash,.fm-show-shell .fm-reactor-ripple{animation:none!important;transition:none!important}
 .fm-show-shell .fm-shape-flash,.fm-show-shell .fm-reactor-ripple{display:none}
 }
+
+
+/* Listener mini-panels from the approved composition. Each control is real. */
+.fm-show-shell .show-listener-board.fm-listener-tiles{grid-template-columns:1fr 1fr 1fr 1.4fr;padding:9px;gap:8px;background:#060b12}
+.fm-listener-card{position:relative;min-width:0;min-height:189px;overflow:hidden;padding:16px 13px;border:1px solid #284550;background:linear-gradient(160deg,#080d16ed,#110d19e0),url('/underground-stage.svg') center/cover;color:#f7f7f9}
+.fm-listener-card>strong{display:block;position:relative;z-index:1;color:#dfff77;font:900 clamp(13px,1.2vw,18px) Impact,Arial Black,sans-serif;letter-spacing:.05em}
+.fm-listener-card>p{position:relative;z-index:1;color:#bec6d4;font:500 10px/1.5 Arial,sans-serif;margin:7px 0 12px}
+.fm-listener-mode{background:linear-gradient(150deg,#090c12cc,#080d13d1),url('/underground-stage.svg') 32% 78%/cover}
+.fm-card-icon{display:grid;place-items:center;width:45px;height:45px;border-radius:50%;margin-bottom:12px;background:radial-gradient(circle,#daff7e33,#182712);color:#ddff88;font-size:31px;box-shadow:0 0 15px #a1ff8a4d}
+.fm-listener-reactions{background:linear-gradient(165deg,#160b19ec,#0e0718cc),url('/underground-stage.svg') center/cover}
+.fm-live-reaction-cloud{display:flex;gap:7px;justify-content:space-around;align-items:center;min-height:35px;margin-top:9px;pointer-events:none}
+.fm-live-reaction-cloud span{font-size:21px;color:#ff5c91;filter:drop-shadow(0 0 8px #ff559a);animation:club-reaction-float 2.9s ease-in-out infinite}
+.fm-live-reaction-cloud span:nth-child(2){color:#fed06c;animation-delay:-1s}
+.fm-live-reaction-cloud span:nth-child(3){color:#ff874b;animation-delay:-2.1s}
+.fm-live-reaction-cloud span:nth-child(4){color:#d4a0fe;animation-delay:-.7s}
+.fm-live-reaction-cloud span:nth-child(5){animation-delay:-1.5s}
+.fm-listener-reaction-buttons{display:flex;flex-wrap:wrap;gap:5px;margin-top:13px}
+.fm-listener-reaction-buttons button{cursor:pointer;display:flex;gap:4px;align-items:center;background:#080b17dc;color:#f4e3ef;border:1px solid #4c3757;border-radius:18px;padding:5px 8px;font-size:15px}
+.fm-listener-reaction-buttons button:hover:not(:disabled){border-color:#ff6ba5;box-shadow:0 0 13px #ff60aa80;transform:translateY(-2px)}
+.fm-listener-reaction-buttons button:active:not(:disabled){transform:scale(.93)}
+.fm-listener-reaction-buttons small{color:#f4c5de;font:700 9px ui-monospace,monospace}
+.fm-listener-request form{display:flex;flex-direction:column;gap:7px;position:relative;z-index:3}
+.fm-listener-request input{background:#0c1824;border:1px solid #3b5b6a;border-radius:7px;min-width:0;width:100%;color:#f1f7fb;padding:10px;font:600 11px Arial,sans-serif}
+.fm-listener-request form button{border:0;border-radius:9px;color:#151d0b;background:#dafe67;padding:10px 8px;font:900 11px Arial,sans-serif;cursor:pointer}
+.fm-listener-request form button:hover:not(:disabled){filter:brightness(1.14);box-shadow:0 0 17px #dfff7b62}
+.fm-listener-request form button:disabled{opacity:.46}
+.fm-listener-request>small{font:700 10px ui-monospace,monospace;color:#d7e4d2}
+.fm-request-confirm{color:#dfff77!important}
+.fm-request-results{display:flex;flex-direction:column;gap:3px;max-height:195px;overflow:auto;position:relative;z-index:6;background:#0d1522ed;padding:6px;border:1px solid #44546d;margin-top:6px}
+.fm-request-results>button{display:flex;align-items:center;gap:8px;background:#151c2b;color:#e7eff5;border:1px solid #2d4353;cursor:pointer;padding:4px;text-align:left;min-width:0}
+.fm-request-results>button:hover{border-color:#dfff83}
+.fm-request-results img,.fm-request-results>button>span:first-child{display:block;width:37px;height:37px;object-fit:cover;flex:0 0 37px}
+.fm-request-results>button>span:nth-child(2){display:block;min-width:0;flex:1}
+.fm-request-results b,.fm-request-results small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fm-request-results b{font-size:10px}.fm-request-results small{color:#a3bed0;font-size:9px;margin-top:4px}
+.fm-request-results i{font:900 18px Arial,sans-serif;color:#d6ff83;font-style:normal}
+.fm-listener-discover{background:linear-gradient(150deg,#0b111aec,#13071a9c),url('/underground-stage.svg') 70%/cover}
+.fm-discover-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.fm-discover-tiles button{border:0;background:transparent;color:#ebebf1;text-align:left;padding:0;min-width:0;cursor:pointer}
+.fm-discover-tiles button:hover .fm-discover-tile-scene{outline:2px solid #dfff83;transform:translateY(-3px);filter:brightness(1.25)}
+.fm-discover-tile-scene{display:block;height:65px;border:1px solid #56506e;background:linear-gradient(130deg,#6e1f98bc,#eb287c4d,#0613227c),url('/underground-stage.svg') center/cover;transition:transform .2s,filter .2s}
+.fm-dscene-1{background:linear-gradient(125deg,#1826a1ad,#ae35e65a,#07131b3d),url('/underground-stage.svg') center/cover}
+.fm-dscene-2{background:linear-gradient(125deg,#fb25c17d,#601ab48d,#0d10154a),url('/underground-stage.svg') center/cover}
+.fm-dscene-3{background:linear-gradient(125deg,#0a7995c9,#bca46c5c,#0d10153d),url('/underground-stage.svg') center/cover}
+.fm-discover-tiles small{display:block;margin-top:5px;overflow-wrap:anywhere;font:700 9px/1.25 Arial,sans-serif}
+.fm-sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+@keyframes club-reaction-float{0%,100%{transform:translateY(3px) rotate(-8deg)}50%{transform:translateY(-8px) rotate(8deg)}}
+@media(max-width:1250px){.fm-show-shell .show-listener-board.fm-listener-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.fm-show-shell .show-listener-board.fm-listener-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.fm-listener-card{min-height:155px}.fm-discover-tile-scene{height:50px}.fm-discover-tiles small{font-size:8px}}
+@media(max-width:420px){.fm-show-shell .show-listener-board.fm-listener-tiles{grid-template-columns:1fr}.fm-listener-card{min-height:140px}}
+@media(prefers-reduced-motion:reduce){.fm-live-reaction-cloud span{animation:none!important}.fm-listener-reaction-buttons button,.fm-discover-tile-scene{transition:none!important}}
