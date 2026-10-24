@@ -45,6 +45,7 @@ export function createApp(overrides = {}) {
 
   const httpServer = createServer(handleHttp);
   const io = new Server(httpServer, {
+    path: process.env.SOCKET_IO_PATH || "/socket.io",
     cors: { origin: cfg.corsOrigins },
     // Socket.IO CORS alone does not reject WebSocket cross-site upgrades.
     allowRequest: (req, done) => done(null, !req.headers.origin || cfg.corsOrigins.includes(req.headers.origin)),
