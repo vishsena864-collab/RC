@@ -42,32 +42,45 @@ function LightStage({lights,track,roomCode,reduceMotion=false,showMoment=false,m
  </div>;
 }
 
-function VibeConsole({room,heatScore,moodScore,moodTotal,moodBurst,castMood,voteBusy,reduceMotion=false}){
- const mode=!room?"idle":heatScore>=78?"ignition":heatScore>=48?"frequency":"afterhours";
- const events=[["energy","IGNITE","FIRE","Push the energy higher","🔥"],["love","HOLD","KEEP THE VIBE","Lock in this frequency","✦"],["chill","COOL","CHILL IT DOWN","Ease into the afterhours","❄"]];
- return <div className={"fm-vibe-console fm-vibe-"+mode+(moodBurst?" fm-burst-"+moodBurst.kind:"")} style={{"--vibe-heat":heatScore+"%"}}>
-  <header className="fm-vibe-header"><div><span className="fm-vibe-kicker"><i/> THE CROWD IS THE CONTROLLER</span><h3>ROOM <em>ENERGY</em></h3><p>One room. One atmosphere. Your touch changes everyone's experience.</p></div><div className="fm-vibe-status"><span className="fm-vibe-status-dot"/> {room?"LIVE SIGNAL":"SIGNAL WAITING"}</div></header>
-  <div className="fm-vibe-core">
-   <div className="fm-vibe-orbit-system" role="img" aria-label={"Room heat "+heatScore+" percent"}>
-    <div className="fm-vibe-starfield"/>
-    <div className="fm-vibe-orbit fm-vibe-orbit-one"/><div className="fm-vibe-orbit fm-vibe-orbit-two"/><div className="fm-vibe-orbit fm-vibe-orbit-three"/>
-    <div className="fm-vibe-energy-ring" style={{"--vibe-turn":(heatScore*3.6)+"deg"}}/>
-    <div className="fm-vibe-reactor"><div className="fm-vibe-reactor-surface"/><span className="fm-vibe-reactor-num">{heatScore}<small>%</small></span><strong>ROOM HEAT</strong></div>
-    {moodBurst&&!reduceMotion&&<div key={moodBurst.nonce} className={"fm-vibe-burst-wave fm-vibe-burst-"+moodBurst.kind}><i/><i/><i/><span>{moodBurst.kind==="energy"?"INFERNO":moodBurst.kind==="love"?"ON THE SAME WAVE":"TEMPERATURE DROP"}</span></div>}
-   </div>
-   <div className="fm-vibe-readout"><div className="fm-vibe-readout-top"><span>FREQUENCY ANALYSIS</span><b>{room?"ACTIVE":"STANDBY"}</b></div>
-     <div className="fm-vibe-energy-bars" aria-hidden="true">{Array.from({length:42},(_,i)=><i key={i} style={{"--vibe-i":i,"--vibe-h":(17+(i*29%81))+"%","--vibe-delay":(i*17%19)/19+"s"}}/>)}</div>
-     <div className="fm-vibe-levels">{[["energy","HEAT","#ff7c48"],["love","VIBE","#bd94ff"],["chill","CHILL","#58e4ff"]].map(([kind,label,color])=><div key={kind}><div><span>{label}</span><b>{moodScore(kind)}%</b></div><div className="fm-vibe-level-track"><span style={{width:moodScore(kind)+"%",background:color}}/></div></div>)}</div>
-     <p className="fm-vibe-vote-count">{moodTotal} {moodTotal===1?"VOTE":"VOTES"} IN THIS ROOM · THE REACTOR RISES + FALLS WITH ROOM PULSES</p>
-   </div>
+
+function PlasmaOrb({kind="energy",large=false,percent=null,children}){
+ return <span className={"fm-plasma-orb fm-plasma-"+kind+(large?" fm-plasma-large":"")} aria-hidden="true">
+  <i className="fm-plasma-corona"/><i className="fm-plasma-trail one"/><i className="fm-plasma-trail two"/><i className="fm-plasma-trail three"/><i className="fm-plasma-inner"/>
+  {percent!==null?<strong className="fm-plasma-percent">{percent}%</strong>:<span className="fm-plasma-glyph">{children}</span>}
+ </span>;
+}
+function RoomReactor({room,heatScore,moodScore,moodTotal,hottest,moodBurst}){
+ const groups=[["energy","FIRE","IGNITION"],["love","VIBE","PULSE"],["chill","CHILL","DRIFT"]];
+ return <div className={"show-live-side fm-club-reactor fm-club-reactor-"+hottest}>
+  <div className="fm-club-reactor-head"><strong>ROOM REACTOR</strong><span title="This score is calculated from live votes and cools gradually">ⓘ</span><small>Collective energy from everyone in the room.</small></div>
+  <div className="fm-club-reactor-center">
+   <PlasmaOrb kind={hottest} large percent={heatScore}/>
+   <strong>ROOM HEAT</strong><small>{heatScore>=78?"ELECTRIC TONIGHT":heatScore>=56?"THE CROWD IS RISING":heatScore>=38?"IN THE GROOVE":"AFTERHOURS"}</small>
   </div>
-  <div className="fm-vibe-action-heading"><strong>SHAPE THE ATMOSPHERE</strong><span>TOUCH TO SEND A LIVE ENERGY WAVE</span></div>
-  <div className="fm-vibe-actions">{events.map(([kind,eyebrow,label,description,glyph])=><button key={kind} disabled={!room||voteBusy} onClick={()=>castMood(kind)} className={"fm-vibe-trigger fm-vibe-trigger-"+kind} aria-label={label+", "+description}>
-   <span className="fm-vibe-trigger-art"><i className="fm-vibe-shape fm-vibe-shape-a"/><i className="fm-vibe-shape fm-vibe-shape-b"/><i className="fm-vibe-shape fm-vibe-shape-c"/><b>{glyph}</b></span>
-   <span className="fm-vibe-trigger-copy"><small>{eyebrow} / 0{events.findIndex(x=>x[0]===kind)+1}</small><strong>{label}</strong><span>{description}</span></span>
-   <span className="fm-vibe-trigger-cta">↗</span>
+  <div className="fm-club-reactor-levels">
+   {groups.map(([kind,label,sub])=><div key={kind}><PlasmaOrb kind={kind}/><strong>{moodScore(kind)}%</strong><span>{label}</span><small>{sub}</small></div>)}
+  </div>
+  <div className="fm-club-reactor-footer"><i className={room?"on":""}/>{room?moodTotal+" LIVE ROOM VOTES":"JOIN TO ACTIVATE"}</div>
+  {moodBurst&&<span key={moodBurst.nonce} className={"fm-reactor-ripple fm-reactor-ripple-"+moodBurst.kind}/>}
+ </div>;
+}
+function VibeConsole({room,heatScore,moodScore,moodTotal,moodBurst,castMood,voteBusy,reduceMotion=false}){
+ const [showInfo,setShowInfo]=useState(false);
+ const modes=[
+  {id:"energy",name:"IGNITION CORE",button:"FIRE IT UP",description:"Add energy and intensity to the room.",type:"fire"},
+  {id:"love",name:"VIBE PULSE",button:"KEEP THE VIBE",description:"Keep the current energy going strong.",type:"wave"},
+  {id:"chill",name:"COOL DRIFT",button:"CHILL IT DOWN",description:"Bring the energy down and mellow it out.",type:"snow"}
+ ];
+ const glyph=kind=>kind==="energy"?<svg viewBox="0 0 64 64" fill="none"><path d="M34 7C38 20 26 22 28 33c-8-3-9-9-8-14C6 33 12 52 29 57c18 5 31-11 23-28-1 10-7 11-8 12 3-14-1-24-10-34Z" fill="currentColor"/></svg>:kind==="love"?<svg viewBox="0 0 64 64" fill="none"><path d="M4 32h11l6-15 8 30 8-33 8 24 5-6h10" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/></svg>:<svg viewBox="0 0 64 64" fill="none"><path d="M32 5v54M5 32h54M13 13l38 38M51 13 13 51M25 12l7 8 7-8M25 52l7-8 7 8M12 25l8 7-8 7M52 25l-8 7 8 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+ return <div className={"fm-shape-vibe"+(moodBurst?" fm-shape-burst-"+moodBurst.kind:"")}>
+  <div className="fm-shape-head"><div><strong>SHAPE THE VIBE</strong><p>Your reactions directly influence the room's energy.</p></div><button type="button" aria-expanded={showInfo} onClick={()=>setShowInfo(v=>!v)}>{showInfo?"CLOSE GUIDE −":"HOW IT WORKS ↗"}</button></div>
+  {showInfo&&<div className="fm-shape-guide">Every vote changes the shared heat score. Fire increases room heat, Keep the Vibe sustains it, and Chill It Down cools it. Your choice triggers the same visual burst for connected listeners. One vote is allowed every three seconds; the heat gradually returns toward 50% between votes. Votes are temporary and never represent a permanent user profile.</div>}
+  <div className="fm-shape-actions">{modes.map(m=><button type="button" key={m.id} className={"fm-shape-control fm-shape-control-"+m.id} disabled={!room||voteBusy} onClick={()=>castMood(m.id)} aria-label={m.button+"; "+m.description}>
+   <PlasmaOrb kind={m.id}>{glyph(m.id)}</PlasmaOrb>
+   <strong>{m.name}</strong><small>{m.description}</small><span className="fm-shape-pill">{room?m.button:"JOIN A ROOM"}</span><span className="fm-shape-votes">{moodScore(m.id)}% OF VOTES</span>
   </button>)}</div>
-  <div className="fm-vibe-foot"><span>◉ BROADCASTED TO EVERYONE IN THE ROOM</span><span>{room?"3 SECOND COOLDOWN BETWEEN VOTES":"JOIN A ROOM TO ACTIVATE"}</span></div>
+  <div className="fm-shape-bottom"><span><i className={room?"on":""}/> {room?"LIVE · YOUR VOTE REACHES THE ROOM":"TUNE IN TO ACTIVATE"}</span><span>{moodTotal} TOTAL VOTES</span></div>
+  {moodBurst&&!reduceMotion&&<div key={moodBurst.nonce} className={"fm-shape-flash fm-shape-flash-"+moodBurst.kind}><i/><i/><i/></div>}
  </div>;
 }
 
@@ -271,15 +284,8 @@ export default function UndergroundFM({locale="en"}){
    </div>
    <audio ref={audio} preload="none" onEnded={()=>{setPlaying(false);if(isDj&&room)command("fm:next",undefined,"skip");}} onError={()=>setNotice("Track unavailable for external Audius streaming.")}/>
   </div>
-  <div className={"show-live-side fm-heat-teaser fm-heat-teaser-"+hottest}>
-   <div className="fm-heat-teaser-label"><span className="fm-heat-teaser-led"/> LIVE ROOM REACTOR</div>
-   <div className="fm-heat-reactor-mini" style={{"--reactor-angle":(heatScore*3.6)+"deg","--reactor-energy":heatScore/100}}>
-    <span className="fm-heat-mini-aura"/><span className="fm-heat-mini-ring"/><span className="fm-heat-mini-core">{heatScore}<small>%</small></span>
-   </div>
-   <div className="fm-heat-teaser-track"><span style={{width:heatScore+"%"}}/></div>
-   <div className="fm-heat-teaser-info"><span>{moodTotal} ENERGY PULSES</span><strong>{heatScore>=78?"OVERDRIVE":heatScore>=57?"ELEVATED":heatScore>=38?"IN SYNC":"AFTERHOURS"}</strong></div>
-   <div className="fm-heat-teaser-sparks" aria-hidden="true">{Array.from({length:18},(_,i)=><i key={i} style={{"--i":i}}/>)}</div>
-  </div></div>
+  <RoomReactor room={room} heatScore={heatScore} moodScore={moodScore} moodTotal={moodTotal} hottest={hottest} moodBurst={moodBurst}/>
+</div>
   <div className="show-content-grid">
    <div className="show-main-column">
     {room&&isDj?<section className="show-controller-board">
