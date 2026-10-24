@@ -548,3 +548,25 @@ body:has(.fx-shell)>.site-header,body:has(.fx-shell)>.site-footer{display:none}
 /* cooldown: a thin glowing ring that drains around the globe instead of a dark wedge */
 .fx-shell .fx-orb-cooldown{inset:2%;border-radius:50%;background:conic-gradient(from 0deg,var(--c) var(--p),rgba(255,255,255,.08) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 4px),#000 calc(100% - 3px));mask:radial-gradient(farthest-side,transparent calc(100% - 4px),#000 calc(100% - 3px));filter:drop-shadow(0 0 6px var(--c));animation:fx-cd 3s linear forwards}
 .fx-orb-energy .fx-orb-icon{color:#fff}
+
+/* ── matching-colour effects around each globe: halo, corona, orbiting sparks, floor glow ── */
+.fx-orb-video{--g1:#ff7a1a;--g2:#ffc247;--g3:#ff3dd0}
+.fx-orb-video-vibe{--g1:#ff3dd0;--g2:#ff9be8;--g3:#a65bff}
+.fx-orb-video-chill{--g1:#3fc4ff;--g2:#bdeaff;--g3:#3b6bff}
+.fx-orb-video-room{--g1:#8a6bff;--g2:#4fd9ff;--g3:#ff4fd8}
+.fx-orb-video>i,.fx-sparks{position:absolute;pointer-events:none}
+.fx-aura{inset:2%;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--g1) 55%,transparent) 22%,color-mix(in srgb,var(--g3) 22%,transparent) 42%,transparent 62%);mix-blend-mode:screen;filter:blur(6px);animation:fx-aura var(--show-beat,.52s) ease-in-out infinite alternate}
+@keyframes fx-aura{from{transform:scale(.94);opacity:.75}to{transform:scale(1.06);opacity:1}}
+.fx-floor{left:16%;right:16%;bottom:-2%;height:16%;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--g1) 70%,transparent),transparent);mix-blend-mode:screen;filter:blur(8px);opacity:.8}
+.fx-corona{inset:13%;border-radius:50%;mix-blend-mode:screen;background:conic-gradient(from 0deg,transparent 0 6%,var(--g2) 12%,transparent 22%,var(--g1) 38%,transparent 48%,var(--g3) 62%,transparent 72%,var(--g1) 86%,transparent 94%);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 4px),transparent);mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 4px),transparent);filter:blur(1.5px) drop-shadow(0 0 6px var(--g1));opacity:.85;animation:fx-spin 7s linear infinite}
+.fx-corona-b{inset:9%;opacity:.45;filter:blur(4px);animation-duration:11s;animation-direction:reverse}
+.fx-sparks{inset:0;transform:rotate(-16deg) scaleY(.42)}
+.fx-sparks i{position:absolute;inset:0;animation:fx-orbit var(--d) linear infinite;animation-delay:var(--t)}
+.fx-sparks i::after{content:"";position:absolute;left:calc(50% + var(--r));top:50%;width:var(--s);height:var(--s);margin:calc(var(--s) / -2);border-radius:50%;background:#fff;box-shadow:0 0 6px 2px var(--k),0 0 14px 4px var(--k);animation:fx-twinkle 1.3s ease-in-out infinite alternate;animation-delay:var(--t)}
+@keyframes fx-orbit{from{transform:rotate(var(--a))}to{transform:rotate(calc(var(--a) + 360deg))}}
+@keyframes fx-twinkle{from{opacity:.35}to{opacity:1}}
+.fx-mini-body .fx-sparks i::after{box-shadow:0 0 4px 1px var(--k),0 0 9px 2px var(--k)}
+.fx-mini-body .fx-corona{-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 4px),#000 calc(100% - 2px),transparent);mask:radial-gradient(farthest-side,transparent calc(100% - 4px),#000 calc(100% - 2px),transparent)}
+.fx-heat .fx-aura{inset:6%}
+.fx-orb:disabled .fx-orb-video>i,.fx-mini-orb:disabled .fx-orb-video>i,.fx-orb:disabled .fx-sparks,.fx-mini-orb:disabled .fx-sparks{opacity:.4}
+.fx-orb:hover:not(:disabled) .fx-corona{animation-duration:2.5s;opacity:1}

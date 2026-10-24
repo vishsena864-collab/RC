@@ -101,6 +101,8 @@ function Art({track,className=""}){
 // Energy-globe loops (web/public/underground/orbs). Black backgrounds drop out with mix-blend-mode:screen,
 // so nothing between the video and its panel may create an isolated group (no transform/opacity/filter on ancestors).
 const ORB_VIDEO={energy:"fire",love:"vibe",chill:"chill",room:"room"};
+// Sparks orbiting each globe on a tilted ellipse: fixed angles/radii/speeds so server and client render the same.
+const SPARKS=Array.from({length:12},(_,i)=>({"--a":(i*137)%360+"deg","--r":(39+(i*7)%9)+"%","--d":(5+(i*3)%6)+"s","--t":(-(i*.83)).toFixed(2)+"s","--s":(i%3?3:5)+"px","--k":i%2?"var(--g1)":"var(--g2)"}));
 function OrbVideo({kind,motionOff,level=.8,pulseKey=0,small=false}){
  const ref=useRef(null),[flare,setFlare]=useState(0),name=ORB_VIDEO[kind];
  useEffect(()=>{
@@ -112,7 +114,10 @@ function OrbVideo({kind,motionOff,level=.8,pulseKey=0,small=false}){
  },[motionOff]);
  useEffect(()=>{if(pulseKey)setFlare(n=>n+1);},[pulseKey]);
  return <span className={"fx-orb-video fx-orb-video-"+name} style={{"--lvl":level}} aria-hidden="true">
+  <i className="fx-aura"/><i className="fx-floor"/>
   <video ref={ref} src={"/underground/orbs/"+name+"-"+(small?320:480)+".mp4"} poster={"/underground/orbs/"+name+"-poster.jpg"} muted loop playsInline preload="auto" disablePictureInPicture/>
+  <i className="fx-corona"/><i className="fx-corona fx-corona-b"/>
+  <span className="fx-sparks">{SPARKS.slice(0,small?6:12).map((p,i)=><i key={i} style={p}/>)}</span>
   {flare>0&&!motionOff&&<i key={flare} className="fx-orb-flare"/>}
  </span>;
 }
