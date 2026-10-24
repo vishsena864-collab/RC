@@ -591,3 +591,35 @@ body:has(.fx-shell)>.site-header,body:has(.fx-shell)>.site-footer{display:none}
 .fx-reactor-foot{font-size:12px;color:#b9b2d6}
 .fx-react-bar b{font-size:14px;color:#fff}
 .fx-panel-head .fx-dim{font-family:var(--display);letter-spacing:.06em}
+
+/* ── equal globe sizes + aligned stats ──
+   Each clip frames its sphere differently (fire fills ~83% of the frame, chill ~73%, vibe and room ~62%),
+   so normalise to one visual sphere size with the independent `scale` property (hover/press still use transform). */
+.fx-orb-video-fire video{scale:.88}
+.fx-orb-video-chill video{scale:1}
+.fx-orb-video-vibe video{scale:1.17}
+.fx-orb-video-room video{scale:1.16}
+.fx-orb-video video{-webkit-mask:radial-gradient(circle,#000 54%,transparent 68%);mask:radial-gradient(circle,#000 54%,transparent 68%)}
+.fx-mini-orbs{grid-template-columns:repeat(3,minmax(0,1fr));align-items:start;justify-items:center}
+.fx-mini-orb{display:grid;grid-template-rows:auto 34px 20px 18px;justify-items:center;align-items:center;width:100%;gap:0;padding:4px 0 6px}
+.fx-mini-body{width:84px;height:84px;margin-bottom:10px}
+.fx-mini-orb b{margin:0;font-size:28px;line-height:34px;min-width:3.2ch;text-align:center}
+.fx-mini-orb strong{line-height:20px}
+.fx-mini-orb small{line-height:18px;white-space:nowrap}
+.fx-orbs{grid-template-columns:repeat(3,minmax(0,1fr));align-items:start}
+.fx-orb{grid-template-rows:auto 30px auto auto;justify-items:center;align-content:start}
+.fx-orb-body{width:clamp(150px,14.5vw,200px);height:auto;aspect-ratio:1}
+.fx-orb-name{line-height:30px}
+.fx-orb-blurb{min-height:2.7em}
+@media (max-width:699px){
+ .fx-orb{grid-template-rows:auto auto auto;justify-items:start}
+ .fx-orb-body{width:104px}
+ .fx-orb-name{line-height:1.1}
+ .fx-orb-blurb{min-height:0}
+}
+.fx-orb-video-chill video{scale:.94}
+.fx-heat-core::before{content:"";position:absolute;inset:4%;z-index:-1;border-radius:50%;background:radial-gradient(circle,rgba(6,3,14,.72) 30%,rgba(6,3,14,.35) 58%,transparent 72%)}
+.fx-heat-core{isolation:isolate}
+.fx-heat-core strong{color:#f4f0ff;text-shadow:0 0 14px rgba(138,107,255,.9),0 0 30px rgba(79,217,255,.6),0 2px 4px #000}
+.fx-reactor-energy .fx-heat-core strong{text-shadow:0 0 14px rgba(255,122,26,.9),0 0 30px rgba(255,61,110,.6),0 2px 4px #000}
+.fx-reactor-chill .fx-heat-core strong{text-shadow:0 0 14px rgba(63,196,255,.9),0 0 30px rgba(59,107,255,.6),0 2px 4px #000}
