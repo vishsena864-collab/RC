@@ -17,17 +17,18 @@ const THEMES=[
  {id:"toxic",name:"Neon Riot",a:"#9cff2d",b:"#fe52b8",dark:"#2c1536"}
 ];
 const FX=[["march","Marching lasers"],["pulse","Pulse glow"],["sweep","Wave sweep"],["crossfire","Crossfire"],["tunnel","Tunnel"],["bloom","Soft bloom"],["drift","Afterhours drift"]];
-const MOODS=[["energy","⚡","More energy"],["chill","〰","Chill it down"],["love","♥","Keep the vibe"],["deep","✦","Go deeper"]];
+const MOODS=[["energy","🔥","FIRE"],["love","✦","KEEP THE VIBE"],["chill","◌","CHILL IT DOWN"]];
+const shuffle=list=>{const a=[...list];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 const REACTIONS=[["heart","❤️"],["fire","🔥"],["spark","✨"],["wave","🌊"]];
 const defaults={theme:"acid",fx:"march",intensity:2,beatBpm:116,showMoment:null};
 const clockFmt=seconds => !Number.isFinite(seconds)?"00:00":Math.floor(Math.max(0,seconds)/60)+":"+String(Math.floor(Math.max(0,seconds)%60)).padStart(2,"0");
 const clamp=(n,min,max)=>Math.max(min,Math.min(n,max));
 const fmtListeners=(n)=>Number(n||0).toLocaleString("en-US");
-function LightStage({lights,track,roomCode,reduceMotion=false,showMoment=false}){
+function LightStage({lights,track,roomCode,reduceMotion=false,showMoment=false,momentKind=null,moodBurst=null}){
  const theme=THEMES.find(t=>t.id===lights.theme)||THEMES[0];
  const active=lights.intensity>0 && !reduceMotion;
  const vars={"--show-a":theme.a,"--show-b":theme.b,"--show-dark":theme.dark,"--show-beat":(60/(lights.beatBpm||116)).toFixed(3)+"s","--show-strength":String(lights.intensity||0)};
- return <div className={"show-scene show-fx-"+lights.fx+(active?" show-active":" show-still")+(showMoment?" show-moment":"")} style={vars} aria-hidden="true">
+ return <div className={"show-scene show-fx-"+lights.fx+(active?" show-active":" show-still")+(showMoment?" show-moment show-moment-"+momentKind:"")+(moodBurst?" show-aura-"+moodBurst.kind:"")} style={vars} aria-hidden="true">
   <div className="show-backdrop"/>
   <div className="show-haze show-haze-one"/><div className="show-haze show-haze-two"/>
   <div className="show-laser show-laser-one"/><div className="show-laser show-laser-two"/><div className="show-laser show-laser-three"/><div className="show-laser show-laser-four"/>
@@ -35,7 +36,8 @@ function LightStage({lights,track,roomCode,reduceMotion=false,showMoment=false})
   <div className="show-crowd">{[0,1,2,3,4,5,6,7,8,9,10,11,12].map(n=><span key={n} />)}</div>
   <div className="show-beat-bars">{Array.from({length:34},(_,i)=><i key={i} style={{"--i":i,"--delay":((i*7)%13)/13+"s","--height":(18+((i*31+7)%70))+"%"}}/>)}</div>
   <div className="show-spotlight"><span>CHATSPARK / LIVE FREQUENCY</span><strong>{roomCode||"UNDERGROUND"}</strong><small>{track?"SOUND IN MOTION":"FIND YOUR FREQUENCY"}</small></div>
-  {showMoment&&<div className="show-impact"/>}
+  {showMoment&&<div key={lights.showMoment?.at} className={"show-impact show-impact-"+momentKind}><div className="show-impact-ring"/><div className="show-impact-ring second"/><span>{momentKind==="drop"?"DROP":momentKind==="flip"?"COLOR SHIFT":momentKind==="storm"?"ION STORM":"AFTERGLOW"}</span></div>}
+  {moodBurst&&!reduceMotion&&<div key={moodBurst.nonce} className={"fm-mood-shock fm-mood-shock-"+moodBurst.kind}>{Array.from({length:28},(_,i)=><i key={i} style={{"--n":i,"--x":(i*73%103)+"%","--t":(i*13%11)*.12+"s"}}/>)}<strong>{moodBurst.kind==="energy"?"IGNITION":moodBurst.kind==="love"?"VIBE WAVE":"COOL DOWN"}</strong></div>}
   <div className="show-vignette"/>
  </div>;
 }
@@ -43,7 +45,7 @@ export default function UndergroundFM({locale="en"}){
  const [tracks,setTracks]=useState([]),[query,setQuery]=useState(""),[term,setTerm]=useState(""),[loading,setLoading]=useState(false),[notice,setNotice]=useState("");
  const [preview,setPreview]=useState(null),[connected,setConnected]=useState(false),[room,setRoom]=useState(null),[isDj,setIsDj]=useState(false),[messages,setMessages]=useState([]),[draft,setDraft]=useState(""),[playing,setPlaying]=useState(false),[clock,setClock]=useState(Date.now());
  const [reactions,setReactions]=useState([]),[reduced,setReduced]=useState(false),[openChat,setOpenChat]=useState(false),[showDiscover,setShowDiscover]=useState(true);
- const [visualMode,setVisualMode]=useState("rhythm"),[selectedTrack,setSelectedTrack]=useState(null),[page,setPage]=useState(0),[hasMore,setHasMore]=useState(true),[loadingMore,setLoadingMore]=useState(false),[requestText,setRequestText]=useState(""),[tab,setTab]=useState("discover"),[discoverTab,setDiscoverTab]=useState("For You");
+ const [visualMode,setVisualMode]=useState("rhythm"),[selectedTrack,setSelectedTrack]=useState(null),[page,setPage]=useState(0),[hasMore,setHasMore]=useState(true),[loadingMore,setLoadingMore]=useState(false),[requestText,setRequestText]=useState(""),[tab,setTab]=useState("discover"),[discoverTab,setDiscoverTab]=useState("For You"),[moodBurst,setMoodBurst]=useState(null),[momentBurst,setMomentBurst]=useState(null),[voteBusy,setVoteBusy]=useState(false);
  const socket=useRef(null),audio=useRef(null),streamTrackId=useRef(null),joining=useRef(false),wantsRoom=useRef(false);
  const fx=room?.lights||defaults;
  const theme=THEMES.find(t=>t.id===fx.theme)||THEMES[0];
@@ -52,7 +54,12 @@ export default function UndergroundFM({locale="en"}){
  const duration=Number(current?.duration)||0;
  const time=room?.track?roomElapsed:audio.current?.currentTime||0;
  const turnLeft=room?.djSince?Math.max(0,Math.ceil(((room.djTurnMs||240000)-(clock-room.djSince))/1000)):null;
- const showMoment=Boolean(room?.lights?.showMoment&&clock-room.lights.showMoment.at<3500);
+ const showMoment=Boolean(room?.lights?.showMoment&&clock-room.lights.showMoment.at<4800);
+ const moodTotal=room?MOODS.reduce((n,[id])=>n+Number(room.mood?.[id]||0),0):0;
+ const moodScore=id=>moodTotal?Math.round(Number(room?.mood?.[id]||0)/moodTotal*100):0;
+ const hottest=room?MOODS.reduce((best,[id])=>Number(room?.mood?.[id]||0)>Number(room?.mood?.[best]||0)?id:best,"energy"):"energy";
+ const heatScore=room?Math.round((Number(room.mood?.energy||0)*100+Number(room.mood?.love||0)*65+Number(room.mood?.chill||0)*25)/(moodTotal||1)):0;
+ const momentKind=showMoment?room.lights.showMoment.kind:null;
  const vars={"--show-a":theme.a,"--show-b":theme.b,"--show-dark":theme.dark,"--show-beat":(60/(fx.beatBpm||116)).toFixed(3)+"s"};
  useEffect(()=>{
   if(!isDj && room && !room.track && preview)setPreview(null);
@@ -68,7 +75,7 @@ export default function UndergroundFM({locale="en"}){
   if(room&&!isDj)return;
   const controller=new AbortController();setLoading(true);
   fetch("/api/underground/tracks?page=0"+(term?"&q="+encodeURIComponent(term):""),{signal:controller.signal})
-   .then(r=>r.json()).then(j=>{setTracks(j.tracks||[]);setPage(0);setHasMore(Boolean(j.hasMore));if(j.error)setNotice(j.error);})
+   .then(r=>r.json()).then(j=>{setTracks(shuffle(j.tracks||[]));setPage(0);setHasMore(Boolean(j.hasMore));if(j.error)setNotice(j.error);})
    .catch(e=>{if(e.name!=="AbortError")setNotice("Music discovery unavailable right now.");})
    .finally(()=>setLoading(false));
   return ()=>controller.abort();
@@ -85,6 +92,7 @@ export default function UndergroundFM({locale="en"}){
   s.on("fm:state",data=>{setRoom(data);setIsDj(data.dj===s.id);});
   s.on("fm:chat",entry=>setMessages(v=>[...v.slice(-79),entry]));
   s.on("fm:reaction",entry=>{setReactions(v=>[...v.slice(-11),{...entry,id:Math.random()}]);});
+  s.on("fm:mood:burst",entry=>setMoodBurst({...entry,nonce:Math.random()}));
   return ()=>{s.emit("fm:leave");s.disconnect();socket.current=null;};
  },[]);
  useEffect(()=>{const timer=setInterval(()=>setClock(Date.now()),500);return ()=>clearInterval(timer);},[]);
@@ -132,7 +140,7 @@ export default function UndergroundFM({locale="en"}){
    const res=await fetch("/api/underground/tracks?page="+(page+1)+(term?"&q="+encodeURIComponent(term):""),{cache:"no-store"});
    if(!res.ok)throw new Error("Could not load more tracks.");
    const payload=await res.json();
-   setTracks(old=>{const ids=new Set(old.map(t=>t.id));return [...old,...(payload.tracks||[]).filter(t=>!ids.has(t.id))];});
+   setTracks(old=>{const ids=new Set(old.map(t=>t.id));return [...old,...shuffle(payload.tracks||[]).filter(t=>!ids.has(t.id))];});
    setPage(page+1);setHasMore(Boolean(payload.hasMore));
   }catch(e){setNotice(e.message);}finally{setLoadingMore(false);}
  };
@@ -143,7 +151,24 @@ export default function UndergroundFM({locale="en"}){
  };
  const playSelected=()=>{
   if(!isDj||!selectedTrack||!room)return;
-  command("fm:play",selectedTrack,"play track");
+  const chosen=selectedTrack;
+  socket.current?.emit("fm:play",chosen,ack=>{
+   if(!ack?.ok){setNotice("Could not play this song for the room.");return;}
+   setTracks(old=>[...old.filter(t=>t.id!==chosen.id),chosen]);
+   setSelectedTrack(null);
+   setNotice("Now on air: "+chosen.title+". Tap audio play to listen on this device.");
+  });
+ };
+ const nextTrack=()=>{
+  if(!isDj||!room)return;
+  if(room.queue?.length){command("fm:next",undefined,"play next");return;}
+  const next=tracks.find(t=>t.id!==room.track?.id);
+  if(!next){setNotice("Discover more tracks to continue the set.");return;}
+  socket.current?.emit("fm:play",next,ack=>{
+   if(!ack?.ok){setNotice("Unable to advance to the next song.");return;}
+   setTracks(old=>[...old.filter(t=>t.id!==next.id),next]);
+   setSelectedTrack(null);
+  });
  };
  const togglePlay=async()=>{
   if(!current||!audio.current)return;
@@ -158,7 +183,22 @@ export default function UndergroundFM({locale="en"}){
   command("fm:reaction",kind,"send reaction");
  };
  const styleChange=payload=>{if(!isDj)return;command("fm:lights",payload,"update room lighting");};
- const fxTrigger=kind=>command("fm:moment",kind,"trigger show moment");
+ const fxTrigger=kind=>{
+  if(!isDj||!room)return;
+  socket.current?.emit("fm:moment",kind,ack=>{
+   if(!ack?.ok){setNotice(ack?.error==="cooldown"?"Let the previous show moment settle first.":"Show effect unavailable.");return;}
+   setMomentBurst({kind,nonce:Math.random(),at:Date.now()});
+  });
+ };
+ const castMood=kind=>{
+  if(!room||voteBusy)return;
+  setVoteBusy(true);
+  socket.current?.emit("fm:mood",kind,ack=>{
+   if(!ack?.ok)setNotice(ack?.error==="cooldown"?"One vote every 3 seconds.":"Couldn't register your vote.");
+   setVoteBusy(false);
+  });
+  setTimeout(()=>setVoteBusy(false),4500);
+ };
  const addSelected=()=>{if(room&&isDj&&selectedTrack)command("fm:queue:add",selectedTrack,"queue song");};
  const removeQueue=i=>{if(room&&isDj)command("fm:queue:remove",i,"remove queued song");};
  const moveQueue=(from,to)=>{if(room&&isDj)command("fm:queue:move",{from,to},"reorder queue");};
@@ -177,7 +217,7 @@ export default function UndergroundFM({locale="en"}){
   <div className="show-display">
   <div className="fm-top fm-show-top"><span><strong>ChatSpark ⚡</strong> <span className="fm-brand-divider">/</span> UNDERGROUND <em>FM</em></span><span className="fm-top-right"><span className="fm-blink"/> RANDOM PEOPLE. REAL MUSIC.</span></div>
   <div className="show-room-top">
-   <div className="show-room-visual"><LightStage lights={fx} track={current} roomCode={room?.room} reduceMotion={reduced||visualMode==="off"} showMoment={showMoment}/></div><div className="show-hero-slogan" aria-hidden="true">MUSIC<br/>BRINGS<br/>BETTER<br/>STRANGERS</div>
+   <div className="show-room-visual"><LightStage lights={fx} track={current} roomCode={room?.room} reduceMotion={reduced||visualMode==="off"} showMoment={showMoment} momentKind={momentKind} moodBurst={moodBurst}/></div><div className="show-hero-slogan" aria-hidden="true">MUSIC<br/>BRINGS<br/>BETTER<br/>STRANGERS</div>
    <div className="show-room-copy">
     <div className="show-live-row"><span className={"show-live-pill "+(connected&&room?"":"show-unplugged")}>● {room?"ON AIR":"DISCOVER MODE"}</span><span className="show-count">♧ {fmtListeners(room?.listeners)} LISTENERS</span><span className="show-room-identifier">{room?room.room:"THE UNDERGROUND"}</span></div>
     <h1>{room?room.room==="MIDNIGHT"?"The Midnight Lobby":room.room+" Frequency":"The Midnight Lobby"}</h1>
@@ -205,14 +245,14 @@ export default function UndergroundFM({locale="en"}){
    <div className="show-main-column">
     {room&&isDj?<section className="show-controller-board">
      <div className="show-mode-title"><span>♛ CONTROLLER MODE</span><small>YOU SHAPE THE SOUND + LIGHTS</small></div>
-     <div className="show-dj-actions"><button disabled={!selectedTrack} onClick={playSelected}>▶ PLAY FOR ROOM <small>{selectedTrack?.title||"PICK A TRACK BELOW"}</small></button><button onClick={()=>command("fm:next",undefined,"play next")} disabled={!room.queue?.length}>⏭ NEXT TRACK</button><button onClick={()=>command("fm:pass",undefined,"pass controller")} disabled={room.listeners<2}>⟳ PASS CONTROLLER</button></div>
+     <div className="show-dj-actions"><button onClick={nextTrack} disabled={!room.queue?.length&&!tracks.some(t=>t.id!==room.track?.id)}>⏭ NEXT TRACK</button><button onClick={()=>command("fm:pass",undefined,"pass controller")} disabled={room.listeners<2}>⟳ PASS CONTROLLER</button></div>
      <div className="show-light-studio"><div className="show-studio-head"><div><strong>✳ COLOR / LIGHT STUDIO</strong><small>THE LISTENERS EXPERIENCE EVERY CHANGE</small></div><button onClick={()=>styleChange({theme:"acid",fx:"march",intensity:2,beatBpm:116})}>RESET ↺</button></div>
       <div className="show-theme-grid">{THEMES.map(t=><button key={t.id} onClick={()=>styleChange({theme:t.id})} aria-pressed={fx.theme===t.id} className="show-theme-button" style={{"--theme-a":t.a,"--theme-b":t.b,"--theme-dark":t.dark}}><span className="show-theme-illustration"><i/><i/><i/></span><strong>{t.name}</strong></button>)}</div>
-      <div className="show-controls-row"><div className="show-fx-field"><label htmlFor="show-fx">LIGHT MOVEMENT</label><select id="show-fx" value={fx.fx} onChange={e=>styleChange({fx:e.target.value})}>{FX.map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></div><div className="show-fx-field"><label htmlFor="show-intensity">INTENSITY</label><select id="show-intensity" value={fx.intensity} onChange={e=>styleChange({intensity:Number(e.target.value)})}><option value={0}>OFF</option><option value={1}>SOFT</option><option value={2}>LIVE</option><option value={3}>WILD (FLASH SAFE)</option></select></div><div className="show-fx-field"><label htmlFor="show-tempo">RHYTHM / ESTIMATED BPM</label><input id="show-tempo" type="range" min={60} max={180} step={2} value={fx.beatBpm} onChange={e=>styleChange({beatBpm:Number(e.target.value)})}/><span>{fx.beatBpm} BPM</span></div></div>
-      <div className="show-moment-head">SHOW MOMENTS <small>25 SECOND COOLDOWN</small></div><div className="show-moment-actions">{[["drop","✳ DROP HIT"],["flip","↗ COLOR FLIP"],["storm","ϟ BASS STORM"],["fade","◌ SLOW FADE"]].map(([kind,label])=><button onClick={()=>fxTrigger(kind)} key={kind}>{label}</button>)}</div>
+      <div className="fm-future-show"><div className="fm-future-intro"><strong>PHOTON ENGINE / VISUAL PRESETS</strong><small>THE CONTROLLER BROADCASTS EACH SCENE LIVE TO EVERY LISTENER</small></div><div className="fm-future-presets">{FX.map(([id,label],i)=><button className={"fm-future-preset fm-preset-"+id} key={id} aria-pressed={fx.fx===id} onClick={()=>styleChange({fx:id})}><span className="fm-future-preview"><i/><i/><i/><i/></span><strong>{["LASER MATRIX","QUANTUM PULSE","LIGHT TIDES","NEON COLLIDER","INFINITE TUNNEL","AURORA CORE","ZERO-G DRIFT"][i]}</strong><small>{fx.fx===id?"● LIVE SCENE":"TAP TO ACTIVATE"}</small></button>)}</div><div className="fm-future-intensity"><strong>SCENE POWER</strong>{[[0,"DARK"],[1,"AMBIENT"],[2,"IMMERSIVE"],[3,"MAXIMUM"]].map(([v,label])=><button onClick={()=>styleChange({intensity:v})} aria-pressed={fx.intensity===v} key={v}>{label}</button>)}</div></div>
+      <div className="show-moment-head">QUANTUM EVENTS <small>5 SECOND COOLDOWN / SHARED ROOM EVENT</small></div><div className="show-moment-actions">{[["drop","✺ SUPERNOVA"],["flip","⌁ SPECTRAL SHIFT"],["storm","ϟ ION STORM"],["fade","◌ BLACKOUT / REVEAL"]].map(([kind,label])=><button onClick={()=>fxTrigger(kind)} key={kind}>{label}</button>)}</div>
      </div>
      <div className="show-discover-card"><div className="show-section-head"><div><span>DISCOVER / CONTROLLER LIBRARY</span><small>ONLY THE CONTROLLER SEES SONG SELECTION</small></div><button onClick={()=>setShowDiscover(v=>!v)}>{showDiscover?"COLLAPSE −":"EXPAND +"}</button></div>
-     {showDiscover&&<><div className="show-controller-track-actions"><div>{selectedTrack?.artwork?<img src={selectedTrack.artwork} alt="" referrerPolicy="no-referrer" onError={e=>{e.currentTarget.style.display="none";}}/>:<span>♫</span>}<span><strong>{selectedTrack?.title||"SELECT A TRACK"}</strong><small>{selectedTrack?.artist||"Discover something unexpected."}</small></span></div><button disabled={!selectedTrack||room.queue?.length>=17} onClick={addSelected}>+ ADD TO QUEUE</button><button disabled={!selectedTrack} onClick={playSelected}>▶ PLAY NOW</button></div><div className="show-discover-feature"><div className="show-feature-head"><span>✳ DISCOVER</span><small>UNDERGROUND PICKS / FRESH FREQUENCIES</small></div><div className="show-discover-tabs" role="group" aria-label="Explore music by mood">{discoverTabs.map(item=><button key={item} onClick={()=>chooseDiscoverTab(item)} aria-pressed={item===discoverTab}>{item}</button>)}</div><div className="show-discovery-carousel">{tracks.slice(0,6).map((track,i)=><button key={track.id} type="button" className={"show-discovery-album "+(selectedTrack?.id===track.id?"chosen":"")} onClick={()=>selectTrack(track)}><span className="show-discovery-image">{track.artwork?<img src={track.artwork} alt="" loading="lazy" referrerPolicy="no-referrer" onError={e=>{e.currentTarget.style.display="none";}}/>:<span>♫</span>}<i>+</i></span><strong>{track.title}</strong><small>{track.artist}</small></button>)}</div></div><form className="show-music-search" onSubmit={e=>{e.preventDefault();setTerm(query.trim());}}><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="SEARCH ARTISTS, TRACKS, MOODS…" aria-label="Search music"/><button>DISCOVER ↗</button></form><div className="show-tracks">{loading?<p>FINDING UNDERGROUND SOUNDS…</p>:tracks.map((track,i)=><button type="button" key={track.id} className={"show-track "+(selectedTrack?.id===track.id?"chosen":"")} onClick={()=>selectTrack(track)}><span className="show-track-icon">{track.artwork?<img src={track.artwork} alt="" loading="lazy" referrerPolicy="no-referrer" onError={e=>{e.currentTarget.style.display="none";}}/>:"♫"}</span><span className="show-track-info"><strong>{track.title}</strong><small>{track.artist}{track.genre?" · "+track.genre:""}</small></span><span className="show-track-choose">{selectedTrack?.id===track.id?"SELECTED ✓":"SELECT +"}</span></button>)}</div>{hasMore&&<button className="show-load-more" onClick={loadMore} disabled={loadingMore}>{loadingMore?"FINDING MORE MUSIC…":"LOAD MORE AUDIUS TRACKS + "}</button>}</>}
+     {showDiscover&&<><div className="fm-selected-play">{selectedTrack?<><button type="button" className="fm-play-cover" onClick={playSelected} aria-label={"Play "+selectedTrack.title+" for the whole room"}>{selectedTrack.artwork?<img src={selectedTrack.artwork} alt={selectedTrack.title+" artwork"} referrerPolicy="no-referrer"/>:<span>♫</span>}<i>▶</i></button><div><span className="fm-selected-label">READY TO BROADCAST</span><strong>{selectedTrack.title}</strong><small>{selectedTrack.artist}</small><p>Tap the album cover to play for the whole room.</p><button disabled={room.queue?.length>=17} onClick={addSelected}>+ ADD TO QUEUE</button></div></>:<div className="fm-select-placeholder"><strong>SELECT A FREQUENCY</strong><p>Choose a song below. Its album artwork appears here—tap the artwork to play it for everyone.</p></div>}</div><div className="show-discover-feature"><div className="show-feature-head"><span>✳ DISCOVER</span><small>UNDERGROUND PICKS / FRESH FREQUENCIES</small></div><div className="show-discover-tabs" role="group" aria-label="Explore music by mood">{discoverTabs.map(item=><button key={item} onClick={()=>chooseDiscoverTab(item)} aria-pressed={item===discoverTab}>{item}</button>)}</div><div className="show-discovery-carousel">{tracks.slice(0,6).map((track,i)=><button key={track.id} type="button" className={"show-discovery-album "+(selectedTrack?.id===track.id?"chosen":"")} onClick={()=>selectTrack(track)}><span className="show-discovery-image">{track.artwork?<img src={track.artwork} alt="" loading="lazy" referrerPolicy="no-referrer" onError={e=>{e.currentTarget.style.display="none";}}/>:<span>♫</span>}<i>+</i></span><strong>{track.title}</strong><small>{track.artist}</small></button>)}</div></div><form className="show-music-search" onSubmit={e=>{e.preventDefault();setTerm(query.trim());}}><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="SEARCH ARTISTS, TRACKS, MOODS…" aria-label="Search music"/><button>DISCOVER ↗</button></form><div className="show-tracks">{loading?<p>FINDING UNDERGROUND SOUNDS…</p>:tracks.map((track,i)=><button type="button" key={track.id} className={"show-track "+(selectedTrack?.id===track.id?"chosen":"")} onClick={()=>selectTrack(track)}><span className="show-track-icon">{track.artwork?<img src={track.artwork} alt="" loading="lazy" referrerPolicy="no-referrer" onError={e=>{e.currentTarget.style.display="none";}}/>:"♫"}</span><span className="show-track-info"><strong>{track.title}</strong><small>{track.artist}{track.genre?" · "+track.genre:""}</small></span><span className="show-track-choose">{selectedTrack?.id===track.id?"SELECTED ✓":"SELECT +"}</span></button>)}</div>{hasMore&&<button className="show-load-more" onClick={loadMore} disabled={loadingMore}>{loadingMore?"FINDING MORE MUSIC…":"LOAD MORE AUDIUS TRACKS + "}</button>}</>}
      </div>
      <div className="show-queue"><span>LIVE QUEUE / {room.queue?.length||0} OF 17 SONGS</span><div className="show-queue-current">{room.track?.artwork?<img src={room.track.artwork} alt="" loading="lazy" referrerPolicy="no-referrer" onError={e=>{e.currentTarget.style.display="none";}}/>:<span className="show-queue-current-fallback">♫</span>}<span><strong>{room.track?.title||"Nothing on air"}</strong><small>{room.track?.artist||"Select a song to start the set"}</small></span><b>{room.track?"NOW PLAYING":"OFF AIR"}</b></div>{room.queue?.length?room.queue.map((entry,i)=><div key={i} className="show-queue-item"><span className="show-queue-number">{i+1}</span><span className="show-queue-art">{entry.track.artwork?<img src={entry.track.artwork} alt="" loading="lazy" referrerPolicy="no-referrer" onError={e=>{e.currentTarget.style.display="none";}}/>:"♫"}</span><span><strong>{entry.track.title}</strong><small>{entry.track.artist}</small></span><span className="show-queue-duration">{clockFmt(entry.track.duration)}</span><span className="show-queue-edit"><button disabled={i===0} onClick={()=>moveQueue(i,i-1)} aria-label={"Move "+entry.track.title+" up"}>↑</button><button disabled={i===room.queue.length-1} onClick={()=>moveQueue(i,i+1)} aria-label={"Move "+entry.track.title+" down"}>↓</button><button onClick={()=>removeQueue(i)} aria-label={"Remove "+entry.track.title+" from queue"}>×</button></span></div>):<p>Room requests appear here when listeners suggest songs.</p>}</div>
     </section>:room?<section className="show-listener-board">
