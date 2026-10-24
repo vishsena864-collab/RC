@@ -25,7 +25,7 @@ export function createUnderground(io) {
   const state = (room) => ({
     room: room.code, listeners: room.members.size,
     dj: room.dj, track: room.track, startedAt: room.startedAt,
-    queue: room.queue.slice(0, MAX_QUEUE), lights:room.lights, mood:room.mood, moodAt:room.moodAt, heat:heatNow(room), heatUpdatedAt:room.heatAt, djSince:room.djSince, djTurnMs:DJ_TURN_MS, updatedAt: Date.now()
+    queue: room.queue.slice(0, MAX_QUEUE), reactionCounts:room.reactionCounts, lights:room.lights, mood:room.mood, moodAt:room.moodAt, heat:heatNow(room), heatUpdatedAt:room.heatAt, djSince:room.djSince, djTurnMs:DJ_TURN_MS, updatedAt: Date.now()
   });
   const publish = (room) => io.to("fm:" + room.code).emit("fm:state", state(room));
   const leave = (socket) => {
@@ -48,7 +48,7 @@ export function createUnderground(io) {
     if (!room) {
       const code = ROOM_CODES.find((name) => !rooms.has(name));
       if (!code) return ack?.({ok:false,error:"full"});
-      room = {code,members:new Set(),dj:null,djSince:Date.now(),track:null,startedAt:null,queue:[],lights:defaultLights(),mood:{energy:0,chill:0,love:0},moodAt:Date.now(),heatValue:50,heatAt:Date.now(),reactionAt:new Map(),lastMood:new Map(),lastMoment:0};
+      room = {code,members:new Set(),dj:null,djSince:Date.now(),track:null,startedAt:null,queue:[],lights:defaultLights(),mood:{energy:0,chill:0,love:0},moodAt:Date.now(),heatValue:50,heatAt:Date.now(),reactionAt:new Map(),reactionCounts:{heart:0,fire:0,spark:0,wave:0},lastMood:new Map(),lastMoment:0};
       rooms.set(code, room);
     }
     room.members.add(socket.id);
@@ -97,9 +97,10 @@ export function createUnderground(io) {
       const room = rooms.get(bySocket.get(socket.id));
       const track = safeTrack(raw);
       if (!room || !track || room.queue.length >= MAX_QUEUE) return ack?.({ok:false,error:"invalid_request"});
-      if (room.queue.some((item) => item.by === socket.id && item.track.id === track.id)) return ack?.({ok:false,error:"duplicate"});
+      if (room.queue.some((item) => item.track.id === track.id)) return ack?.({ok:false,error:"duplicate"});
       room.queue.push({track,by:socket.id});
       publish(room); ack?.({ok:true});
+      io.to("fm:"+room.code).emit("fm:chat",{text:"🎵 Track requested: "+track.title+" — "+track.artist,at:Date.now(),from:"REQUEST"});
     });
     socket.on("fm:queue:add", (raw, ack) => {
       const room=rooms.get(bySocket.get(socket.id));
@@ -190,17 +191,20 @@ export function createUnderground(io) {
       if (!room || !REACTIONS.includes(reaction)) return ack?.({ok:false,error:"invalid"});
       if (Date.now()-(room.reactionAt.get(socket.id)||0)<1800) return ack?.({ok:false,error:"cooldown"});
       room.reactionAt.set(socket.id,Date.now());
-      io.to("fm:"+room.code).emit("fm:reaction",{kind:reaction,at:Date.now()});
+      room.reactionCounts[reaction]=Math.min(9999,(room.reactionCounts[reaction]||0)+1);
+      io.to("fm:"+room.code).emit("fm:reaction",{kind:reaction,at:Date.now(),count:room.reactionCounts[reaction]});
+      publish(room);
       ack?.({ok:true});
     });
-    socket.on("fm:chat", (message) => {
+    socket.on("fm:chat", (message, ack) => {
       const room=rooms.get(bySocket.get(socket.id));
       const text=typeof message==="string" ? message.trim() : "";
-      if(!room || !text || text.length>MAX_CHAT || /https?:\/\//i.test(text)) return;
+      if(!room || !text || text.length>MAX_CHAT || /https?:\/\//i.test(text)) return ack?.({ok:false,error:"invalid_chat"});
       const now=Date.now();
-      if(now-(lastChat.get(socket.id)||0)<1250) return;
+      if(now-(lastChat.get(socket.id)||0)<1250) return ack?.({ok:false,error:"cooldown"});
       lastChat.set(socket.id,now);
       io.to("fm:"+room.code).emit("fm:chat",{text,at:now,from:socket.id===room.dj?"DJ":"GUEST"});
+      ack?.({ok:true});
     });
     socket.on("disconnect",()=>{leave(socket);lastChat.delete(socket.id);});
   };
