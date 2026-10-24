@@ -3,5 +3,5 @@
 import { createApp } from "../src/index.js";
 
 process.env.SOCKET_IO_PATH ||= "/api/socket";
-const app = createApp();
+const app = globalThis.__CHATSPARK_SOCKET_APP__ ??= createApp({dataDir:"/tmp/chatspark-moderation"});
 export default app.httpServer;
