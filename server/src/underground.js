@@ -117,14 +117,16 @@ export function createUnderground(io) {
       if(!Number.isInteger(from)||!Number.isInteger(to)||from<0||to<0||from>=room.queue.length||to>=room.queue.length) return ack?.({ok:false,error:"invalid_index"});
       const [entry]=room.queue.splice(from,1);room.queue.splice(to,0,entry);publish(room);ack?.({ok:true});
     });
-    socket.on("fm:next", (ack) => {
+    socket.on("fm:next", (...args) => {
+      const ack=typeof args.at(-1)==="function"?args.at(-1):undefined;
       const room = rooms.get(bySocket.get(socket.id));
       if (!room || room.dj !== socket.id) return ack?.({ok:false,error:"dj_only"});
       const item = room.queue.shift();
       if (item) {room.track=item.track;room.startedAt=Date.now()+1800;publish(room);}
       ack?.({ok:Boolean(item)});
     });
-    socket.on("fm:pass", (ack) => {
+    socket.on("fm:pass", (...args) => {
+      const ack=typeof args.at(-1)==="function"?args.at(-1):undefined;
       const room=rooms.get(bySocket.get(socket.id));
       if (!room || room.dj !== socket.id || room.members.size < 2) return ack?.({ok:false});
       const others=[...room.members].filter((id)=>id!==socket.id);
