@@ -44,7 +44,7 @@ export default function UndergroundFM({locale="en"}){
  const [preview,setPreview]=useState(null),[connected,setConnected]=useState(false),[room,setRoom]=useState(null),[isDj,setIsDj]=useState(false),[messages,setMessages]=useState([]),[draft,setDraft]=useState(""),[playing,setPlaying]=useState(false),[clock,setClock]=useState(Date.now());
  const [reactions,setReactions]=useState([]),[reduced,setReduced]=useState(false),[openChat,setOpenChat]=useState(false),[showDiscover,setShowDiscover]=useState(true);
  const [visualMode,setVisualMode]=useState("rhythm"),[selectedTrack,setSelectedTrack]=useState(null),[page,setPage]=useState(0),[hasMore,setHasMore]=useState(true),[loadingMore,setLoadingMore]=useState(false),[requestText,setRequestText]=useState(""),[tab,setTab]=useState("discover"),[discoverTab,setDiscoverTab]=useState("For You");
- const socket=useRef(null),audio=useRef(null),streamTrackId=useRef(null),joining=useRef(false);
+ const socket=useRef(null),audio=useRef(null),streamTrackId=useRef(null),joining=useRef(false),wantsRoom=useRef(false);
  const fx=room?.lights||defaults;
  const theme=THEMES.find(t=>t.id===fx.theme)||THEMES[0];
  const current=room?room.track:preview;
@@ -79,7 +79,7 @@ export default function UndergroundFM({locale="en"}){
   }
   const s=io(SERVER_URL,{path:SOCKET_PATH,transports:["websocket","polling"],autoConnect:true,reconnection:true,reconnectionAttempts:Infinity,reconnectionDelayMax:6000,timeout:9000});
   socket.current=s;
-  s.on("connect",()=>{setConnected(true);setNotice("");});
+  s.on("connect",()=>{setConnected(true);setNotice("");if(wantsRoom.current)s.emit("fm:join",ack=>{if(!ack?.ok)setNotice("Room unavailable after reconnection. Tap Tune In again.");});});
   s.on("disconnect",()=>{setConnected(false);setRoom(null);setIsDj(false);setPlaying(false);});
   s.on("connect_error",()=>setNotice("Live rooms are offline. Solo Audius discovery is still available."));
   s.on("fm:state",data=>{setRoom(data);setIsDj(data.dj===s.id);});
@@ -105,11 +105,12 @@ export default function UndergroundFM({locale="en"}){
  },[current?.id,room?.startedAt]);
  const join=()=>{
   if(!connected||joining.current)return;
-  joining.current=true;setMessages([]);setReactions([]);
-  socket.current?.emit("fm:join",ack=>{joining.current=false;if(!ack?.ok)setNotice("All rooms are full. Try again shortly.");});
+  joining.current=true;wantsRoom.current=true;setMessages([]);setReactions([]);
+  socket.current?.emit("fm:join",ack=>{joining.current=false;if(!ack?.ok){wantsRoom.current=false;setNotice("All rooms are full. Try again shortly.");}});
   setTimeout(()=>{joining.current=false;},8000);
  };
  const leave=()=>{
+  wantsRoom.current=false;
   socket.current?.emit("fm:leave");
   audio.current?.pause();setRoom(null);setIsDj(false);setPlaying(false);setMessages([]);setNotice("");
  };
