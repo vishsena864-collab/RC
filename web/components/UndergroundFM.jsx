@@ -115,7 +115,9 @@ export default function UndergroundFM({locale="en"}){
  };
  const command=(event,payload,label)=>{
   if(!socket.current||!room)return;
-  socket.current.emit(event,payload,ack=>{if(!ack?.ok)setNotice(ack?.error==="dj_only"?"The controller role changed.":ack?.error==="cooldown"?"This action needs a short cooldown.":"Couldn't "+label+".");});
+  const acknowledge=ack=>{if(!ack?.ok)setNotice(ack?.error==="dj_only"?"The controller role changed.":ack?.error==="cooldown"?"This action needs a short cooldown.":"Couldn't "+label+".");};
+  if(payload===undefined)socket.current.emit(event,acknowledge);
+  else socket.current.emit(event,payload,acknowledge);
  };
  const selectTrack=(track)=>{
   if(!room){setPreview(track);setSelectedTrack(track);setNotice("Selected for solo preview. Press play to listen.");return;}
