@@ -390,7 +390,7 @@ export default function UndergroundFM({locale="en"}){
  </button>;
  const reactionBar=<div className="fx-react-bar" role="group" aria-label="Send a reaction">{REACTIONS.map(([kind,emoji])=><button key={kind} type="button" onClick={()=>react(kind)} disabled={!room} aria-label={"React "+kind}><span>{emoji}</span><b>{room?.reactionCounts?.[kind]||0}</b></button>)}</div>;
 
- return <div className={"fx-shell fx-"+view+" "+oswald.variable} style={vars} data-view={view} data-tab={tab} data-motion={motionOff?"reduced":"full"} data-playing={playing} data-heat={hottest}>
+ return <div className={"fx-shell fx-"+view+" "+oswald.variable} style={vars} data-view={view} data-tab={tab} data-motion={motionOff?"reduced":"full"} data-playing={playing} data-heat={hottest} data-fab={view==="controller"&&Boolean(selectedTrack)}>
   <canvas ref={stageCv} className="fx-stage" aria-hidden="true"/>
   <div className="fx-scrim" aria-hidden="true"/>
   <canvas ref={overlayCv} className="fx-overlay" aria-hidden="true"/>
@@ -538,6 +538,14 @@ export default function UndergroundFM({locale="en"}){
    </div>
   </div>
 
+  {view==="controller"&&selectedTrack&&<div className={"fx-fab"+(current&&tab!=="show"?" has-mini":"")} role="region" aria-label="Selected track">
+   <button type="button" className="fx-fab-play" onClick={()=>broadcast(selectedTrack)} aria-label={"Broadcast "+selectedTrack.title+" to the room now"}>
+    <span className="fx-fab-cover"><Art track={selectedTrack}/><i><Icon name="play"/></i></span>
+    <span className="fx-fab-text"><small>TAP TO PLAY FOR THE ROOM</small><strong>{selectedTrack.title}</strong><em>{selectedTrack.artist}</em></span>
+   </button>
+   <button type="button" className="fx-fab-mini" onClick={()=>{queueTrack(selectedTrack);setSelectedTrack(null);}} disabled={queue.length>=17} aria-label={"Queue "+selectedTrack.title+" instead"} title="Add to queue"><Icon name="plus"/></button>
+   <button type="button" className="fx-fab-mini" onClick={()=>setSelectedTrack(null)} aria-label="Clear selected track" title="Clear"><Icon name="close"/></button>
+  </div>}
   {current&&tab!=="show"&&<div className="fx-miniplayer"><Art track={current}/><span><strong>{current.title}</strong><small>{current.artist}</small></span><button type="button" onClick={togglePlay} aria-label={playing?"Pause audio from mini player":"Play audio from mini player"}><Icon name={playing?"pause":"play"}/></button></div>}
   <nav className="fx-dock" aria-label="Sections">
    <button type="button" aria-pressed={tab==="show"} onClick={()=>setTab("show")}><Icon name="wave"/><span>The Show</span></button>
