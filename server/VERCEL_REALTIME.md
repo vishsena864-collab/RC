@@ -2,9 +2,9 @@
 
 Git repo: vishsena864-collab/RC, `server/` root.
 
-Vercel deploy target: separate Node.js Vercel project rooted at `server`. Entry: `api/realtime.js`.
-Public Socket.IO path: `/api/realtime`. Set frontend:
-- `NEXT_PUBLIC_SERVER_URL=https://<VERCEL_REALTIME_PROJECT>.vercel.app`
+Vercel deploy target: separate Node.js Vercel project rooted at `server`. Entry: `api/socket.js`.
+Public Socket.IO path: `/api/socket`. Set frontend:
+- `NEXT_PUBLIC_SERVER_URL=https://chatspark-realtime.vercel.app`
 - `NEXT_PUBLIC_SOCKET_PATH=/api/realtime`
 
 Vercel backend production environment:
@@ -12,8 +12,8 @@ Vercel backend production environment:
 - `TRUST_PROXY=true`
 - `PRIVACY_HMAC_SECRET=<long random secret>`
 
-**Important limitations:** Vercel Functions are not a durable always-on process. Socket.IO and the existing Matcher, Underground FM rooms, DJ turns, chat games, moderation and queues currently store their state in process memory. Separate Vercel Function instances do *not* share this state; connections are capped by Function duration. Do not describe this adapter as reliable multi-instance matchmaking, guaranteed group sync or moderation persistence. Shared state + pub/sub (Redis) and reconnection/restoration are needed before a public launch. The temporary /tmp moderation directory is not persistent: reports and bans must be migrated to durable storage.
+**Important limitations:** Vercel Functions are not a durable always-on process. Socket.IO and the existing Matcher, Underground FM rooms, DJ turns, chat games, moderation and queues currently store their state in process memory. Separate Vercel Function instances do *not* share this state; connections are capped by Function duration. Do not describe this adapter as reliable multi-instance matchmaking, guaranteed group sync or moderation persistence. Shared state + pub/sub (Redis) and reconnection/restoration are needed before a public launch. The temporary `/tmp` moderation directory is not persistent: reports and bans must be migrated to durable storage.
 
-Vercel Function WebSockets are supported starting Oct 2026, but test public WebSocket handshake before enabling the frontend. If adapter handshake fails, leave frontend untouched.
+Vercel WebSockets became generally available Oct 20, 2026. Verified Socket.IO upgrade and two-client FM room and anonymous matching through temporary diagnostic code on Oct 24, 2026. The test endpoint was removed after validation. Current Vercel backend uses a five-minute connection cap.
 
 To switch to Railway later, deploy `server/` with `npm start`, set `NEXT_PUBLIC_SERVER_URL` to Railway URL, remove `NEXT_PUBLIC_SOCKET_PATH` (default `/socket.io`), and redeploy frontend.
