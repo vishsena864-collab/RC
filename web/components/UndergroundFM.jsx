@@ -3,10 +3,7 @@ import {useEffect,useRef,useState} from "react";
 import Link from "next/link";
 import {io} from "socket.io-client";
 import {SERVER_URL,SOCKET_PATH} from "@/lib/site";
-import "./underground.css";
-import "./underground-show.css";
-import "./underground-club.css";
-import "./underground-photographic.css";
+import "./underground-afterhours.css";
 
 const THEMES=[
  {id:"acid",name:"Acid Lime",a:"#ddff73",b:"#80ffb1",dark:"#1c3221"},
@@ -57,12 +54,12 @@ function EnergyMark({kind}){
 }
 function RoomReactor({room,heatScore,moodScore,moodTotal,hottest,moodBurst}){
  const status=heatScore>=78?"PEAK HOURS":heatScore>=58?"THE ROOM IS RISING":heatScore>=38?"IN THE FLOW":"AFTERHOURS";
- return <section className={"show-live-side fm-real-reactor fm-real-reactor-"+hottest} aria-label={"Room reactor, "+heatScore+" percent heat"}>
-  <header className="fm-real-reactor-header"><div><span className="fm-real-kicker">COLLECTIVE SIGNAL / LIVE</span><h3>ROOM REACTOR</h3></div><span className="fm-real-live-indicator"><i/>{room?"LIVE":"STANDBY"}</span></header>
+ return <section className={"show-live-side fm-real-reactor fm-real-reactor-"+hottest} aria-label={room?"Room heat, "+heatScore+" percent":"Room heat, waiting for listeners"}>
+  <header className="fm-real-reactor-header"><div><span className="fm-real-kicker">THE CROWD SETS THE TEMPERATURE</span><h3>Room heat<span>↗</span></h3></div><span className="fm-real-live-indicator"><i/>{room?"LIVE":"STANDBY"}</span></header>
   <div className="fm-real-reactor-display">
-   <div className="fm-real-reactor-lightfield" aria-hidden="true"><i/><i/><i/></div>
-   <div className="fm-real-reactor-value"><strong>{heatScore}<small>%</small></strong><span>ROOM HEAT</span></div>
-   <p>{status}</p>
+   <div className="fm-heat-segments" aria-hidden="true">{Array.from({length:24},(_,i)=><i key={i} className={room&&i<Math.round(heatScore/100*24)?"lit":""}/>)}</div>
+   <div className="fm-real-reactor-value"><strong>{room?heatScore:"—"}<small>{room?"%":""}</small></strong><span>ROOM HEAT</span></div>
+   <p>{room?status:"WAITING FOR THE CROWD"}</p>
   </div>
   <div className="fm-real-reactor-scale"><div className="fm-real-reactor-rail"><span style={{width:heatScore+"%"}}/></div><div className="fm-real-reactor-scale-labels"><span>CALM</span><strong>{moodTotal} ROOM VOTES</strong><span>MAX</span></div></div>
   <div className="fm-real-reactor-breakdown">{MOOD_SCENES.map(({id,title,number})=><div key={id} className={"fm-real-reaction-measure fm-real-reaction-measure-"+id}><span>{number} / {title}</span><strong>{moodScore(id)}%</strong><i><b style={{width:moodScore(id)+"%"}}/></i></div>)}</div>
@@ -73,18 +70,18 @@ function VibeConsole({room,heatScore,moodScore,moodTotal,moodBurst,castMood,vote
  const [showInfo,setShowInfo]=useState(false);
  return <div className={"fm-real-vibe fm-real-vibe-"+(moodBurst?.kind||"standby")}>
   <header className="fm-real-vibe-head">
-   <div><span className="fm-real-kicker">YOU ARE PART OF THE SHOW</span><h3>SHAPE THE VIBE</h3><p>Every tap changes the atmosphere of the room.</p></div>
+   <div><span className="fm-real-kicker">SMALL SIGNALS. SHARED ENERGY.</span><h3>Make the room <em>feel it.</em></h3><p>Turn it up, stay in the flow, or slow things down.</p></div>
    <button type="button" onClick={()=>setShowInfo(v=>!v)} aria-expanded={showInfo} className="fm-real-vibe-info">{showInfo?"CLOSE GUIDE":"HOW IT WORKS"} <span aria-hidden="true">↗</span></button>
   </header>
   {showInfo&&<p className="fm-real-vibe-guide">Fire raises room heat, Keep the Vibe sustains the energy, and Chill It Down lowers it. Every accepted vote updates the shared room heat and creates a light response for connected listeners. One vote is permitted every three seconds. Heat gradually returns toward 50%.</p>}
   <div className="fm-real-vibe-grid">{MOOD_SCENES.map(m=><button key={m.id} type="button" className={"fm-real-mood fm-real-mood-"+m.id} disabled={!room||voteBusy} onClick={()=>castMood(m.id)} aria-label={m.label+": "+m.hint}>
     <span className="fm-real-mood-backdrop" aria-hidden="true"/><span className="fm-real-mood-beam" aria-hidden="true"/>
-    <span className="fm-real-mood-top"><span>{m.number} / LIVE ENERGY</span><span>{moodScore(m.id)}%</span></span>
+    <span className="fm-real-mood-top"><span>{m.number} / SIGNAL</span><span>{moodScore(m.id)}%</span></span>
     <span className="fm-real-mood-center"><EnergyMark kind={m.id}/></span>
     <strong>{m.title}</strong><small>{m.hint}</small>
-    <span className="fm-real-mood-action">{room?m.label:"JOIN TO REACT"} <b aria-hidden="true">↗</b></span>
+    <span className="fm-real-mood-action">{room?(voteBusy?"RECHARGING…":m.label):"JOIN TO REACT"} <b aria-hidden="true">↗</b></span>
   </button>)}</div>
-  <div className="fm-real-vibe-footer"><span><i className={room?"active":""}/> {room?"CONNECTED TO THE CROWD":"ROOM SIGNAL WAITING"}</span><span>{moodTotal} TOTAL VOTES · CURRENT HEAT {heatScore}%</span></div>
+  <div className="fm-real-vibe-footer"><span><i className={room?"active":""}/> {room?"CONNECTED TO THE CROWD":"ROOM SIGNAL WAITING"}</span><span>{moodTotal} TOTAL VOTES · CURRENT HEAT {room?heatScore+"%":"—"}</span></div>
   {moodBurst&&!reduceMotion&&<div className={"fm-real-vibe-burst fm-real-vibe-burst-"+moodBurst.kind} key={moodBurst.nonce} aria-hidden="true"><i/><i/><i/></div>}
  </div>;
 }
@@ -92,6 +89,7 @@ function VibeConsole({room,heatScore,moodScore,moodTotal,moodBurst,castMood,vote
 export default function UndergroundFM({locale="en"}){
  const [tracks,setTracks]=useState([]),[query,setQuery]=useState(""),[term,setTerm]=useState(""),[loading,setLoading]=useState(false),[notice,setNotice]=useState("");
  const [preview,setPreview]=useState(null),[connected,setConnected]=useState(false),[room,setRoom]=useState(null),[isDj,setIsDj]=useState(false),[messages,setMessages]=useState([]),[draft,setDraft]=useState(""),[playing,setPlaying]=useState(false),[clock,setClock]=useState(Date.now());
+ const [volume,setVolume]=useState(80);
  const [reactions,setReactions]=useState([]),[reduced,setReduced]=useState(false),[openChat,setOpenChat]=useState(false),[showDiscover,setShowDiscover]=useState(true);
  const [visualMode,setVisualMode]=useState("rhythm"),[selectedTrack,setSelectedTrack]=useState(null),[page,setPage]=useState(0),[hasMore,setHasMore]=useState(true),[loadingMore,setLoadingMore]=useState(false),[requestText,setRequestText]=useState(""),[tab,setTab]=useState("discover"),[discoverTab,setDiscoverTab]=useState("For You"),[moodBurst,setMoodBurst]=useState(null),[momentBurst,setMomentBurst]=useState(null),[voteBusy,setVoteBusy]=useState(false),[heroGenre,setHeroGenre]=useState("Electronic"),[requestMatches,setRequestMatches]=useState([]),[requestSearching,setRequestSearching]=useState(false),[requestSent,setRequestSent]=useState(null);
  const socket=useRef(null),audio=useRef(null),streamTrackId=useRef(null),joining=useRef(false),wantsRoom=useRef(false),lastVoteAt=useRef(0);
@@ -146,6 +144,7 @@ export default function UndergroundFM({locale="en"}){
  useEffect(()=>{const timer=setInterval(()=>setClock(Date.now()),500);return ()=>clearInterval(timer);},[]);
  useEffect(()=>{
   const a=audio.current;if(!a)return;
+  a.volume=volume/100;
   if(!current){a.pause();streamTrackId.current=null;setPlaying(false);return;}
   if(streamTrackId.current!==current.id){
    streamTrackId.current=current.id;a.src="https://api.audius.co/v1/tracks/"+encodeURIComponent(current.id)+"/stream";
@@ -308,27 +307,27 @@ export default function UndergroundFM({locale="en"}){
   setRequestText(({"Underground Picks":"underground","This Week":"new music","Global Sounds":"world music","Deep & Dreamy":"ambient chill"})[type]||type);
  };
 
- return <div className={"fm-shell fm-show-shell "+(room?(isDj?"fm-controller-view":"fm-listener-view"):"fm-discover-view")} style={vars}>
+ return <div className={"fm-shell fm-show-shell "+(room?(isDj?"fm-controller-view":"fm-listener-view"):"fm-discover-view")} style={vars} data-motion={reduced||visualMode==="off"?"reduced":"full"} data-playing={playing} data-chat={openChat?"open":"closed"}>
   <nav className="show-desktop-nav" aria-label="Underground navigation">
-    <div className="show-nav-brand">ChatSpark <span>⚡</span><small>UNDERGROUND FM</small></div>
+    <Link href={"/"+locale} className="show-nav-brand">ChatSpark<span>•</span><small>STAY A LITTLE LONGER.</small></Link>
     <Link href={"/"+locale}>⌂ <span>Home</span></Link>
     <Link href={"/"+locale+"/start"}>☏ <span>Random Chat</span></Link>
-    <Link href={"/"+locale+"/underground"} className="current">◉ <span>Underground FM</span></Link>
+    <Link href={"/"+locale+"/underground"} className="current" aria-current="page">◉ <span>Underground FM</span></Link>
     <Link href={"/"+locale+"/poem-wall"}>✎ <span>Poem Wall</span></Link>
     <Link href={"/"+locale+"/graffiti-wall"}>✳ <span>Graffiti Wall</span></Link>
-    <div className="show-nav-manifest">MUSIC<br/>PEOPLE<br/>STRANGERS<br/><strong>ALWAYS<br/>A GOOD MIX.</strong></div>
+    <div className="show-nav-manifest"><span>AN OPEN FREQUENCY</span><strong>Good music.<br/>Better<br/><i>strangers.</i></strong><small>NO PROFILES. JUST PRESENCE.</small></div>
    </nav>
   <div className="show-display">
-  <div className="fm-top fm-show-top"><span><strong>ChatSpark ⚡</strong> <span className="fm-brand-divider">/</span> UNDERGROUND <em>FM</em></span><nav className="fm-top-nav" aria-label="Site sections"><Link href={"/"+locale}>EXPLORE</Link><Link className="fm-top-nav-active" href={"/"+locale+"/underground"} aria-current="page">UNDERGROUND FM</Link><Link href={"/"+locale+"/poem-wall"}>COMMUNITY</Link></nav><span className="fm-top-right"><span className="fm-blink"/> RANDOM PEOPLE. REAL MUSIC.</span></div>
+  <div className="fm-top fm-show-top"><span><strong>CS / RADIO</strong> <span className="fm-brand-divider">—</span> AFTER HOURS</span><nav className="fm-top-nav" aria-label="Site sections"><Link href={"/"+locale}>EXPLORE</Link><Link className="fm-top-nav-active" href={"/"+locale+"/underground"} aria-current="page">UNDERGROUND FM</Link><Link href={"/"+locale+"/poem-wall"}>COMMUNITY</Link></nav><span className="fm-top-right"><span className="fm-blink"/> INDEPENDENT SOUND. SHARED.</span></div>
   <div className="show-room-top">
-   <div className="show-room-visual"><LightStage lights={fx} track={current} roomCode={room?.room} reduceMotion={reduced||visualMode==="off"} showMoment={showMoment} momentKind={momentKind} moodBurst={moodBurst}/></div><div className="show-hero-slogan" aria-hidden="true">MUSIC<br/>BRINGS<br/>BETTER<br/>STRANGERS</div>
+   <div className="show-room-visual"><LightStage lights={fx} track={current} roomCode={room?.room} reduceMotion={reduced||visualMode==="off"} showMoment={showMoment} momentKind={momentKind} moodBurst={moodBurst}/></div><div className="show-hero-slogan" aria-hidden="true"><span>THE LATE-NIGHT TRANSMISSION</span><strong>FM<span>↗</span></strong><small>NO ALGORITHM BETWEEN US.</small></div>
    <div className="show-room-copy">
-    <div className="show-live-row"><span className={"show-live-pill "+(connected&&room?"":"show-unplugged")}>● {room?"ON AIR":"DISCOVER MODE"}</span><span className="show-count">♧ {fmtListeners(room?.listeners)} LISTENERS</span><span className="show-room-identifier">{room?room.room:"THE UNDERGROUND"}</span></div>
-    <h1>{room?room.room==="MIDNIGHT"?"The Midnight Lobby":room.room+" Frequency":"The Midnight Lobby"}</h1>
-    <p>Late night music for random souls.</p><div className="fm-genre-pills" role="group" aria-label="Discover by genre">{["Electronic","Indie","Alt","House","Techno","Beats"].map(genre=><button type="button" key={genre} aria-pressed={heroGenre===genre} onClick={()=>selectGenre(genre)}>{genre}</button>)}</div>
+    <div className="show-live-row"><span className={"show-live-pill "+(connected&&room?"":"show-unplugged")}>● {room?"ON AIR":"DISCOVER MODE"}</span><span className="show-count">{fmtListeners(room?.listeners)} LISTENERS</span><span className="show-room-identifier">{room?room.room:"OPEN FREQUENCY"}</span></div>
+    <div className="fm-station-kicker">A CHATSPARK LISTENING ROOM / VOL. 01</div><h1>Underground<span>FM<span className="fm-title-dot">.</span></span></h1>
+    <p>Different strangers. <em>Same frequency.</em></p><div className="fm-genre-pills" role="group" aria-label="Discover by genre">{["Electronic","Indie","Alt","House","Techno","Beats"].map(genre=><button type="button" key={genre} aria-pressed={heroGenre===genre} onClick={()=>selectGenre(genre)}>{genre}</button>)}</div>
     <div className="show-hero-foot">
-     <div className="show-current-controller"><span>{room?(isDj?"♛ YOU ARE THE CONTROLLER":"♛ CURRENT CONTROLLER"):"✳ FIND YOUR FREQUENCY"}</span><strong>{room?(isDj?"YOUR SET":"A STRANGER IS LIVE"):"DISCOVER THE UNKNOWN"}</strong>{room&&<small>{turnLeft!==null?"ROTATES IN "+clockFmt(turnLeft):"THE AUX CHANGES HANDS"}</small>}</div>
-     <div className="show-hero-join">{room?<button onClick={leave} className="show-join show-leave">LEAVE ROOM ↗</button>:<button onClick={join} disabled={!connected} className="show-join">{connected?"TUNE INTO LIVE ROOM ↗":"ROOMS OFFLINE"}</button>}</div>
+     <div className="show-current-controller"><span>{room?(isDj?"YOU HAVE THE AUX":"CURRENT CONTROLLER"):"PICK A TRACK. FIND YOUR PEOPLE."}</span><strong>{room?(isDj?"YOUR SET":"A STRANGER IS LIVE"):"YOUR NEXT FAVORITE IS HERE."}</strong>{room&&<small>{turnLeft!==null?"ROTATES IN "+clockFmt(turnLeft):"THE AUX CHANGES HANDS"}</small>}</div>
+     <div className="show-hero-join">{room?<button onClick={leave} className="show-join show-leave">LEAVE ROOM ↗</button>:<button onClick={join} disabled={!connected} className="show-join">{connected?"ENTER THE ROOM ↗":"ROOMS OFFLINE"}</button>}</div>
     </div>
    </div>
   </div>
@@ -336,20 +335,22 @@ export default function UndergroundFM({locale="en"}){
   <div className="show-now-section"><div className="show-now-main">
    <div className="show-section-label"><span>● NOW PLAYING</span><span>{room?"SHARED RADIO / "+room.room:preview?"SOLO PREVIEW / AUDIUS":"WAITING FOR A SIGNAL"}</span></div>
    <div className="show-now-content">
-    <div className="show-album">{current?.artwork?<img className="show-cover-photo" src={current.artwork} alt={current.title+" cover art"} referrerPolicy="no-referrer" onError={e=>{e.currentTarget.style.display="none";}}/>:<div className="show-record"><div className="show-record-hole"/></div>}<span>CS / RADIO<br/>AFTERHOURS</span></div>
-    <div className="show-song"><h2>{current?.title||"Unknown Frequencies"}</h2><p>{current?.artist||"A stranger will choose the next soundtrack."}</p><div className="show-genre-chips"><span>{current?.genre||"UNDERGROUND"}</span><span>{room?"LIVE BROADCAST":"DISCOVER"}</span><span>{theme.name}</span></div>
+    <div className="show-album" data-playing={playing}>{current?.artwork?<img className="show-cover-photo" src={current.artwork} alt={current.title+" cover art"} referrerPolicy="no-referrer" onError={e=>{e.currentTarget.style.display="none";}}/>:<div className="show-record"><div className="show-record-hole"/></div>}<span>UNDERGROUND<br/>SIDE A / AFTERHOURS</span></div>
+    <div className="show-song"><h2>{current?.title||"Your next discovery."}</h2><p>{current?.artist||"Select a track. Let the night unfold."}</p><div className="show-genre-chips"><span>{current?.genre||"UNDERGROUND"}</span><span>{room?"LIVE BROADCAST":"DISCOVER"}</span><span>{theme.name}</span></div>
      <div className={"show-wave "+(playing?"show-wave-playing":"")}>{Array.from({length:47},(_,i)=><i key={i} style={{"--h":((i*13+Math.round(Math.sin(i*.9)*23+50))%83+15)+"%","--delay":((i*11)%19)/15+"s"}}/>)}</div>
-     <div className="show-progress"><div className="show-progress-track"><span style={{width:current&&duration?clamp(time/duration*100,0,100)+"%":room?.track?clamp((time%180)/180*100,0,100)+"%":"0%"}}/></div><small>{clockFmt(time)} {duration?"/ "+clockFmt(duration):"/ LIVE"}</small></div>
-     <div className="show-player-controls"><button onClick={togglePlay} disabled={!current} className="show-audio-play" aria-label={playing?"Pause audio":"Play audio"}>{playing?"Ⅱ":"▶"}</button><span>Tap to {playing?"pause":"listen"} on this device</span><button className="show-accessible" onClick={()=>{setVisualMode(v=>v==="off"?"rhythm":"off");setReduced(v=>!v)}} aria-pressed={reduced||visualMode==="off"}>{reduced||visualMode==="off"?"ENABLE FX":"REDUCE MOTION"}</button></div>
+     <div className="show-progress"><div className="show-progress-track"><span style={{width:current&&duration?clamp(time/duration*100,0,100)+"%":room?.track?clamp((time%180)/180*100,0,100)+"%":"0%"}}/></div><small>{clockFmt(time)} {duration?"/ "+clockFmt(duration):current?"/ LIVE":"/ 0:00"}</small></div>
+     <div className="show-player-controls"><button onClick={togglePlay} disabled={!current} className="show-audio-play" aria-label={playing?"Pause audio":"Play audio"}>{playing?"Ⅱ":"▶"}</button><span>Tap to {playing?"pause":"listen"} on this device</span><button className="show-accessible" onClick={()=>{const off=!(reduced||visualMode==="off");setVisualMode(off?"off":"rhythm");setReduced(off)}} aria-pressed={reduced||visualMode==="off"}>{reduced||visualMode==="off"?"ENABLE FX":"REDUCE MOTION"}</button></div>
+     <label className="fm-volume"><span>VOLUME</span><input type="range" min="0" max="100" value={volume} onChange={e=>{const value=Number(e.target.value);setVolume(value);if(audio.current)audio.current.volume=value/100;}} aria-label="Volume"/><output>{volume}%</output></label>
     </div>
    </div>
-   <audio ref={audio} preload="none" onEnded={()=>{setPlaying(false);if(isDj&&room)nextTrack();}} onError={()=>setNotice("Track unavailable for external Audius streaming.")}/>
+   <audio ref={audio} preload="none" onPlay={()=>setPlaying(true)} onPause={()=>setPlaying(false)} onEnded={()=>{setPlaying(false);if(isDj&&room)nextTrack();}} onError={()=>setNotice("Track unavailable for external Audius streaming.")}/>
   </div>
   <RoomReactor room={room} heatScore={heatScore} moodScore={moodScore} moodTotal={moodTotal} hottest={hottest} moodBurst={moodBurst}/>
 </div>
   <div className="show-content-grid">
    <div className="show-main-column">
     {room&&!isDj&&<section className="show-room-aura fm-vibe-section fm-listener-vibes"><VibeConsole room={room} heatScore={heatScore} moodScore={moodScore} moodTotal={moodTotal} moodBurst={moodBurst} castMood={castMood} voteBusy={voteBusy} reduceMotion={reduced||visualMode==="off"}/></section>}
+    {(!room||isDj)&&<section className="show-room-aura fm-vibe-section"><VibeConsole room={room} heatScore={heatScore} moodScore={moodScore} moodTotal={moodTotal} moodBurst={moodBurst} castMood={castMood} voteBusy={voteBusy} reduceMotion={reduced||visualMode==="off"}/></section>}
     {room&&isDj?<section className="show-controller-board">
      <div className="show-mode-title"><span>♛ CONTROLLER MODE</span><small>YOU SHAPE THE SOUND + LIGHTS</small></div>
      <div className="show-dj-actions"><button onClick={nextTrack} disabled={!room.queue?.length&&!tracks.some(t=>t.id!==room.track?.id)}>⏭ NEXT TRACK</button><button onClick={()=>command("fm:pass",undefined,"pass controller")} disabled={room.listeners<2}>⟳ PASS CONTROLLER</button></div>
@@ -367,15 +368,14 @@ export default function UndergroundFM({locale="en"}){
      <div className="fm-listener-card fm-listener-request"><strong>REQUEST A TRACK</strong><p>Find a song the controller could play next.</p><form onSubmit={e=>{e.preventDefault();sendRequest();}}><label className="fm-sr-only" htmlFor="fm-request">Song or artist</label><input id="fm-request" value={requestText} onChange={e=>{setRequestText(e.target.value);setRequestSent(null);}} placeholder="Search Audius tracks…" maxLength={80}/><button type="submit" disabled={!requestMatches.length||requestSearching}>REQUEST TRACK ↗</button></form>{requestSearching&&<small>SEARCHING MUSIC…</small>}{requestSent&&<small className="fm-request-confirm">✓ SENT: {requestSent}</small>}{requestMatches.length>0&&<div className="fm-request-results">{requestMatches.map(track=><button key={track.id} type="button" onClick={()=>requestTrack(track)}>{track.artwork?<img src={track.artwork} alt="" loading="lazy"/>:<span>♫</span>}<span><b>{track.title}</b><small>{track.artist}</small></span><i>+</i></button>)}</div>}</div>
      <div className="fm-listener-card fm-listener-discover"><strong>DISCOVER MODE</strong><p>Find sounds to suggest for the next set.</p><div className="fm-discover-tiles">{["Underground Picks","This Week","Global Sounds","Deep & Dreamy"].map((item,i)=><button key={item} type="button" onClick={()=>chooseDiscovery(item)}><span className={"fm-discover-tile-scene fm-dscene-"+i}/><small>{item}</small></button>)}</div></div>
     </section>:<section className="show-solo-discovery">
-      <div className="show-mode-title"><span>✳ UNDERGROUND DISCOVER</span><small>LISTEN TO ARTISTS WHILE ROOMS ARE OFFLINE</small></div>
-      <h3>NEW SOUNDS, EVEN WITHOUT A CROWD.</h3><p>The live show needs the ChatSpark Socket.IO server. You can still explore Audius music here and preview tracks individually.</p>
+      <div className="show-mode-title"><span>THE CRATES / DISCOVER</span><small>INDEPENDENT ARTISTS / AUDIUS</small></div>
+      <h3>A little off the radar.</h3><p>Dig through independent sounds. Pick something you love, then press play to listen.</p>
       <form className="show-music-search" onSubmit={e=>{e.preventDefault();setTerm(query.trim());}}><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="SEARCH AUDIUS MUSIC…" aria-label="Search Audius tracks"/><button>SEARCH ↗</button></form>
       <div className="show-tracks">{loading?<p>FINDING UNDERGROUND SOUNDS…</p>:tracks.map(t=><button key={t.id} className={"show-track "+(selectedTrack?.id===t.id?"chosen":"")} onClick={()=>selectTrack(t)}><span className="show-track-icon">{t.artwork?<img src={t.artwork} alt="" loading="lazy" referrerPolicy="no-referrer" onError={e=>{e.currentTarget.style.display="none";}}/>:"♫"}</span><span className="show-track-info"><strong>{t.title}</strong><small>{t.artist}</small></span><span className="show-track-choose">PREVIEW ▶</span></button>)}</div>{hasMore&&<button className="show-load-more" onClick={loadMore} disabled={loadingMore}>{loadingMore?"FINDING MORE MUSIC…":"LOAD MORE TRACKS +"}</button>}
      </section>}
-    {(!room||isDj)&&<section className="show-room-aura fm-vibe-section"><VibeConsole room={room} heatScore={heatScore} moodScore={moodScore} moodTotal={moodTotal} moodBurst={moodBurst} castMood={castMood} voteBusy={voteBusy} reduceMotion={reduced||visualMode==="off"}/></section>}
    </div>
    <aside className={"show-chat-column "+(openChat?"chat-expanded":"")}><div className="show-section-head"><div><span>ROOM CHAT</span><small>CONTROLLER + LISTENERS · ALL WELCOME</small></div><span>{room?.listeners||0} HERE</span></div>
-    <div className="show-message-list" role="log" aria-live="polite" aria-label="Room conversation">{messages.length?messages.map((msg,i)=><div className="show-message" key={msg.at+"-"+i}><span className={"show-chat-avatar "+(msg.from==="DJ"?"show-chat-dj":"")}>{msg.from==="DJ"?"♛":"✳"}</span><div><small>{msg.from==="DJ"?"CONTROLLER":"STRANGER"} · {new Date(msg.at).toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"})}</small><p>{msg.text}</p></div></div>):<div className="show-empty-chat"><strong>NO VOICES YET.</strong><p>{room?"Be the first to say hello. Everyone in this room can chat.":"When the rooms come online, strangers and the controller can talk together here."}</p></div>}</div>
+    <div className="show-message-list" role="log" aria-live="polite" aria-label="Room conversation">{messages.length?messages.map((msg,i)=><div className="show-message" key={msg.at+"-"+i}><span className={"show-chat-avatar "+(msg.from==="DJ"?"show-chat-dj":"")}>{msg.from==="DJ"?"♛":"✳"}</span><div><small>{msg.from==="DJ"?"CONTROLLER":"STRANGER"} · {new Date(msg.at).toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"})}</small><p>{msg.text}</p></div></div>):<div className="show-empty-chat"><span className="fm-chat-symbol" aria-hidden="true">↗</span><strong>Every good night starts with a hello.</strong><p>{room?"Be the first to say hello. Everyone in this room can chat.":"Enter a room to meet the people behind the music."}</p></div>}</div>
     <div className="show-reaction-float" aria-hidden="true">{reactions.filter(r=>clock-r.at<2200).map(r=><span key={r.id}>{REACTIONS.find(x=>x[0]===r.kind)?.[1]||"✨"}</span>)}</div>
     <form onSubmit={e=>{e.preventDefault();submitChat();}} className="show-chat-compose"><input value={draft} onChange={e=>setDraft(e.target.value)} maxLength={280} disabled={!room} aria-label="Message the room" placeholder={room?"MESSAGE THE ROOM…":"JOIN A ROOM TO CHAT"}/><button disabled={!room||!draft.trim()} type="submit" aria-label="Send message">➤</button></form>
     <div className="show-chat-foot">Temporary room chat. No recordings or user profiles. Be respectful.</div>
@@ -383,7 +383,7 @@ export default function UndergroundFM({locale="en"}){
    </aside>
   </div>
   </div>
-  <div className="show-mobile-dock"><button onClick={()=>setOpenChat(false)}>◉ <span>THE SHOW</span></button><button onClick={()=>{if(room)setOpenChat(true);else join();}}>{room?"☰":"♧"} <span>{room?"ROOM CHAT":"JOIN ROOM"}</span></button><button onClick={()=>{setVisualMode(v=>v==="off"?"rhythm":"off");setReduced(v=>!v)}}>{reduced||visualMode==="off"?"◌":"✳"} <span>VISUAL FX</span></button></div>
+  <div className="show-mobile-dock"><button aria-pressed={!openChat} onClick={()=>setOpenChat(false)}>◉ <span>THE SHOW</span></button><button aria-pressed={openChat} disabled={!room&&!connected} onClick={()=>{if(room)setOpenChat(true);else join();}}>{room?"☰":"♧"} <span>{room?"ROOM CHAT":"JOIN ROOM"}</span></button><button aria-pressed={!(reduced||visualMode==="off")} onClick={()=>{const off=!(reduced||visualMode==="off");setVisualMode(off?"off":"rhythm");setReduced(off)}}>{reduced||visualMode==="off"?"◌":"✳"} <span>VISUAL FX</span></button></div>
   {notice&&<div className="fm-toast show-notice" role="status"><span>{notice}</span><button onClick={()=>setNotice("")} aria-label="Dismiss notice">×</button></div>}
   <div className="fm-bottom"><span>CHATSPARK / RANDOM PEOPLE, REAL MUSIC</span><Link href={"/"+locale+"/start"}>BACK TO STRANGER CHAT ↗</Link></div>
  </div>
