@@ -41,6 +41,36 @@ function LightStage({lights,track,roomCode,reduceMotion=false,showMoment=false,m
   <div className="show-vignette"/>
  </div>;
 }
+
+function VibeConsole({room,heatScore,moodScore,moodTotal,moodBurst,castMood,voteBusy,reduceMotion=false}){
+ const mode=!room?"idle":heatScore>=78?"ignition":heatScore>=48?"frequency":"afterhours";
+ const events=[["energy","IGNITE","FIRE","Push the energy higher","🔥"],["love","HOLD","KEEP THE VIBE","Lock in this frequency","✦"],["chill","COOL","CHILL IT DOWN","Ease into the afterhours","❄"]];
+ return <div className={"fm-vibe-console fm-vibe-"+mode+(moodBurst?" fm-burst-"+moodBurst.kind:"")} style={{"--vibe-heat":heatScore+"%"}}>
+  <header className="fm-vibe-header"><div><span className="fm-vibe-kicker"><i/> THE CROWD IS THE CONTROLLER</span><h3>ROOM <em>ENERGY</em></h3><p>One room. One atmosphere. Your touch changes everyone's experience.</p></div><div className="fm-vibe-status"><span className="fm-vibe-status-dot"/> {room?"LIVE SIGNAL":"SIGNAL WAITING"}</div></header>
+  <div className="fm-vibe-core">
+   <div className="fm-vibe-orbit-system" role="img" aria-label={"Room heat "+heatScore+" percent"}>
+    <div className="fm-vibe-starfield"/>
+    <div className="fm-vibe-orbit fm-vibe-orbit-one"/><div className="fm-vibe-orbit fm-vibe-orbit-two"/><div className="fm-vibe-orbit fm-vibe-orbit-three"/>
+    <div className="fm-vibe-energy-ring" style={{"--vibe-turn":(heatScore*3.6)+"deg"}}/>
+    <div className="fm-vibe-reactor"><div className="fm-vibe-reactor-surface"/><span className="fm-vibe-reactor-num">{heatScore}<small>%</small></span><strong>ROOM HEAT</strong></div>
+    {moodBurst&&!reduceMotion&&<div key={moodBurst.nonce} className={"fm-vibe-burst-wave fm-vibe-burst-"+moodBurst.kind}><i/><i/><i/><span>{moodBurst.kind==="energy"?"INFERNO":moodBurst.kind==="love"?"ON THE SAME WAVE":"TEMPERATURE DROP"}</span></div>}
+   </div>
+   <div className="fm-vibe-readout"><div className="fm-vibe-readout-top"><span>FREQUENCY ANALYSIS</span><b>{room?"ACTIVE":"STANDBY"}</b></div>
+     <div className="fm-vibe-energy-bars" aria-hidden="true">{Array.from({length:42},(_,i)=><i key={i} style={{"--vibe-i":i,"--vibe-h":(17+(i*29%81))+"%","--vibe-delay":(i*17%19)/19+"s"}}/>)}</div>
+     <div className="fm-vibe-levels">{[["energy","HEAT","#ff7c48"],["love","VIBE","#bd94ff"],["chill","CHILL","#58e4ff"]].map(([kind,label,color])=><div key={kind}><div><span>{label}</span><b>{moodScore(kind)}%</b></div><div className="fm-vibe-level-track"><span style={{width:moodScore(kind)+"%",background:color}}/></div></div>)}</div>
+     <p className="fm-vibe-vote-count">{moodTotal} {moodTotal===1?"VOTE":"VOTES"} IN THIS ROOM · SCORES REFLECT REAL ROOM INPUT</p>
+   </div>
+  </div>
+  <div className="fm-vibe-action-heading"><strong>SHAPE THE ATMOSPHERE</strong><span>TOUCH TO SEND A LIVE ENERGY WAVE</span></div>
+  <div className="fm-vibe-actions">{events.map(([kind,eyebrow,label,description,glyph])=><button key={kind} disabled={!room||voteBusy} onClick={()=>castMood(kind)} className={"fm-vibe-trigger fm-vibe-trigger-"+kind} aria-label={label+", "+description}>
+   <span className="fm-vibe-trigger-art"><i className="fm-vibe-shape fm-vibe-shape-a"/><i className="fm-vibe-shape fm-vibe-shape-b"/><i className="fm-vibe-shape fm-vibe-shape-c"/><b>{glyph}</b></span>
+   <span className="fm-vibe-trigger-copy"><small>{eyebrow} / 0{events.findIndex(x=>x[0]===kind)+1}</small><strong>{label}</strong><span>{description}</span></span>
+   <span className="fm-vibe-trigger-cta">↗</span>
+  </button>)}</div>
+  <div className="fm-vibe-foot"><span>◉ BROADCASTED TO EVERYONE IN THE ROOM</span><span>{room?"3 SECOND COOLDOWN BETWEEN VOTES":"JOIN A ROOM TO ACTIVATE"}</span></div>
+ </div>;
+}
+
 export default function UndergroundFM({locale="en"}){
  const [tracks,setTracks]=useState([]),[query,setQuery]=useState(""),[term,setTerm]=useState(""),[loading,setLoading]=useState(false),[notice,setNotice]=useState("");
  const [preview,setPreview]=useState(null),[connected,setConnected]=useState(false),[room,setRoom]=useState(null),[isDj,setIsDj]=useState(false),[messages,setMessages]=useState([]),[draft,setDraft]=useState(""),[playing,setPlaying]=useState(false),[clock,setClock]=useState(Date.now());
@@ -240,7 +270,7 @@ export default function UndergroundFM({locale="en"}){
    </div>
    <audio ref={audio} preload="none" onEnded={()=>{setPlaying(false);if(isDj&&room)command("fm:next",undefined,"skip");}} onError={()=>setNotice("Track unavailable for external Audius streaming.")}/>
   </div>
-  <div className={"show-live-side fm-heat-board fm-heat-"+hottest}><strong>◉ ROOM HEAT</strong><div className="fm-heat-gauge" style={{"--heat-deg":heatScore*3.6+"deg"}}><span><b>{heatScore}%</b><small>LIVE HEAT</small></span></div><div className="fm-heat-meta"><span>{moodTotal} TOTAL VOTES</span><strong>{hottest==="energy"?"IGNITION":hottest==="love"?"IN THE ZONE":"AFTERHOURS"}</strong></div><div className="fm-heat-bars">{MOODS.map(([kind,symbol,label])=><div key={kind}><span>{symbol} {label}</span><b>{moodScore(kind)}%</b><i><em style={{width:moodScore(kind)+"%"}}/></i></div>)}</div><small>HEAT IS A WEIGHTED LIVE SCORE OF ROOM VOTES, NOT A RANDOM ANIMATION.</small></div></div>
+  <div className={"show-live-side fm-heat-teaser fm-heat-teaser-"+hottest}><div className="fm-heat-teaser-label"><span className="fm-heat-teaser-led"/> CROWD FREQUENCY</div><div className="fm-heat-teaser-figure">{heatScore}<small>%</small></div><div className="fm-heat-teaser-track"><span style={{width:heatScore+"%"}}/></div><div className="fm-heat-teaser-info"><span>{moodTotal} ROOM VOTES</span><strong>{hottest==="energy"?"HIGH VOLTAGE":hottest==="love"?"IN SYNC":"AFTERHOURS"}</strong></div><div className="fm-heat-teaser-sparks" aria-hidden="true">{Array.from({length:18},(_,i)=><i key={i} style={{"--i":i}}/>)}</div></div></div>
   <div className="show-content-grid">
    <div className="show-main-column">
     {room&&isDj?<section className="show-controller-board">
@@ -260,7 +290,6 @@ export default function UndergroundFM({locale="en"}){
      <div className="show-listener-intro"><strong>THE ROOM IS ALIVE.</strong><p>Every beat, reaction and color belongs to this moment. Tune in. Leave a mark on the vibe.</p></div>
      <div className="show-listener-tiles"><div><span>✳ DISCOVER MODE</span><strong>THE STRANGERS MAKE THE SOUNDTRACK.</strong><small>Explore a new track every time the controller changes.</small></div><div><span>♛ CONTROLLER CURRENTLY</span><strong>AN ANONYMOUS DJ</strong><small>LIGHTS: {theme.name.toUpperCase()}</small></div></div>
      <div className="show-react-section"><h3>INSTANT REACTIONS</h3><p>Drop a quick reaction—or change the room's heat below.</p><div className="show-reaction-buttons">{REACTIONS.map(([kind,emoji])=><button key={kind} onClick={()=>react(kind)} aria-label={"React "+kind}>{emoji}</button>)}</div></div>
-     <div className="show-mood-section fm-aura-console"><div className="fm-aura-title"><div><h3>CONTROL THE ROOM'S HEAT</h3><p>Every touch changes the energy. All strangers see the same score.</p></div><strong>{heatScore}% <small>HEAT</small></strong></div><div className="show-mood-tiles fm-aura-buttons">{MOODS.map(([kind,emoji,label])=><button disabled={voteBusy} onClick={()=>castMood(kind)} className={"fm-aura-option fm-aura-option-"+kind} key={kind}><span className="fm-aura-orb"><i/><i/><i/>{emoji}</span><strong>{label}</strong><small>{moodScore(kind)}% OF ROOM · {room.mood?.[kind]||0} VOTES</small></button>)}</div><div className="fm-heat-meter"><span style={{width:heatScore+"%"}}/></div></div>
      <div className="show-request-section"><span>♫ REQUEST A TRACK</span><p>Suggest a song or artist. Only the controller can see the music library and decide which track plays.</p><form className="show-request-form" onSubmit={e=>{e.preventDefault();sendRequest();}}><input type="text" maxLength={220} aria-label="Suggest a song or artist" value={requestText} onChange={e=>setRequestText(e.target.value)} placeholder="SONG / ARTIST NAME"/><button disabled={!requestText.trim()}>SEND REQUEST ↗</button></form></div>
     </section>:<section className="show-solo-discovery">
       <div className="show-mode-title"><span>✳ UNDERGROUND DISCOVER</span><small>LISTEN TO ARTISTS WHILE ROOMS ARE OFFLINE</small></div>
@@ -268,7 +297,7 @@ export default function UndergroundFM({locale="en"}){
       <form className="show-music-search" onSubmit={e=>{e.preventDefault();setTerm(query.trim());}}><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="SEARCH AUDIUS MUSIC…" aria-label="Search Audius tracks"/><button>SEARCH ↗</button></form>
       <div className="show-tracks">{loading?<p>FINDING UNDERGROUND SOUNDS…</p>:tracks.map(t=><button key={t.id} className={"show-track "+(selectedTrack?.id===t.id?"chosen":"")} onClick={()=>selectTrack(t)}><span className="show-track-icon">{t.artwork?<img src={t.artwork} alt="" loading="lazy" referrerPolicy="no-referrer" onError={e=>{e.currentTarget.style.display="none";}}/>:"♫"}</span><span className="show-track-info"><strong>{t.title}</strong><small>{t.artist}</small></span><span className="show-track-choose">PREVIEW ▶</span></button>)}</div>{hasMore&&<button className="show-load-more" onClick={loadMore} disabled={loadingMore}>{loadingMore?"FINDING MORE MUSIC…":"LOAD MORE TRACKS +"}</button>}
      </section>}
-    <section className="show-room-aura"><div className="show-section-head"><div><span>THE ROOM AURA</span><small>COLORS SHAPED BY CONTROLLER · MOODS BY STRANGERS</small></div><span>LIVE / {theme.name.toUpperCase()}</span></div><div className="show-aura-strip fm-aura-strip">{MOODS.map(([kind,emoji,label])=><button disabled={!room||voteBusy} onClick={()=>castMood(kind)} key={kind}><span>{emoji}</span><small>{label}</small><strong>{moodScore(kind)}%</strong><i>{room?.mood?.[kind]||0} votes</i></button>)}</div></section>
+    <section className="show-room-aura fm-vibe-section"><VibeConsole room={room} heatScore={heatScore} moodScore={moodScore} moodTotal={moodTotal} moodBurst={moodBurst} castMood={castMood} voteBusy={voteBusy} reduceMotion={reduced||visualMode==="off"}/></section>
    </div>
    <aside className={"show-chat-column "+(openChat?"chat-expanded":"")}><div className="show-section-head"><div><span>ROOM CHAT</span><small>CONTROLLER + LISTENERS · ALL WELCOME</small></div><span>{room?.listeners||0} HERE</span></div>
     <div className="show-message-list" role="log" aria-live="polite" aria-label="Room conversation">{messages.length?messages.map((msg,i)=><div className="show-message" key={msg.at+"-"+i}><span className={"show-chat-avatar "+(msg.from==="DJ"?"show-chat-dj":"")}>{msg.from==="DJ"?"♛":"✳"}</span><div><small>{msg.from==="DJ"?"CONTROLLER":"STRANGER"} · {new Date(msg.at).toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"})}</small><p>{msg.text}</p></div></div>):<div className="show-empty-chat"><strong>NO VOICES YET.</strong><p>{room?"Be the first to say hello. Everyone in this room can chat.":"When the rooms come online, strangers and the controller can talk together here."}</p></div>}</div>
