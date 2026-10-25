@@ -51,11 +51,12 @@ const SCENES=[
  {id:"follow",name:"Follow Spot",subtitle:"Spotlight",theme:"gold",fx:"follow",intensity:2,moment:"fade"}
 ];
 const MOMENTS=[["drop","Drop"],["flip","Color shift"],["storm","Ion storm"],["fade","Blackout"]];
-const DISCOVER_TABS=["For You","Underground Picks","New This Week","Global Sounds","Chill","High Energy"];
-const DISCOVER_TERMS={"For You":"","Underground Picks":"underground","New This Week":"new music","Global Sounds":"world","Chill":"ambient","High Energy":"electronic"};
-const GENRES=["Electronic","Indie","Alt","House","Techno","Beats"];
+const CROSSFADE_MS=8000; // keep in step with the server's crossfadeMs
+// every tab is a fresh mix: "For You" from all of Audius, the rest from that genre family (see lib/mix.js)
+const DISCOVER_TABS=["For You","Electronic","House","Techno","Hip-Hop","Bass","Chill","Pop","Indie"];
+const DISCOVER_TERMS={"For You":""};
+const GENRES=["Electronic","House","Techno","Hip-Hop","Bass","Chill","Pop","Indie"];
 const defaults={theme:"infrared",fx:"sweep",intensity:2,beatBpm:116,showMoment:null};
-const shuffle=list=>{const a=[...list];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 const clamp=(n,min,max)=>Math.max(min,Math.min(n,max));
 const clockFmt=seconds=>!Number.isFinite(seconds)?"0:00":Math.floor(Math.max(0,seconds)/60)+":"+String(Math.floor(Math.max(0,seconds)%60)).padStart(2,"0");
 const fmtListeners=n=>Number(n||0).toLocaleString("en-US");
@@ -141,13 +142,14 @@ export default function UndergroundFM({locale="en"}){
  const [preview,setPreview]=useState(null),[connected,setConnected]=useState(false),[room,setRoom]=useState(null),[isDj,setIsDj]=useState(false),[me,setMe]=useState(null),[messages,setMessages]=useState([]),[draft,setDraft]=useState(""),[playing,setPlaying]=useState(false),[clock,setClock]=useState(Date.now());
  const [volume,setVolume]=useState(80),[liked,setLiked]=useState(false),[reactions,setReactions]=useState([]),[reduced,setReduced]=useState(false),[motionPref,setMotionPref]=useState(null);
  const [selectedTrack,setSelectedTrack]=useState(null),[page,setPage]=useState(0),[hasMore,setHasMore]=useState(true),[loadingMore,setLoadingMore]=useState(false),[requestText,setRequestText]=useState(""),[discoverTab,setDiscoverTab]=useState("For You"),[moodBurst,setMoodBurst]=useState(null),[pulses,setPulses]=useState({energy:0,love:0,chill:0}),[voteBusy,setVoteBusy]=useState(false),[heroGenre,setHeroGenre]=useState("Electronic"),[requestMatches,setRequestMatches]=useState([]),[requestSearching,setRequestSearching]=useState(false),[requestSent,setRequestSent]=useState(null),[tab,setTab]=useState("show"),[showGuide,setShowGuide]=useState(false),[showTune,setShowTune]=useState(false),[cooldownKey,setCooldownKey]=useState(0),[reconnecting,setReconnecting]=useState(false),[cueSheet,setCueSheet]=useState(null),[mapping,setMapping]=useState(false),[inviteRoom,setInviteRoom]=useState(null);
- const socket=useRef(null),audio=useRef(null),streamTrackId=useRef(null),joining=useRef(false),wantsRoom=useRef(false),lastVoteAt=useRef(0),stageCv=useRef(null),overlayCv=useRef(null),stage=useRef(null),overlay=useRef(null),rail=useRef(null),chatList=useRef(null),lastRoom=useRef(null),autoPlay=useRef(false),listening=useRef(false),roomRef=useRef(null),shellRef=useRef(null),photoRef=useRef(null),specCv=useRef(null),spectrum=useRef(null),actx=useRef(null),analyser=useRef(null);
+ const socket=useRef(null),audio=useRef(null),streamTrackId=useRef(null),joining=useRef(false),wantsRoom=useRef(false),lastVoteAt=useRef(0),stageCv=useRef(null),overlayCv=useRef(null),stage=useRef(null),overlay=useRef(null),rail=useRef(null),chatList=useRef(null),lastRoom=useRef(null),autoPlay=useRef(false),listening=useRef(false),deckA=useRef(null),deckB=useRef(null),sources=useRef(new Map()),fadeJob=useRef(null),volRef=useRef(.8),earlyNext=useRef(null),roomRef=useRef(null),shellRef=useRef(null),photoRef=useRef(null),specCv=useRef(null),spectrum=useRef(null),actx=useRef(null),analyser=useRef(null);
  const motionOff=motionPref===null?reduced:motionPref;
  const fx=room?.lights||defaults;
  roomRef.current=room;
  const autoShow=fx.auto!==false;
  // Lights off is personal: it only changes this browser, never the room's show.
  const [lightsOff,setLightsOff]=useState(false),lightsOffRef=useRef(false);
+ const [mixNonce,setMixNonce]=useState(0),mixSeed=useRef(0);
  const [tapped,setTapped]=useState(null),[picker,setPicker]=useState(false),[hoverEmo,setHoverEmo]=useState(null),draftRef=useRef(null);
  const [unread,setUnread]=useState(0),[typing,setTyping]=useState({}),lastTypingAt=useRef(0),seenMessages=useRef(0);
  useEffect(()=>{
@@ -240,12 +242,14 @@ export default function UndergroundFM({locale="en"}){
  useEffect(()=>{
   if(room&&!isDj)return;
   const controller=new AbortController();setLoading(true);
-  fetch("/api/underground/tracks?page=0"+(term?"&q="+encodeURIComponent(term):""),{signal:controller.signal})
-   .then(r=>r.json()).then(j=>{setTracks(shuffle(j.tracks||[]));setPage(0);setHasMore(Boolean(j.hasMore));if(j.error)setNotice(j.error);})
+  // a new seed every time the list loads, so nobody sees the same list twice
+  mixSeed.current=1+Math.floor(Math.random()*2e9);
+  fetch("/api/underground/tracks?page=0&seed="+mixSeed.current+(term?"&q="+encodeURIComponent(term):""),{signal:controller.signal})
+   .then(r=>r.json()).then(j=>{setTracks(j.tracks||[]);setPage(0);setHasMore(Boolean(j.hasMore));if(j.error)setNotice(j.error);})
    .catch(e=>{if(e.name!=="AbortError")setNotice("Music discovery unavailable right now.");})
    .finally(()=>setLoading(false));
   return ()=>controller.abort();
- },[term,isDj,room?.room]);
+ },[term,isDj,room?.room,mixNonce]);
 
  /* ── realtime room ── */
  useEffect(()=>{
@@ -296,16 +300,34 @@ export default function UndergroundFM({locale="en"}){
  };
 
  /* ── audio ── */
+ // Two decks, like a DJ: when the room moves on while this device is playing, the new song comes in on the other
+ // deck and the two are blended with equal-power curves over CROSSFADE_MS. The server starts queued songs early for it.
+ const finishFade=()=>{const job=fadeJob.current;if(!job)return;clearInterval(job.timer);fadeJob.current=null;job.from.pause();job.from.removeAttribute("src");job.from.load();job.from.volume=volRef.current;if(job.to)job.to.volume=volRef.current;};
+ const crossfade=(from,to)=>{
+  finishFade();
+  const t0=performance.now(),job={from,to,timer:0};fadeJob.current=job;
+  job.timer=setInterval(()=>{
+   const k=Math.min(1,(performance.now()-t0)/CROSSFADE_MS),v=volRef.current;
+   from.volume=v*Math.cos(k*Math.PI/2);if(to)to.volume=v*Math.sin(k*Math.PI/2);
+   if(k>=1)finishFade();
+  },50);
+  if(!motionOff)stage.current?.react("spark");
+ };
  useEffect(()=>{
-  const a=audio.current;if(!a)return;
-  a.volume=volume/100;
-  if(!current){a.pause();streamTrackId.current=null;setPlaying(false);return;}
+  let a=audio.current;if(!a)return;
+  if(!current){finishFade();a.pause();streamTrackId.current=null;setPlaying(false);return;}
   if(streamTrackId.current!==current.id){
-   streamTrackId.current=current.id;if(!analyser.current)a.crossOrigin="anonymous";a.src="https://api.audius.co/v1/tracks/"+encodeURIComponent(current.id)+"/stream";
+   const old=a,mixing=Boolean(room?.track&&streamTrackId.current&&!old.paused&&!old.ended&&old.currentTime>0);
+   if(mixing){finishFade();a=old===deckA.current?deckB.current:deckA.current;audio.current=a;a.volume=0;}
+   else a.volume=volRef.current;
+   streamTrackId.current=current.id;if(a.dataset.nocors!=="1")a.crossOrigin="anonymous";a.src="https://api.audius.co/v1/tracks/"+encodeURIComponent(current.id)+"/stream";
+   if(mixing){
+    a.addEventListener("canplay",()=>{ensureAnalyser(a);a.play().then(()=>crossfade(old,a)).catch(()=>{crossfade(old,null);setNotice("The next song is on. Tap ▶ to keep listening on this device.");});},{once:true});
+   }
    // joining (a click) or coming back from a refresh: pick the room's song up where it is. Browsers may refuse
    // without a fresh tap; then the play button says so.
-   if(room?.track&&(autoPlay.current||listening.current)){autoPlay.current=false;a.addEventListener("canplay",()=>{a.play().catch(()=>setNotice("The song is still playing for the room. Tap ▶ to keep listening on this device."));},{once:true});}
-   a.load();setPlaying(false);setLiked(false);
+   else if(room?.track&&(autoPlay.current||listening.current)){autoPlay.current=false;a.addEventListener("canplay",()=>{a.play().catch(()=>setNotice("The song is still playing for the room. Tap ▶ to keep listening on this device."));},{once:true});}
+   a.load();if(!mixing)setPlaying(false);setLiked(false);
   }
   const sync=()=>{
    if(!room?.startedAt||!a.duration||!Number.isFinite(a.duration))return;
@@ -315,6 +337,7 @@ export default function UndergroundFM({locale="en"}){
   a.addEventListener("loadedmetadata",sync);sync();
   return ()=>a.removeEventListener("loadedmetadata",sync);
  },[current?.id,room?.startedAt]);
+ useEffect(()=>()=>{const job=fadeJob.current;if(job)clearInterval(job.timer);},[]);
  useEffect(()=>{
   if(!room||isDj||requestText.trim().length<2){setRequestMatches([]);setRequestSearching(false);return;}
   const signal=new AbortController();
@@ -378,26 +401,24 @@ export default function UndergroundFM({locale="en"}){
   if(loadingMore||!hasMore)return;
   setLoadingMore(true);
   try{
-   const res=await fetch("/api/underground/tracks?page="+(page+1)+(term?"&q="+encodeURIComponent(term):""),{cache:"no-store"});
+   const res=await fetch("/api/underground/tracks?page="+(page+1)+"&seed="+mixSeed.current+(term?"&q="+encodeURIComponent(term):""),{cache:"no-store"});
    if(!res.ok)throw new Error("Could not load more tracks.");
    const payload=await res.json();
-   setTracks(old=>{const ids=new Set(old.map(t=>t.id));return [...old,...shuffle(payload.tracks||[]).filter(t=>!ids.has(t.id))];});
+   setTracks(old=>{const ids=new Set(old.map(t=>t.id));return [...old,...(payload.tracks||[]).filter(t=>!ids.has(t.id))];});
    setPage(page+1);setHasMore(Boolean(payload.hasMore));
   }catch(e){setNotice(e.message);}finally{setLoadingMore(false);}
  };
- const chooseDiscoverTab=selected=>{setDiscoverTab(selected);setQuery("");setTerm(DISCOVER_TERMS[selected]||"");};
+ const chooseDiscoverTab=selected=>{setDiscoverTab(selected);setQuery("");setTerm(selected in DISCOVER_TERMS?DISCOVER_TERMS[selected]:selected);};
  const scrollRail=dir=>{const el=rail.current;if(el)el.scrollBy({left:dir*el.clientWidth*.8,behavior:motionOff?"auto":"smooth"});};
  const onRailScroll=e=>{const el=e.currentTarget;if(el.scrollLeft+el.clientWidth>el.scrollWidth-240)loadMore();};
  // Audius streams send CORS headers, so the browser can analyse the real audio and drive the lights with it.
  // createMediaElementSource is once-per-element; afterwards the element always plays through this graph.
- const ensureAnalyser=()=>{
-  const a=audio.current;
-  if(a&&!analyser.current&&a.crossOrigin==="anonymous"){
+ const ensureAnalyser=(a=audio.current)=>{
+  if(a&&!sources.current.has(a)&&a.crossOrigin==="anonymous"){
    try{
     const Ctx=window.AudioContext||window.webkitAudioContext,ctx=actx.current||(actx.current=new Ctx());
-    const src=ctx.createMediaElementSource(a),an=ctx.createAnalyser();
-    an.fftSize=1024;an.smoothingTimeConstant=.7;src.connect(an);an.connect(ctx.destination);
-    analyser.current=an;stage.current?.audio(an);spectrum.current?.audio(an);
+    if(!analyser.current){const an=ctx.createAnalyser();an.fftSize=1024;an.smoothingTimeConstant=.7;an.connect(ctx.destination);analyser.current=an;stage.current?.audio(an);spectrum.current?.audio(an);}
+    const src=ctx.createMediaElementSource(a);src.connect(analyser.current);sources.current.set(a,src);
    }catch{}
   }
   actx.current?.resume?.().catch(()=>{});
@@ -482,7 +503,7 @@ export default function UndergroundFM({locale="en"}){
  const selectGenre=genre=>{
   setHeroGenre(genre);
   if(room&&!isDj){setRequestText(genre);setRequestSent(null);setTab("music");return;}
-  setQuery(genre);setTerm(genre);
+  setQuery("");setTerm(genre);setDiscoverTab(genre);
  };
  const chooseDiscovery=type=>{setRequestSent(null);setRequestText(({"Underground Picks":"underground","This Week":"new music","Global Sounds":"world music","Deep & Dreamy":"ambient chill"})[type]||type);};
  const toggleMotion=()=>setMotionPref(!motionOff);
@@ -511,7 +532,7 @@ export default function UndergroundFM({locale="en"}){
     <Icon name="search"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search artists, tracks, moods…" aria-label="Search music"/>
    </form>
   </header>
-  <div className="fx-chips" role="group" aria-label="Explore music by mood">{DISCOVER_TABS.map(item=><button type="button" key={item} onClick={()=>chooseDiscoverTab(item)} aria-pressed={item===discoverTab}>{item}</button>)}</div>
+  <div className="fx-chips" role="group" aria-label="Explore music by mood">{DISCOVER_TABS.map(item=><button type="button" key={item} onClick={()=>chooseDiscoverTab(item)} aria-pressed={item===discoverTab}>{item}</button>)}<button type="button" className="fx-remix" onClick={()=>{rail.current?.scrollTo({left:0});setMixNonce(n=>n+1);}} disabled={loading} aria-label="Shuffle a new mix"><Icon name="pass"/>NEW MIX</button></div>
   <div className="fx-rail-wrap">
    <button type="button" className="fx-rail-arrow" onClick={()=>scrollRail(-1)} aria-label="Scroll tracks left"><Icon name="left"/></button>
    <div className="fx-rail" ref={rail} onScroll={onRailScroll} role="list">
@@ -597,12 +618,21 @@ export default function UndergroundFM({locale="en"}){
        <canvas ref={specCv} className="fx-wave" aria-hidden="true"/>
        <div className="fx-progress"><div className="fx-progress-track"><span style={{width:current&&duration?clamp(time/duration*100,0,100)+"%":room?.track?clamp((time%180)/180*100,0,100)+"%":"0%"}}/></div><small>{clockFmt(time)} {duration?"/ "+clockFmt(duration):current?"/ LIVE":"/ 0:00"}</small></div>
        <div className="fx-player"><button type="button" onClick={togglePlay} disabled={!current} className="fx-play" aria-label={playing?"Pause audio":"Play audio"}><Icon name={playing?"pause":"play"}/></button><span className="fx-player-hint">Tap to {playing?"pause":"listen"} on this device</span>
-        <label className="fx-volume"><Icon name="volume"/><input type="range" min="0" max="100" value={volume} onChange={e=>{const value=Number(e.target.value);setVolume(value);if(audio.current)audio.current.volume=value/100;}} aria-label="Volume"/><output>{volume}%</output></label></div>
+        <label className="fx-volume"><Icon name="volume"/><input type="range" min="0" max="100" value={volume} onChange={e=>{const value=Number(e.target.value);setVolume(value);volRef.current=value/100;if(!fadeJob.current)for(const d of [deckA.current,deckB.current])if(d)d.volume=value/100;}} aria-label="Volume"/><output>{volume}%</output></label></div>
       </div>
      </div>
-     <audio ref={audio} preload="none" onPlay={()=>{setPlaying(true);listening.current=true;}} onPause={()=>setPlaying(false)} onEnded={()=>{setPlaying(false);const id=current?.id;if(!room||!id)return;
-      // the server starts the next queued song for everyone; only an empty queue falls back to the controller's library
-      socket.current?.emit("fm:ended",{id},ack=>{if(!ack?.advanced&&isDj&&!room.queue?.length)nextTrack();});}} onError={e=>{const a=e.currentTarget;if(a.crossOrigin&&!analyser.current){a.removeAttribute("crossorigin");a.load();return;}setNotice("Track unavailable for external Audius streaming.");}} crossOrigin="anonymous"/>
+     {[deckA,deckB].map((deck,n)=><audio key={n} ref={el=>{deck.current=el;if(n===0&&!audio.current)audio.current=el;}} className={"fx-deck-"+(n?"b":"a")} preload="none" crossOrigin="anonymous"
+      onPlay={e=>{if(e.currentTarget!==audio.current)return;setPlaying(true);listening.current=true;}}
+      onPause={e=>{if(e.currentTarget===audio.current)setPlaying(false);}}
+      onTimeUpdate={e=>{
+       // with nothing queued, the controller's device picks the next song from the crates in time to mix into it
+       const el=e.currentTarget;if(el!==audio.current||!isDj||!room||!current||room.track?.id!==current.id||queue.length)return;
+       if(el.duration>CROSSFADE_MS*3/1000&&el.duration-el.currentTime<CROSSFADE_MS/1000+1&&earlyNext.current!==current.id){earlyNext.current=current.id;nextTrack();}
+      }}
+      onEnded={e=>{if(e.currentTarget!==audio.current)return;setPlaying(false);const id=current?.id;if(!room||!id)return;
+       // the server starts the next queued song for everyone; only an empty queue falls back to the controller's library
+       socket.current?.emit("fm:ended",{id},ack=>{if(!ack?.advanced&&isDj&&!room.queue?.length)nextTrack();});}}
+      onError={e=>{const el=e.currentTarget;if(el!==audio.current||!el.getAttribute("src"))return;if(el.crossOrigin&&!sources.current.has(el)){el.removeAttribute("crossorigin");el.dataset.nocors="1";el.load();return;}setNotice("Track unavailable for external Audius streaming.");}}/>)}
     </section>
 
     <section className={"fx-panel fx-reactor fx-reactor-"+hottest} data-pane="show" aria-label={room?"Room heat, "+heatScore+" percent":"Room heat, waiting for listeners"}>

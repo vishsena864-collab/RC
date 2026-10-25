@@ -45,7 +45,8 @@ const hueFor = (id) => handleHash(id + "hue") % 360;
 const defaultLights = () => ({theme:"infrared",fx:"sweep",intensity:2,auto:true,beatBpm:116,updatedAt:Date.now(),showMoment:null});
 
 // djHoldMs: how long the controller seat (and an otherwise empty room) is kept for a controller who dropped or refreshed.
-export function createUnderground(io, { djHoldMs = 15000 } = {}) {
+// crossfadeMs: the next queued song starts this long before the current one ends, so devices blend the two like a DJ.
+export function createUnderground(io, { djHoldMs = 15000, crossfadeMs = 8000 } = {}) {
   const rooms = new Map();
   // Stage names follow the tab key when the client sends one, so a refresh keeps the same name.
   const who = new Map();
@@ -323,7 +324,11 @@ export function createUnderground(io, { djHoldMs = 15000 } = {}) {
         handOver(room);publish(room);
       }
       // keep the set going even when nobody's device reports the end of the song
-      if(room.track?.duration && room.queue.length && now > room.startedAt + room.track.duration*1000 + SKIP_GRACE_MS) advance(room);
+      // songs long enough to mix start the next one early for the crossfade; short clips wait for their end
+      if(room.track?.duration && room.queue.length){
+        const length=room.track.duration*1000, lead=length > crossfadeMs*3 ? crossfadeMs : -SKIP_GRACE_MS;
+        if(now > room.startedAt + length - lead) advance(room);
+      }
       if(room.members.size<2 || !room.dj) continue;
       if(Date.now()-room.djSince<DJ_TURN_MS) continue;
       const order=[...room.members];
