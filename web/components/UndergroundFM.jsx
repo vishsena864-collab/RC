@@ -58,6 +58,10 @@ const clamp=(n,min,max)=>Math.max(min,Math.min(n,max));
 const clockFmt=seconds=>!Number.isFinite(seconds)?"0:00":Math.floor(Math.max(0,seconds)/60)+":"+String(Math.floor(Math.max(0,seconds)%60)).padStart(2,"0");
 const fmtListeners=n=>Number(n||0).toLocaleString("en-US");
 const hideBroken=e=>{e.currentTarget.style.display="none";};
+// Per-tab memory (sessionStorage survives a refresh, not a closed tab): which room we're in, and a key that lets
+// a refreshing controller reclaim the aux. Storage can be blocked, so every access is guarded.
+const SS={get(k){try{return JSON.parse(sessionStorage.getItem(k));}catch{return null;}},set(k,v){try{v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,JSON.stringify(v));}catch{}}};
+const tabKey=()=>{let k=SS.get("fm:key");if(typeof k!=="string"||!/^[a-z0-9]{12}$/.test(k)){k=Array.from(crypto.getRandomValues(new Uint8Array(12)),b=>(b%36).toString(36)).join("");SS.set("fm:key",k);}return k;};
 
 function Icon({name}){
  const p={fill:"none",stroke:"currentColor",strokeWidth:1.8,strokeLinecap:"round",strokeLinejoin:"round"};
@@ -130,7 +134,7 @@ export default function UndergroundFM({locale="en"}){
  const [preview,setPreview]=useState(null),[connected,setConnected]=useState(false),[room,setRoom]=useState(null),[isDj,setIsDj]=useState(false),[me,setMe]=useState(null),[messages,setMessages]=useState([]),[draft,setDraft]=useState(""),[playing,setPlaying]=useState(false),[clock,setClock]=useState(Date.now());
  const [volume,setVolume]=useState(80),[liked,setLiked]=useState(false),[reactions,setReactions]=useState([]),[reduced,setReduced]=useState(false),[motionPref,setMotionPref]=useState(null);
  const [selectedTrack,setSelectedTrack]=useState(null),[page,setPage]=useState(0),[hasMore,setHasMore]=useState(true),[loadingMore,setLoadingMore]=useState(false),[requestText,setRequestText]=useState(""),[discoverTab,setDiscoverTab]=useState("For You"),[moodBurst,setMoodBurst]=useState(null),[pulses,setPulses]=useState({energy:0,love:0,chill:0}),[voteBusy,setVoteBusy]=useState(false),[heroGenre,setHeroGenre]=useState("Electronic"),[requestMatches,setRequestMatches]=useState([]),[requestSearching,setRequestSearching]=useState(false),[requestSent,setRequestSent]=useState(null),[tab,setTab]=useState("show"),[showGuide,setShowGuide]=useState(false),[showTune,setShowTune]=useState(false),[cooldownKey,setCooldownKey]=useState(0),[reconnecting,setReconnecting]=useState(false),[inviteRoom,setInviteRoom]=useState(null);
- const socket=useRef(null),audio=useRef(null),streamTrackId=useRef(null),joining=useRef(false),wantsRoom=useRef(false),lastVoteAt=useRef(0),stageCv=useRef(null),overlayCv=useRef(null),stage=useRef(null),overlay=useRef(null),rail=useRef(null),chatList=useRef(null),lastRoom=useRef(null),shellRef=useRef(null),photoRef=useRef(null),specCv=useRef(null),spectrum=useRef(null),actx=useRef(null),analyser=useRef(null);
+ const socket=useRef(null),audio=useRef(null),streamTrackId=useRef(null),joining=useRef(false),wantsRoom=useRef(false),lastVoteAt=useRef(0),stageCv=useRef(null),overlayCv=useRef(null),stage=useRef(null),overlay=useRef(null),rail=useRef(null),chatList=useRef(null),lastRoom=useRef(null),autoPlay=useRef(false),shellRef=useRef(null),photoRef=useRef(null),specCv=useRef(null),spectrum=useRef(null),actx=useRef(null),analyser=useRef(null);
  const motionOff=motionPref===null?reduced:motionPref;
  const fx=room?.lights||defaults;
  const theme=THEMES.find(t=>t.id===fx.theme)||THEMES[0];
@@ -200,6 +204,9 @@ export default function UndergroundFM({locale="en"}){
   if(!SERVER_URL || /^http:\/\/localhost/i.test(SERVER_URL)&&location.hostname!=="localhost"){
     setNotice("Live rooms are offline until the ChatSpark real-time server is deployed.");return;
   }
+  // after a refresh, rejoin the same room straight away (the music never stopped for everyone else)
+  const saved=SS.get("fm:room");
+  if(saved?.room&&ROOMS[saved.room]){lastRoom.current=saved;wantsRoom.current=true;autoPlay.current=true;setReconnecting(true);}
   const s=io(SERVER_URL,{path:SOCKET_PATH,transports:["websocket","polling"],autoConnect:true,reconnection:true,reconnectionAttempts:Infinity,reconnectionDelayMax:6000,timeout:9000});
   socket.current=s;
   // Hosts can drop a realtime connection at any time (serverless functions close sockets after a few minutes).
@@ -208,7 +215,7 @@ export default function UndergroundFM({locale="en"}){
    setConnected(true);setNotice("");
    if(!wantsRoom.current)return;
    const last=lastRoom.current;
-   s.emit("fm:join",last?{room:last.room,seed:{track:last.track,startedAt:last.startedAt,lights:last.lights}}:{},ack=>{
+   s.emit("fm:join",{key:tabKey(),...(last?{room:last.room,seed:{track:last.track,startedAt:last.startedAt,lights:last.lights}}:{})},ack=>{
     setReconnecting(false);
     if(ack?.ok)setMe({handle:ack.handle,hue:ack.hue});
     else{wantsRoom.current=false;setRoom(null);setIsDj(false);setNotice("Room unavailable after reconnection. Tap Enter the room again.");}
@@ -216,7 +223,7 @@ export default function UndergroundFM({locale="en"}){
   });
   s.on("disconnect",()=>{setConnected(false);if(wantsRoom.current)setReconnecting(true);else setRoom(null);});
   s.on("connect_error",()=>setNotice("Live rooms are offline. Solo Audius discovery is still available."));
-  s.on("fm:state",data=>{setRoom(data);setIsDj(data.dj===s.id);lastRoom.current={room:data.room,track:data.track,startedAt:data.startedAt,lights:data.lights};
+  s.on("fm:state",data=>{setRoom(data);setIsDj(data.dj===s.id);lastRoom.current={room:data.room,track:data.track,startedAt:data.startedAt,lights:data.lights};SS.set("fm:room",lastRoom.current);
    try{const u=new URL(location.href);if(u.searchParams.get("room")!==data.room){u.searchParams.set("room",data.room);history.replaceState(history.state,"",u);}}catch{}});
   s.on("fm:chat",entry=>setMessages(v=>[...v.slice(-79),entry]));
   s.on("fm:reaction",entry=>{setReactions(v=>[...v.slice(-11),{...entry,id:Math.random()}]);stage.current?.react(entry.kind);});
@@ -245,6 +252,9 @@ export default function UndergroundFM({locale="en"}){
   if(!current){a.pause();streamTrackId.current=null;setPlaying(false);return;}
   if(streamTrackId.current!==current.id){
    streamTrackId.current=current.id;if(!analyser.current)a.crossOrigin="anonymous";a.src="https://api.audius.co/v1/tracks/"+encodeURIComponent(current.id)+"/stream";
+   // joining (a click) or coming back from a refresh: pick the room's song up where it is. Browsers may refuse
+   // without a fresh tap; then the play button says so.
+   if(room?.track&&autoPlay.current){autoPlay.current=false;a.addEventListener("canplay",()=>{a.play().catch(()=>setNotice("The song is still playing for the room. Tap ▶ to keep listening on this device."));},{once:true});}
    a.load();setPlaying(false);setLiked(false);
   }
   const sync=()=>{
@@ -276,11 +286,12 @@ export default function UndergroundFM({locale="en"}){
   if(!connected||joining.current)return;
   joining.current=true;wantsRoom.current=true;setMessages([]);setReactions([]);
   const code=lastRoom.current?.room||inviteRoom;
-  socket.current?.emit("fm:join",code?{room:code}:{},ack=>{joining.current=false;if(ack?.ok)setMe({handle:ack.handle,hue:ack.hue});else{wantsRoom.current=false;setNotice("All rooms are full. Try again shortly.");}});
+  autoPlay.current=true;
+  socket.current?.emit("fm:join",{key:tabKey(),...(code?{room:code}:{})},ack=>{joining.current=false;if(ack?.ok)setMe({handle:ack.handle,hue:ack.hue});else{wantsRoom.current=false;setNotice("All rooms are full. Try again shortly.");}});
   setTimeout(()=>{joining.current=false;},8000);
  };
  const leave=()=>{
-  wantsRoom.current=false;lastRoom.current=null;setInviteRoom(null);setReconnecting(false);
+  wantsRoom.current=false;lastRoom.current=null;setInviteRoom(null);setReconnecting(false);SS.set("fm:room",null);
   try{const u=new URL(location.href);u.searchParams.delete("room");history.replaceState(history.state,"",u);}catch{}
   socket.current?.emit("fm:leave");
   audio.current?.pause();setRoom(null);setIsDj(false);setPlaying(false);setMessages([]);setNotice("");setSelectedTrack(null);setTab("show");
@@ -474,7 +485,7 @@ export default function UndergroundFM({locale="en"}){
     </div>
     <div className={"fx-ctrl-card fx-ctrl-card-"+view}>
      {view==="controller"&&<><span className="fx-ctrl-kicker"><Icon name="crown"/>YOU ARE THE CONTROLLER</span><p>Pick the music, set the energy and shape the night for everyone in the room.</p><small>{turnLeft!==null?"AUX ROTATES IN "+clockFmt(turnLeft):"THE AUX CHANGES HANDS"}</small><div className="fx-card-btns"><button type="button" className="fx-invite" onClick={invite}><Icon name="send"/>INVITE</button><button type="button" className="fx-leave" onClick={leave}>LEAVE ROOM</button></div></>}
-     {view==="listener"&&<><span className="fx-ctrl-kicker"><Icon name="crown"/>CURRENT CONTROLLER</span><div className="fx-ctrl-who"><Avatar hue={room.djHue} label={room.djHandle} size="lg"/><strong>{room.djHandle||"a stranger"}</strong></div><p>Controlling the vibe right now.</p><small>{turnLeft!==null?"ROTATES IN "+clockFmt(turnLeft):"THE AUX CHANGES HANDS"}</small><div className="fx-card-btns"><button type="button" className="fx-invite" onClick={invite}><Icon name="send"/>INVITE</button><button type="button" className="fx-leave" onClick={leave}>LEAVE ROOM</button></div></>}
+     {view==="listener"&&<><span className="fx-ctrl-kicker"><Icon name="crown"/>CURRENT CONTROLLER</span><div className="fx-ctrl-who"><Avatar hue={room.djHue} label={room.djHandle} size="lg"/><strong>{room.djHold?"Reconnecting…":room.djHandle||"a stranger"}</strong></div><p>{room.djHold?"The controller is coming back. The music keeps playing.":"Controlling the vibe right now."}</p><small>{turnLeft!==null?"ROTATES IN "+clockFmt(turnLeft):"THE AUX CHANGES HANDS"}</small><div className="fx-card-btns"><button type="button" className="fx-invite" onClick={invite}><Icon name="send"/>INVITE</button><button type="button" className="fx-leave" onClick={leave}>LEAVE ROOM</button></div></>}
      {view==="discover"&&<><span className="fx-ctrl-kicker"><Icon name="headphones"/>PICK A TRACK. FIND YOUR PEOPLE.</span><p>{inviteRoom?"You were invited to "+ROOMS[inviteRoom][0]+". Join the same room, same song, same lights.":"Enter a live room to meet strangers, take the aux and light up the night."}</p><button type="button" className="fx-join" onClick={join} disabled={!connected}>{connected?(inviteRoom?"JOIN "+ROOMS[inviteRoom][0].toUpperCase()+" ↗":"ENTER THE ROOM ↗"):"ROOMS OFFLINE"}</button></>}
     </div>
    </section>
@@ -494,7 +505,9 @@ export default function UndergroundFM({locale="en"}){
         <label className="fx-volume"><Icon name="volume"/><input type="range" min="0" max="100" value={volume} onChange={e=>{const value=Number(e.target.value);setVolume(value);if(audio.current)audio.current.volume=value/100;}} aria-label="Volume"/><output>{volume}%</output></label></div>
       </div>
      </div>
-     <audio ref={audio} preload="none" onPlay={()=>setPlaying(true)} onPause={()=>setPlaying(false)} onEnded={()=>{setPlaying(false);if(isDj&&room)nextTrack();}} onError={e=>{const a=e.currentTarget;if(a.crossOrigin&&!analyser.current){a.removeAttribute("crossorigin");a.load();return;}setNotice("Track unavailable for external Audius streaming.");}} crossOrigin="anonymous"/>
+     <audio ref={audio} preload="none" onPlay={()=>setPlaying(true)} onPause={()=>setPlaying(false)} onEnded={()=>{setPlaying(false);const id=current?.id;if(!room||!id)return;
+      // the server starts the next queued song for everyone; only an empty queue falls back to the controller's library
+      socket.current?.emit("fm:ended",{id},ack=>{if(!ack?.advanced&&isDj&&!room.queue?.length)nextTrack();});}} onError={e=>{const a=e.currentTarget;if(a.crossOrigin&&!analyser.current){a.removeAttribute("crossorigin");a.load();return;}setNotice("Track unavailable for external Audius streaming.");}} crossOrigin="anonymous"/>
     </section>
 
     <section className={"fx-panel fx-reactor fx-reactor-"+hottest} data-pane="show" aria-label={room?"Room heat, "+heatScore+" percent":"Room heat, waiting for listeners"}>
@@ -512,7 +525,7 @@ export default function UndergroundFM({locale="en"}){
 
     <aside className="fx-panel fx-chat" data-pane="chat" aria-label="Room chat"><div className="fx-chat-inner">
      <header className="fx-panel-head"><h2>Room Chat</h2><span className="fx-dim">{room?.listeners||0} here</span></header>
-     <div className="fx-messages" ref={chatList} role="log" aria-live="polite" aria-label="Room conversation">{messages.length?messages.map((msg,i)=><div className={"fx-msg"+(msg.from==="REQUEST"?" is-request":"")+(msg.from==="DJ"?" is-dj":"")} key={msg.at+"-"+i}>
+     <div className="fx-messages" ref={chatList} role="log" aria-live="polite" aria-label="Room conversation">{messages.length?messages.map((msg,i)=>msg.from==="SYSTEM"?<p className="fx-msg-system" key={msg.at+"-"+i}>{msg.text}</p>:<div className={"fx-msg"+(msg.from==="REQUEST"?" is-request":"")+(msg.from==="DJ"?" is-dj":"")} key={msg.at+"-"+i}>
       <Avatar hue={msg.hue??200} label={msg.handle||"?"} crown={msg.from==="DJ"}/>
       <div><header><b>{msg.handle||"stranger"}{me&&msg.handle===me.handle?" (you)":""}</b>{msg.from==="DJ"&&<em>CONTROLLER</em>}<time>{new Date(msg.at).toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"})}</time></header><p>{msg.text}</p></div>
      </div>):<div className="fx-empty-chat"><strong>Every good night starts with a hello.</strong><p>{room?"Be the first to say hello. Everyone in this room can chat.":"Enter a room to meet the people behind the music."}</p></div>}</div>

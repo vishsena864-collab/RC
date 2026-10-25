@@ -25,6 +25,12 @@ Music streams directly from Audius to each visitor's browser. ChatSpark doesn't 
 4. Optional `AUDIUS_API_KEY` on Vercel, server-side, raises API limits; discovery may work keyless under current Audius read endpoints.
 5. Test with two browsers: join same room, only DJ can play, listeners can queue, leave deletes rooms when empty. Browser playback requires a user gesture on mobile.
 
+## Controller handover
+- The song is room state: nobody leaving stops it. LEAVE ROOM hands the aux to another listener at once (chat shows "♛ name has the aux now").
+- A refresh or dropped connection holds the controller seat for 15s (`fmDjHoldMs`); the same tab (per-tab key in sessionStorage) rejoins automatically, gets the aux back with the same stage name, and its queue is kept. An empty room is held too, and random joiners are never placed into a held empty room. If the controller does not return, the aux passes on.
+- Queued songs advance on the server: any listener whose audio ends reports `fm:ended`, and a 1s timer advances overdue tracks, so the set continues even when the controller's device is silent.
+- Joining (or returning after a refresh) starts the room's song at its current position once the stream can play; if the browser blocks autoplay, a notice asks for one tap.
+
 ## Reconnects and invite links
 - A dropped realtime connection (e.g. the Vercel adapter's 5-minute function cap, a restart, mobile backgrounding) no longer clears the room: the song keeps playing, the LIVE badge reads RECONNECTING…, and the client rejoins the same room code with a snapshot (track, start time, lights). If the server lost the room it is rebuilt from that snapshot; a snapshot never overrides a room that still exists.
 - The room code is kept in the URL (`?room=STATIC`). INVITE copies/shares it; opening it joins that room.
