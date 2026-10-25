@@ -9,7 +9,7 @@ const DJ_TURN_MS = 4 * 60_000;
 const COLOR_THEMES = ["acid","infrared","ultraviolet","ocean","gold","rose","midnight","toxic"];
 const FX_MODES = ["pulse","march","sweep","crossfire","tunnel","bloom","drift","cone","matrix","chase","follow"];
 const MOODS = ["energy","chill","love"];
-const REACTIONS = ["heart","fire","spark","wave"];
+const REACTIONS = ["heart","fire","spark","wave","party","hands"];
 const HEAT_STEP = {energy:14,love:7,chill:-13};
 const HEAT_DECAY_MS = 18000;
 const CLIENT_KEY = /^[a-zA-Z0-9_-]{8,40}$/;
@@ -84,7 +84,7 @@ export function createUnderground(io, { djHoldMs = 15000 } = {}) {
     if (room.members.size === 0 && !room.hold) { rooms.delete(code); return; }
     publish(room);
   };
-  const newRoom = (code) => ({code,members:new Set(),keys:new Map(),hold:null,dj:null,djSince:Date.now(),track:null,startedAt:null,queue:[],lights:defaultLights(),mood:{energy:0,chill:0,love:0},moodAt:Date.now(),heatValue:50,heatAt:Date.now(),reactionAt:new Map(),reactionCounts:{heart:0,fire:0,spark:0,wave:0},lastMood:new Map(),lastMoment:0,cues:null,cueAt:new Map()});
+  const newRoom = (code) => ({code,members:new Set(),keys:new Map(),hold:null,dj:null,djSince:Date.now(),track:null,startedAt:null,queue:[],lights:defaultLights(),mood:{energy:0,chill:0,love:0},moodAt:Date.now(),heatValue:50,heatAt:Date.now(),reactionAt:new Map(),reactionCounts:{heart:0,fire:0,spark:0,wave:0,party:0,hands:0},lastMood:new Map(),lastMoment:0,cues:null,cueAt:new Map()});
   // A client that lost its connection (or a host instance that restarted) sends what it was hearing, so the room it
   // asks for comes back with the same song, position and lights instead of empty. Only used when the room is gone.
   const restore = (room, seed) => {
@@ -280,10 +280,10 @@ export function createUnderground(io, { djHoldMs = 15000 } = {}) {
     socket.on("fm:reaction", (reaction,ack) => {
       const room=rooms.get(bySocket.get(socket.id));
       if (!room || !REACTIONS.includes(reaction)) return ack?.({ok:false,error:"invalid"});
-      if (Date.now()-(room.reactionAt.get(socket.id)||0)<1800) return ack?.({ok:false,error:"cooldown"});
+      if (Date.now()-(room.reactionAt.get(socket.id)||0)<700) return ack?.({ok:false,error:"cooldown"});
       room.reactionAt.set(socket.id,Date.now());
       room.reactionCounts[reaction]=Math.min(9999,(room.reactionCounts[reaction]||0)+1);
-      io.to("fm:"+room.code).emit("fm:reaction",{kind:reaction,at:Date.now(),count:room.reactionCounts[reaction]});
+      io.to("fm:"+room.code).emit("fm:reaction",{kind:reaction,at:Date.now(),count:room.reactionCounts[reaction],handle:name(socket.id)});
       publish(room);
       ack?.({ok:true});
     });

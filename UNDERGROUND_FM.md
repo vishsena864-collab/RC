@@ -43,6 +43,13 @@ The header shows who is in the room (`people` in `fm:state`) and the next queued
 (at most every 1.5 s per person; the server relays it to the others). When new lines arrive while someone is
 reading older ones, a "new messages" button takes them back down instead of yanking the scroll.
 
+Emoji are animated: 36 of Google's Noto Animated Emoji (CC BY 4.0, credited in the picker) are self-hosted as
+96px WebP in `web/public/underground/emoji` (about 1.7 MB in all, loaded only when shown), each with a still frame
+used for reduced motion and the picker. `web/lib/emoji.js` swaps those emoji in messages for the animation; a line
+of one to three emoji is shown big without a bubble. Reactions (heart, fire, sparkles, wave, party, raised hands;
+700 ms cooldown per person) pop with a burst, wake up when the room uses them and float up the chat on a sway with
+the sender's name.
+
 The queue plays itself: when a song ends the server starts the next one (`fm:ended`, with a timer as backup),
 and every device that was already listening keeps playing the new song without another tap. A song requested or
 queued while the room is silent (nothing loaded, or the last song ran out) starts at once.

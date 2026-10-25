@@ -295,7 +295,7 @@ export const photoFit = (w, h) => {
   if (dw < w) { dw = w; dh = dw * P.ratio; }
   return { P, src: w * (window.devicePixelRatio || 1) > 1400 || P === PHOTOS.tall && h * (window.devicePixelRatio || 1) > 1600 ? P.src : P.small, dw, dh, ox: (w - dw) / 2, oy: clamp(h * .33 - P.dj[1] * dh, h - dh, 0) };
 };
-const REACT_RGB = { heart: [255, 40, 150], fire: [255, 110, 20], spark: [255, 250, 235], wave: [40, 200, 255] };
+const REACT_RGB = { heart: [255, 40, 150], fire: [255, 110, 20], spark: [255, 250, 235], wave: [40, 200, 255], party: [190, 90, 255], hands: [255, 200, 40] };
 
 /* ───────────────────────── the concert rig ───────────────────────── */
 // photo: the venue photograph sits behind the canvas, so draw light only (no backdrop, truss, LED wall or crowd).

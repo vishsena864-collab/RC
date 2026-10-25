@@ -60,6 +60,14 @@ try{
  await b.getByLabel('Message the room').fill('Late night test signal');await a.locator('.fx-typing .fx-dots').waitFor();
  await btn(b,'Send message').click();await a.getByText('Late night test signal',{exact:true}).waitFor();
  await b.locator('.fx-msg.is-me').filter({hasText:'Late night test signal'}).waitFor();assert.equal(await a.locator('.fx-msg.is-me').filter({hasText:'Late night test signal'}).count(),0);
+ // animated emoji: picker inserts at the caret, emoji-only lines go big, reactions pop and count
+ await btn(b,'Add an emoji').click();await b.locator('.fx-emo-picker button[aria-label="fire"]').click();await b.locator('.fx-emo-picker button[aria-label="party"]').click();
+ assert.equal(await b.getByLabel('Message the room').inputValue(),'🔥🎉');await btn(b,'Send message').click();
+ await a.locator('.fx-msg.is-jumbo img.fx-emo[alt="🔥"]').waitFor();
+ assert.equal(await a.locator('.fx-msg.is-jumbo img.fx-emo').evaluateAll(els=>els.every(e=>e.complete&&e.naturalWidth>0)),true,'animated emoji load');
+ await a.locator('.fx-chat').getByRole('button',{name:'React party',exact:true}).click();
+ await b.locator('.fx-float img.fx-emo').first().waitFor();
+ await b.waitForFunction(()=>[...document.querySelectorAll('.fx-chat .fx-react-bar b')].some(el=>el.textContent==='1'));
  await b.getByLabel('Song or artist',{exact:true}).fill('Soft');await b.locator('.fx-request-results button').filter({hasText:tracks[1].title}).click();
  await a.locator('.fx-queue-item').filter({hasText:tracks[1].title}).waitFor();await a.locator('.fx-msg-req').filter({hasText:tracks[1].title}).waitFor();
  await a.getByRole('button',{name:'Play '+tracks[1].title+' now',exact:true}).click();await b.getByRole('heading',{name:tracks[1].title,exact:true}).waitFor();
@@ -99,5 +107,5 @@ try{
  await b.getByRole('button',{name:'Leave room'.toUpperCase(),exact:true}).first().click({force:true}).catch(()=>{});
  await a.locator('.fx-leave').first().click({force:true}).catch(()=>{});
  assert.deepEqual(errors,[]);
- console.log('PASS: discovery, solo audio, volume, two-browser join, cover broadcast, quick queue, room-wide vote effect, heat/cooldown, guide, chat (typing, bubbles, request cards), request, play-now, next with autoplay, lights, motion toggle, pass controller, phone panes, 6 viewport widths, OS reduced motion; no browser errors.');
+ console.log('PASS: discovery, solo audio, volume, two-browser join, cover broadcast, quick queue, room-wide vote effect, heat/cooldown, guide, chat (typing, bubbles, request cards, animated emoji + picker, reactions), request, play-now, next with autoplay, lights, motion toggle, pass controller, phone panes, 6 viewport widths, OS reduced motion; no browser errors.');
 }finally{await browser.close();}

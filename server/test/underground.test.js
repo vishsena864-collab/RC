@@ -238,3 +238,16 @@ test("auto light show: the first valid cue sheet for the song on air is shared w
   assert.equal((await ask(dj, "fm:lights", { auto: false })).ok, true);
   assert.equal((await ask(dj, "fm:lights", { auto: "yes" })).error, "invalid_auto");
 });
+
+test("the new party and hands reactions count up and say who sent them", async () => {
+  const a = await client(), b = await client();
+  await ask(a, "fm:join"); const joinedB = await ask(b, "fm:join");
+  const seen = next(a, "fm:reaction");
+  assert.equal((await ask(b, "fm:reaction", "party")).ok, true);
+  const r = await seen;
+  assert.equal(r.kind, "party"); assert.equal(r.count, 1); assert.equal(r.handle, joinedB.handle);
+  assert.equal((await ask(b, "fm:reaction", "hands")).error, "cooldown");
+  await new Promise((done) => setTimeout(done, 750));
+  assert.equal((await ask(b, "fm:reaction", "hands")).ok, true);
+  assert.equal((await ask(b, "fm:reaction", "confetti")).error, "invalid");
+});
