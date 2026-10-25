@@ -5,6 +5,7 @@ import {Oswald} from "next/font/google";
 import {io} from "socket.io-client";
 import {SERVER_URL,SOCKET_PATH} from "@/lib/site";
 import {createOverlay,createSpectrum,createStage,photoFit,qualityFor} from "./underground-fx";
+import {EMOJI,REACTION_EMOJI,emojiSrc,splitEmoji,jumboCount} from "@/lib/emoji";
 import {canMapSongs,mapSong} from "@/lib/cue-runner";
 import "./underground-stage.css";
 
@@ -29,7 +30,7 @@ const MOOD_SCENES=[
  {id:"love",title:"VIBE",core:"Vibe Pulse",blurb:"Keep the current energy going strong.",cta:"Keep the Vibe",short:"Keep this energy alive"},
  {id:"chill",title:"CHILL",core:"Cool Drift",blurb:"Bring the energy down and mellow it out.",cta:"Chill It Down",short:"Ease into the afterhours"}
 ];
-const REACTIONS=[["heart","❤️"],["fire","🔥"],["spark","✨"],["wave","🌊"]];
+const REACTIONS=[["heart","❤️"],["fire","🔥"],["spark","✨"],["wave","🌊"],["party","🎉"],["hands","🙌"]];
 const ROOMS={
  STATIC:["Static Lounge","Signals from nowhere, tuned in."],
  MIDNIGHT:["The Midnight Lobby","Late night music for random souls."],
@@ -102,6 +103,11 @@ function Avatar({hue=200,label="?",crown=false,size=""}){
  return <span className={"fx-avatar "+size} style={{"--h":hue}} aria-hidden="true">{crown?<Icon name="crown"/>:String(label).charAt(0).toUpperCase()}</span>;
 }
 
+// an animated emoji (a still frame when motion is reduced)
+function Emo({code,label="",still=false,className=""}){
+ return <img className={"fx-emo "+className} src={emojiSrc(code,still)} alt={label} draggable={false} decoding="async"/>;
+}
+
 function Art({track,className=""}){
  return <span className={"fx-art "+className}>{track?.artwork?<img src={track.artwork} alt="" loading="lazy" referrerPolicy="no-referrer" onError={hideBroken}/>:<Icon name="note"/>}</span>;
 }
@@ -142,7 +148,13 @@ export default function UndergroundFM({locale="en"}){
  const autoShow=fx.auto!==false;
  // Lights off is personal: it only changes this browser, never the room's show.
  const [lightsOff,setLightsOff]=useState(false),lightsOffRef=useRef(false);
+ const [tapped,setTapped]=useState(null),[picker,setPicker]=useState(false),[hoverEmo,setHoverEmo]=useState(null),draftRef=useRef(null);
  const [unread,setUnread]=useState(0),[typing,setTyping]=useState({}),lastTypingAt=useRef(0),seenMessages=useRef(0);
+ useEffect(()=>{
+  if(!picker)return;
+  const close=e=>{if(!e.target.closest?.(".fx-emo-picker,.fx-emo-toggle"))setPicker(false);};
+  document.addEventListener("pointerdown",close);return ()=>document.removeEventListener("pointerdown",close);
+ },[picker]);
  useEffect(()=>{try{setLightsOff(localStorage.getItem("fm:lights-off")==="1");}catch{}},[]);
  useEffect(()=>{lightsOffRef.current=lightsOff;stage.current?.set({off:lightsOff});if(lightsOff)shellRef.current?.style.setProperty("--bass","0");try{localStorage.setItem("fm:lights-off",lightsOff?"1":"0");}catch{}},[lightsOff]);
  const theme=THEMES.find(t=>t.id===fx.theme)||THEMES[0];
@@ -405,11 +417,12 @@ export default function UndergroundFM({locale="en"}){
   if(msg.from==="SYSTEM")return <p className="fx-msg-system" key={key}><span>{msg.text}</span></p>;
   if(msg.from==="REQUEST"){const m=/^🎵 Track requested: (.*)$/.exec(msg.text||"");return <div className="fx-msg-req" key={key}><Icon name="note"/><span><small>{msg.handle||"stranger"} requested</small><b>{m?m[1]:msg.text}</b></span><time>{chatTime(msg.at)}</time></div>;}
   const mine=Boolean(me&&msg.handle===me.handle),first=!sameRun(messages[i-1],msg),last=!sameRun(msg,messages[i+1]),dj=msg.from==="DJ";
-  return <div className={"fx-msg"+(mine?" is-me":"")+(dj?" is-dj":"")+(first?" is-first":"")+(last?" is-last":"")} key={key} style={{"--h":msg.hue??200}}>
+  const parts=splitEmoji(msg.text||""),jumbo=jumboCount(parts);
+  return <div className={"fx-msg"+(mine?" is-me":"")+(dj?" is-dj":"")+(first?" is-first":"")+(last?" is-last":"")+(jumbo?" is-jumbo":"")} key={key} style={{"--h":msg.hue??200}}>
    {!mine&&(last?<Avatar hue={msg.hue??200} label={msg.handle||"?"} crown={dj}/>:<span className="fx-avatar-gap" aria-hidden="true"/>)}
    <div className="fx-msg-body">
     {first&&!mine&&<header><b>{msg.handle||"stranger"}</b>{dj&&<em>CONTROLLER</em>}</header>}
-    <p>{msg.text}</p>
+    <p>{parts.map((part,j)=>typeof part==="string"?part:<Emo key={j} code={part.code} label={part.char} still={motionOff}/>)}</p>
     {last&&<time>{mine?"You · ":""}{chatTime(msg.at)}</time>}
    </div>
   </div>;
@@ -417,12 +430,19 @@ export default function UndergroundFM({locale="en"}){
  const nearBottom=()=>{const el=chatList.current;return !el||el.scrollHeight-el.scrollTop-el.clientHeight<80;};
  const scrollChat=(smooth)=>{const el=chatList.current;if(!el)return;el.scrollTo({top:el.scrollHeight,behavior:smooth?"smooth":"auto"});setUnread(0);};
  const onChatScroll=()=>{if(nearBottom())setUnread(0);};
+ // a reaction drifts up from a spot and on a sway that both come from its id, so every client draws the same path
+ const floatStyle=id=>{const n=Math.floor(id*1e6);return {"--x":(n%72)+"%","--dx":((n>>3)%60-30)+"px","--r":((n>>5)%40-20)+"deg","--s":(.85+(n>>7)%5/10).toFixed(2),"--d":(2.2+(n>>9)%6/10).toFixed(2)+"s"};};
+ const addEmoji=char=>{
+  const el=draftRef.current,at=el?.selectionStart??draft.length,end=el?.selectionEnd??at,next=(draft.slice(0,at)+char+draft.slice(end)).slice(0,280);
+  setDraft(next);typingPing();
+  requestAnimationFrame(()=>{if(!el)return;el.focus();const c=Math.min(next.length,at+char.length);el.setSelectionRange(c,c);});
+ };
  const typingPing=()=>{const now=Date.now();if(!room||now-lastTypingAt.current<2000)return;lastTypingAt.current=now;socket.current?.emit("fm:typing");};
  const typingNames=Object.entries(typing).filter(([,until])=>until>clock).map(([h])=>h);
  const submitChat=()=>{
   const text=draft.trim();if(!text||!room)return;
   socket.current?.emit("fm:chat",text,ack=>{
-   if(ack?.ok)setDraft("");
+   if(ack?.ok){setDraft("");setPicker(false);}
    else setNotice(ack?.error==="cooldown"?"You're sending messages too quickly.":"Message couldn't be delivered.");
   });
  };
@@ -507,7 +527,12 @@ export default function UndergroundFM({locale="en"}){
   <span className="fx-orb-name">{m.core}</span><span className="fx-orb-blurb">{m.blurb}</span>
   <span className="fx-orb-cta">{room?(voteBusy?"Recharging…":m.cta):"Join to react"}</span>
  </button>;
- const reactionBar=<div className="fx-react-bar" role="group" aria-label="Send a reaction">{REACTIONS.map(([kind,emoji])=><button key={kind} type="button" onClick={()=>react(kind)} disabled={!room} aria-label={"React "+kind}><span>{emoji}</span><b>{room?.reactionCounts?.[kind]||0}</b></button>)}</div>;
+ const reactionBar=<div className="fx-react-bar" role="group" aria-label="Send a reaction">{REACTIONS.map(([kind,emoji])=>{
+  const hot=reactions.some(r=>r.kind===kind&&clock-r.at<2200),tap=tapped?.kind===kind?tapped.nonce:0;
+  return <button key={kind} type="button" className={hot?"is-hot":""} onClick={()=>{setTapped({kind,nonce:Date.now()});react(kind);}} disabled={!room} aria-label={"React "+kind}>
+   <span className="fx-react-emo" key={tap}><Emo code={REACTION_EMOJI[kind]} label={emoji} still className="is-still"/>{!motionOff&&<Emo code={REACTION_EMOJI[kind]} label="" className="is-live"/>}</span>
+   {tap>0&&<i className="fx-burst" key={"b"+tap} aria-hidden="true">{[0,1,2,3,4,5,6,7].map(n=><em key={n} style={{"--a":n*45+"deg"}}/>)}</i>}
+   <b key={"c"+(room?.reactionCounts?.[kind]||0)}>{room?.reactionCounts?.[kind]||0}</b></button>;})}</div>;
 
  return <div ref={shellRef} className={"fx-shell fx-"+view+" "+oswald.variable} style={vars} data-view={view} data-tab={tab} data-motion={motionOff?"reduced":"full"} data-lights={lightsOff?"off":"on"} data-playing={playing} data-heat={hottest} data-fab={view==="controller"&&Boolean(selectedTrack)}>
   <div ref={photoRef} className="fx-photo" aria-hidden="true"/>
@@ -601,10 +626,16 @@ export default function UndergroundFM({locale="en"}){
      {room&&(queue[0]||current)&&<div className="fx-chat-next"><Art track={queue[0]?.track||current}/><span><small>{queue[0]?"UP NEXT":"NOW PLAYING"}</small><b>{(queue[0]?.track||current).title}</b></span><em>{queue[0]?(queue.length>1?"+"+(queue.length-1)+" more":"autoplays"):""}</em></div>}
      <div className="fx-messages" ref={chatList} onScroll={onChatScroll} role="log" aria-live="polite" aria-label="Room conversation">{messages.length?chatRows:<div className="fx-empty-chat"><span aria-hidden="true">👋</span><strong>Every good night starts with a hello.</strong><p>{room?"Be the first to say hello. Everyone in this room can chat.":"Enter a room to meet the people behind the music."}</p></div>}</div>
      {unread>0&&<button type="button" className="fx-chat-jump" onClick={()=>scrollChat(true)}><Icon name="down"/>{unread} new message{unread>1?"s":""}</button>}
-     <div className="fx-float" aria-hidden="true">{reactions.filter(r=>clock-r.at<2400).map(r=><span key={r.id} style={{"--x":(r.id*997%70)+"%"}}>{REACTIONS.find(x=>x[0]===r.kind)?.[1]||"✨"}</span>)}</div>
+     <div className="fx-float" aria-hidden="true">{reactions.filter(r=>clock-r.at<2600).map(r=><span key={r.id} style={floatStyle(r.id)}><Emo code={REACTION_EMOJI[r.kind]||REACTION_EMOJI.spark} still={motionOff}/>{r.handle&&<small>{r.handle}</small>}</span>)}</div>
      <div className="fx-typing" aria-live="polite">{typingNames.length>0&&<><span className="fx-dots" aria-hidden="true"><i/><i/><i/></span>{typingNames.length>2?"Several people are typing":typingNames.join(" and ")+(typingNames.length>1?" are":" is")+" typing"}</>}</div>
      {reactionBar}
-     <form onSubmit={e=>{e.preventDefault();submitChat();}} className="fx-compose"><input value={draft} onChange={e=>{setDraft(e.target.value);typingPing();}} maxLength={280} disabled={!room} aria-label="Message the room" placeholder={room?"Message the room…":"Join a room to chat"}/>{draft.length>200&&<small className="fx-count">{280-draft.length}</small>}<button disabled={!room||!draft.trim()} type="submit" aria-label="Send message"><Icon name="send"/></button></form>
+     <form onSubmit={e=>{e.preventDefault();submitChat();}} className="fx-compose">
+      <button type="button" className="fx-emo-toggle" onClick={()=>setPicker(v=>!v)} disabled={!room} aria-expanded={picker} aria-label="Add an emoji"><Emo code="1f60e" label="" still={motionOff||!picker}/></button>
+      {picker&&room&&<div className="fx-emo-picker" role="dialog" aria-label="Emoji" onKeyDown={e=>{if(e.key==="Escape"){setPicker(false);draftRef.current?.focus();}}}>
+       {EMOJI.map(([char,code,name])=><button type="button" key={code} onClick={()=>addEmoji(char)} onMouseEnter={()=>setHoverEmo(code)} onFocus={()=>setHoverEmo(code)} aria-label={name} title={name}><Emo code={code} label="" still={motionOff||hoverEmo!==code}/></button>)}
+       <small className="fx-emo-credit">Animated emoji: <a href="https://googlefonts.github.io/noto-emoji-animation/" target="_blank" rel="noreferrer">Google Noto</a>, CC BY 4.0</small>
+      </div>}
+      <input ref={draftRef} value={draft} onChange={e=>{setDraft(e.target.value);typingPing();}} maxLength={280} disabled={!room} aria-label="Message the room" placeholder={room?"Message the room…":"Join a room to chat"}/>{draft.length>200&&<small className="fx-count">{280-draft.length}</small>}<button disabled={!room||!draft.trim()} type="submit" aria-label="Send message"><Icon name="send"/></button></form>
      <p className="fx-chat-foot">Temporary room chat. No recordings or profiles. Be kind.</p>
     </div></aside>
 
@@ -658,7 +689,7 @@ export default function UndergroundFM({locale="en"}){
     {view==="listener"&&<div className="fx-row fx-row-listener">
      <section className="fx-panel fx-card-mode" data-pane="show"><span className="fx-mode-icon"><Icon name="headphones"/></span><h2>Listener Mode</h2><p>You're tuned in. React, request tracks and help shape the vibe with everyone in the room.</p></section>
      <section className="fx-panel fx-live-react" data-pane="vibe"><header className="fx-panel-head"><h2>Live Reactions</h2></header><p className="fx-dim">Real-time reactions from the room</p>
-      <div className="fx-react-cloud" aria-hidden="true">{reactions.filter(r=>clock-r.at<2900).map(r=><span key={r.id} style={{"--x":(r.id*997%80)+"%","--s":(.9+(r.id*31%7)/10)}}>{REACTIONS.find(x=>x[0]===r.kind)?.[1]||"✨"}</span>)}</div>
+      <div className="fx-react-cloud" aria-hidden="true">{reactions.filter(r=>clock-r.at<2900).map(r=><span key={r.id} style={floatStyle(r.id)}><Emo code={REACTION_EMOJI[r.kind]||REACTION_EMOJI.spark} still={motionOff}/></span>)}</div>
       {reactionBar}</section>
      <section className="fx-panel fx-request" data-pane="music"><header className="fx-panel-head"><h2>Request a Track</h2></header><p className="fx-dim">Got a song that fits the vibe?</p>
       <form onSubmit={e=>{e.preventDefault();sendRequest();}}><label className="fx-sr-only" htmlFor="fx-request">Song or artist</label><span className="fx-search"><Icon name="search"/><input id="fx-request" value={requestText} onChange={e=>{setRequestText(e.target.value);setRequestSent(null);}} placeholder="Search for a song or artist…" maxLength={80}/></span><button type="submit" className="fx-solid" disabled={!requestMatches.length||requestSearching}>Request Track ›</button></form>
