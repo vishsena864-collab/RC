@@ -14,7 +14,7 @@ Repository: [vishsena864-collab/RC](https://github.com/vishsena864-collab/RC). O
 ## Railway
 
 1. Create a private project and connect this GitHub repository. Set service Root Directory to `/server` for reliable monorepo detection.
-2. Use `npm ci` as build/install and `npm start` to launch. Avoid setting an unused invalid health check path; configure a health endpoint that exists in the source.
+2. `server/railway.json` sets `npm ci` / `npm start`, the `/healthz` health check and restart policy; Railway reads it from the `/server` root directory.
 3. Set `CORS_ORIGINS=https://chatspark-rc.vercel.app`, `TRUST_PROXY` only behind a trusted proxy, `ADULT_ENABLED=false`, and a strong non-committed `PRIVACY_HMAC_SECRET`.
 4. Generate an HTTPS service domain and paste that into the frontend's `NEXT_PUBLIC_SERVER_URL`.
 5. Run **one replica** until matchmaking state is shared across replicas.
