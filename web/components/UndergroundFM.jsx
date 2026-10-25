@@ -355,12 +355,19 @@ export default function UndergroundFM({locale="en"}){
  },[requestText,room?.room,isDj]);
 
  /* ── actions ── */
+ // walking into a silent room starts the music for everyone: the song you picked, else something from the fresh mix
+ const startMusic=async()=>{
+  let pool=selectedTrack?[selectedTrack]:tracks.slice(0,10);
+  if(!pool.length){try{const j=await (await fetch("/api/underground/tracks?page=0&seed="+(1+Math.floor(Math.random()*2e9)))).json();pool=(j.tracks||[]).slice(0,10);}catch{}}
+  const pick=pool[Math.floor(Math.random()*pool.length)];
+  if(pick)socket.current?.emit("fm:autostart",pick);
+ };
  const join=()=>{
   if(!connected||joining.current)return;
   joining.current=true;wantsRoom.current=true;setMessages([]);setReactions([]);
   const code=lastRoom.current?.room||inviteRoom;
   autoPlay.current=true;
-  socket.current?.emit("fm:join",{key:tabKey(),...(code?{room:code}:{})},ack=>{joining.current=false;if(ack?.ok)setMe({handle:ack.handle,hue:ack.hue});else{wantsRoom.current=false;setNotice("All rooms are full. Try again shortly.");}});
+  socket.current?.emit("fm:join",{key:tabKey(),...(code?{room:code}:{})},ack=>{joining.current=false;if(ack?.ok){setMe({handle:ack.handle,hue:ack.hue});if(ack.silent)startMusic();}else{wantsRoom.current=false;setNotice("All rooms are full. Try again shortly.");}});
   setTimeout(()=>{joining.current=false;},8000);
  };
  const leave=()=>{

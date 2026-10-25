@@ -264,3 +264,16 @@ test("a queued song starts a crossfade's length before the current song ends", a
   assert.ok(after > 3800 && after < 5800, "advanced after " + after + "ms");
   assert.equal(mixed.queue.length, 0);
 });
+
+test("someone walking into a silent room starts a song for everyone, but never over a playing one", async () => {
+  const a = await client(), b = await client();
+  const joined = await ask(a, "fm:join");
+  assert.equal(joined.silent, true);
+  const started = next(a, "fm:state");
+  assert.equal((await ask(a, "fm:autostart", track)).ok, true);
+  assert.equal((await started).track.id, track.id);
+  const second = await ask(b, "fm:join", { room: joined.room });
+  assert.equal(second.silent, false);
+  assert.equal((await ask(b, "fm:autostart", { ...track, id: "fmother" })).error, "playing");
+  assert.equal((await ask(b, "fm:autostart", { title: "no id" })).ok, false);
+});

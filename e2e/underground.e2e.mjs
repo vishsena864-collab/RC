@@ -30,6 +30,9 @@ try{
  await a.getByLabel('Volume',{exact:true}).fill('35');assert.deepEqual(await a.locator('audio').evaluateAll(els=>els.map(el=>el.volume)),[.35,.35]);
  await btn(a,'Pause audio').click();
  await a.locator('.fx-join').click();await a.locator('.fx-controller').waitFor();
+ // walking into a silent room starts the song you picked, for the room, and it plays
+ await a.locator('.fx-msg-system').filter({hasText:'started the music: '+tracks[0].title}).waitFor();
+ await a.waitForFunction(id=>[...document.querySelectorAll('audio')].some(el=>el.src.includes(id)&&!el.paused),tracks[0].id);
  await b.locator('.fx-join').click();await b.locator('.fx-listener').waitFor();
  await shot(b,'desktop-listener-before');
  await btn(a,'Select '+tracks[0].title+' by '+tracks[0].artist).click();
@@ -111,5 +114,5 @@ try{
  await b.getByRole('button',{name:'Leave room'.toUpperCase(),exact:true}).first().click({force:true}).catch(()=>{});
  await a.locator('.fx-leave').first().click({force:true}).catch(()=>{});
  assert.deepEqual(errors,[]);
- console.log('PASS: discovery, solo audio, volume, two-browser join, cover broadcast, quick queue, room-wide vote effect, heat/cooldown, guide, chat (typing, bubbles, request cards, neon emoji + picker, reactions), request, play-now, next with autoplay + crossfade, lights, motion toggle, pass controller, phone panes, 6 viewport widths, OS reduced motion; no browser errors.');
+ console.log('PASS: discovery, solo audio, volume, two-browser join, music starts on entering a silent room, cover broadcast, quick queue, room-wide vote effect, heat/cooldown, guide, chat (typing, bubbles, request cards, neon emoji + picker, reactions), request, play-now, next with autoplay + crossfade, lights, motion toggle, pass controller, phone panes, 6 viewport widths, OS reduced motion; no browser errors.');
 }finally{await browser.close();}
