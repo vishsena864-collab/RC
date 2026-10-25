@@ -84,7 +84,7 @@ export function createApp(overrides = {}) {
     return sendJson(res, 404, { error: "not_found" });
   }
 
-  const underground = createUnderground(io, { djHoldMs: cfg.fmDjHoldMs });
+  const underground = createUnderground(io, { djHoldMs: cfg.fmDjHoldMs, crossfadeMs: cfg.fmCrossfadeMs });
 
   // ---------- Connection guard ----------
 

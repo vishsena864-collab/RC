@@ -13,7 +13,7 @@ const open = [];
 
 before(async () => {
   dataDir = mkdtempSync(join(tmpdir(), "randomchat-fm-test-"));
-  app = createApp({ dataDir, config: { relaxMs: 300, tickMs: 50, adultEnabled: false, rematchCooldownMs: 0, fmDjHoldMs: 1500, limits: { ...defaultConfig.limits } } });
+  app = createApp({ dataDir, config: { relaxMs: 300, tickMs: 50, adultEnabled: false, rematchCooldownMs: 0, fmDjHoldMs: 1500, fmCrossfadeMs: 1000, limits: { ...defaultConfig.limits } } });
   url = `http://127.0.0.1:${await app.listen(0)}`;
 });
 afterEach(() => { for (const s of open.splice(0)) s.disconnect(); });
@@ -250,4 +250,17 @@ test("the new party and hands reactions count up and say who sent them", async (
   await new Promise((done) => setTimeout(done, 750));
   assert.equal((await ask(b, "fm:reaction", "hands")).ok, true);
   assert.equal((await ask(b, "fm:reaction", "confetti")).error, "invalid");
+});
+
+test("a queued song starts a crossfade's length before the current song ends", async () => {
+  const dj = await client();
+  await ask(dj, "fm:join");
+  await ask(dj, "fm:play", { ...track, id: "fmlong", duration: 4 });
+  await ask(dj, "fm:queue:add", { ...track, id: "fmmix", title: "Mixed in" });
+  const began = Date.now();
+  const mixed = await new Promise((resolve) => dj.on("fm:state", (s) => { if (s.track?.id === "fmmix") resolve(s); }));
+  const after = Date.now() - began;
+  // on air at +1.8s, 4s long, 1s crossfade: the next song is due at about +4.8s, before the first one ends at +5.8s
+  assert.ok(after > 3800 && after < 5800, "advanced after " + after + "ms");
+  assert.equal(mixed.queue.length, 0);
 });

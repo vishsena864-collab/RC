@@ -769,3 +769,14 @@ canvas.fx-wave{display:block;width:100%;height:62px}
 .fx-shell[data-motion=reduced] .fx-react-emo .is-still{opacity:1!important}
 .fx-emo-credit{grid-column:1/-1;margin-top:4px;font-size:9px;color:var(--dim);text-align:center}
 .fx-emo-credit a{color:var(--muted)}
+/* reshuffle the crates */
+.fx-chips .fx-remix{display:inline-flex;align-items:center;gap:6px;margin-left:auto;font:700 11px var(--display);letter-spacing:.1em;color:#0b0812;background:linear-gradient(135deg,#e2ff6a,#ff5ad1);border-color:transparent;box-shadow:0 0 16px rgba(255,90,209,.25)}
+.fx-chips .fx-remix svg{width:14px;height:14px;transition:transform .5s cubic-bezier(.3,1.4,.5,1)}
+.fx-chips .fx-remix:hover:not(:disabled) svg{transform:rotate(180deg)}
+.fx-chips .fx-remix:disabled{opacity:.5}
+@media (max-width:699px){
+ .fx-chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -12px;padding:0 12px 2px}
+ .fx-chips::-webkit-scrollbar{display:none}
+ .fx-chips button{flex:none}
+ .fx-chips .fx-remix{margin-left:0;order:-1}
+}

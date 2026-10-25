@@ -54,6 +54,21 @@ The queue plays itself: when a song ends the server starts the next one (`fm:end
 and every device that was already listening keeps playing the new song without another tap. A song requested or
 queued while the room is silent (nothing loaded, or the last song ran out) starts at once.
 
+## Fresh mixes and DJ crossfades
+
+The crates never show the same list twice. `/api/underground/tracks` (without a typed search) mixes several Audius
+feeds per page: this week's and this month's trending, underground trending, all-time classics at a random depth,
+"feeling lucky" random finds and two random genres. `web/lib/mix.js` shuffles each feed with a seed the page picks
+on every load, drops repeated songs and artists, and deals the feeds two songs at a time in turn. The genre tabs
+(Electronic, House, Techno, Hip-Hop, Bass, Chill, Pop, Indie) mix that genre family's charts the same way, and
+NEW MIX reshuffles. Typed searches stay plain Audius searches. Everything is still Audius (artist-uploaded,
+streamed through Audius); chart music from major labels is not available legally for free.
+
+Songs blend like a DJ set: the server starts the next queued song `crossfadeMs` (8 s, `fmCrossfadeMs`) before the
+current one ends (clips shorter than three crossfades wait for their end), and each listening device plays the new
+song on its second audio deck while the old one fades out on equal-power curves. With nothing queued, the
+controller's device picks the next song from the crates in time to mix into it.
+
 ## Auto light show
 
 When a song starts, one browser (the controller first, listeners after a short random delay) downloads the

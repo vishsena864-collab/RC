@@ -24,10 +24,10 @@ const noOverflow=async p=>assert.equal(await p.evaluate(()=>document.documentEle
 try{
  const a=await visitor(),b=await visitor();
  await noOverflow(a);await shot(a,'desktop-discovery');
- await btn(a,'Indie').click();assert.equal(await btn(a,'Indie').getAttribute('aria-pressed'),'true');
+ await a.locator('.fx-genres').getByRole('button',{name:'Indie',exact:true}).click();assert.equal(await a.locator('.fx-genres').getByRole('button',{name:'Indie',exact:true}).getAttribute('aria-pressed'),'true');assert.equal(await a.locator('.fx-chips').getByRole('button',{name:'Indie',exact:true}).getAttribute('aria-pressed'),'true');
  await btn(a,'Select '+tracks[0].title+' by '+tracks[0].artist).click();
  await btn(a,'Play audio').click();await btn(a,'Pause audio').waitFor();
- await a.getByLabel('Volume',{exact:true}).fill('35');assert.equal(await a.locator('audio').evaluate(el=>el.volume),.35);
+ await a.getByLabel('Volume',{exact:true}).fill('35');assert.deepEqual(await a.locator('audio').evaluateAll(els=>els.map(el=>el.volume)),[.35,.35]);
  await btn(a,'Pause audio').click();
  await a.locator('.fx-join').click();await a.locator('.fx-controller').waitFor();
  await b.locator('.fx-join').click();await b.locator('.fx-listener').waitFor();
@@ -73,7 +73,11 @@ try{
  await a.getByRole('button',{name:'Play '+tracks[1].title+' now',exact:true}).click();await b.getByRole('heading',{name:tracks[1].title,exact:true}).waitFor();
  await a.getByRole('button',{name:/NEXT TRACK/}).click();await b.getByRole('heading',{name:tracks[2].title,exact:true}).waitFor();
  // a listener who was listening keeps listening: the next song plays without another tap
- await b.waitForFunction(id=>{const el=document.querySelector('audio');return el.src.includes(id)&&!el.paused;},tracks[2].id);
+ await b.waitForFunction(id=>[...document.querySelectorAll('audio')].some(el=>el.src.includes(id)&&!el.paused),tracks[2].id);
+ // DJ crossfade: the old song keeps playing on the other deck while the new one fades in, then stops
+ assert.equal(await b.evaluate(()=>[...document.querySelectorAll('audio')].filter(el=>!el.paused).length),2,'both decks play during the mix');
+ await b.waitForFunction(()=>[...document.querySelectorAll('audio')].filter(el=>!el.paused).length===1,null,{timeout:12000});
+ assert.equal(await b.evaluate(id=>[...document.querySelectorAll('audio')].find(el=>!el.paused).src.includes(id),tracks[2].id),true);
  await btn(a,'Supernova High Energy').click();await b.waitForFunction(()=>document.querySelector('.fx-scene-supernova[aria-pressed=true]')||true);
  await a.getByRole('button',{name:'Drop',exact:true}).click({force:true}).catch(()=>{});
  await a.waitForFunction(()=>document.querySelector('.fx-scene-supernova')?.getAttribute('aria-pressed')==='true');
@@ -107,5 +111,5 @@ try{
  await b.getByRole('button',{name:'Leave room'.toUpperCase(),exact:true}).first().click({force:true}).catch(()=>{});
  await a.locator('.fx-leave').first().click({force:true}).catch(()=>{});
  assert.deepEqual(errors,[]);
- console.log('PASS: discovery, solo audio, volume, two-browser join, cover broadcast, quick queue, room-wide vote effect, heat/cooldown, guide, chat (typing, bubbles, request cards, animated emoji + picker, reactions), request, play-now, next with autoplay, lights, motion toggle, pass controller, phone panes, 6 viewport widths, OS reduced motion; no browser errors.');
+ console.log('PASS: discovery, solo audio, volume, two-browser join, cover broadcast, quick queue, room-wide vote effect, heat/cooldown, guide, chat (typing, bubbles, request cards, animated emoji + picker, reactions), request, play-now, next with autoplay + crossfade, lights, motion toggle, pass controller, phone panes, 6 viewport widths, OS reduced motion; no browser errors.');
 }finally{await browser.close();}
