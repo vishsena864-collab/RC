@@ -84,3 +84,27 @@ test("the controller can switch to every light pattern, including the new rigs",
   for (const fx of ["sweep", "cone", "matrix", "chase", "follow"]) assert.equal((await ask(a, "fm:lights", { fx })).ok, true, fx);
   assert.equal((await ask(a, "fm:lights", { fx: "lasers-everywhere" })).error, "invalid_fx");
 });
+
+test("joining by room code lands in that room, and a lost room is rebuilt from the rejoining listener", async () => {
+  const a = await client(), b = await client();
+  const joined = await ask(a, "fm:join");
+  assert.equal((await ask(a, "fm:play", track)).ok, true);
+  const state = await new Promise((resolve) => { b.once("fm:state", resolve); ask(b, "fm:join", { room: joined.room }); });
+  assert.equal(state.room, joined.room, "invite link joins the same room");
+  assert.equal(state.track.id, track.id);
+  // the room disappears (instance restart / everyone dropped) and a listener reconnects with what it was hearing
+  a.disconnect(); b.disconnect();
+  await new Promise((r) => setTimeout(r, 200));
+  const c = await client(), startedAt = Date.now() - 30_000;
+  const back = await new Promise((resolve) => { c.once("fm:state", resolve); ask(c, "fm:join", { room: joined.room, seed: { track, startedAt, lights: { theme: "ocean", fx: "cone", intensity: 3 } } }); });
+  assert.equal(back.room, joined.room);
+  assert.equal(back.track.id, track.id);
+  assert.equal(back.startedAt, startedAt, "playback position is kept");
+  assert.equal(back.lights.fx, "cone");
+  // a seed never overrides a room that still exists, and bogus codes fall back to a random room
+  const d = await client();
+  const other = await new Promise((resolve) => { d.once("fm:state", resolve); ask(d, "fm:join", { room: joined.room, seed: { track: { ...track, id: "fmtest9", title: "Hijack" }, startedAt: Date.now() } }); });
+  assert.equal(other.track.id, track.id);
+  const e = await client();
+  assert.equal((await ask(e, "fm:join", { room: "NOT-A-ROOM" })).ok, true);
+});

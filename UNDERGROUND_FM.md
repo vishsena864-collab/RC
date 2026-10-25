@@ -25,7 +25,12 @@ Music streams directly from Audius to each visitor's browser. ChatSpark doesn't 
 4. Optional `AUDIUS_API_KEY` on Vercel, server-side, raises API limits; discovery may work keyless under current Audius read endpoints.
 5. Test with two browsers: join same room, only DJ can play, listeners can queue, leave deletes rooms when empty. Browser playback requires a user gesture on mobile.
 
+## Reconnects and invite links
+- A dropped realtime connection (e.g. the Vercel adapter's 5-minute function cap, a restart, mobile backgrounding) no longer clears the room: the song keeps playing, the LIVE badge reads RECONNECTING…, and the client rejoins the same room code with a snapshot (track, start time, lights). If the server lost the room it is rebuilt from that snapshot; a snapshot never overrides a room that still exists.
+- The room code is kept in the URL (`?room=STATIC`). INVITE copies/shares it; opening it joins that room.
+
 ## Known limitations
+- **Serverless hosting splits rooms.** On the temporary Vercel adapter each function instance has its own rooms in memory, so two people can still land in different copies of the "same" room. Reconnect + invite links soften this; a single always-on server (Railway, `railway.json`) or shared state (Redis) fixes it.
 - Music synchronization uses track start timestamps and is approximate, not sample-accurate.
 - No uploads or permanent audio/chat history; backend memory is cleared on restart.
 - The current listening room implementation is a beta. Moderation, scalable presence, track entitlement and anti-abuse protections need validation before opening large public rooms.
