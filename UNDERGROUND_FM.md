@@ -30,7 +30,7 @@ Music streams directly from Audius to each visitor's browser. ChatSpark doesn't 
 - The room code is kept in the URL (`?room=STATIC`). INVITE copies/shares it; opening it joins that room.
 
 ## Known limitations
-- **Serverless hosting splits rooms.** On the temporary Vercel adapter each function instance has its own rooms in memory, so two people can still land in different copies of the "same" room. Reconnect + invite links soften this; a single always-on server (Railway, `railway.json`) or shared state (Redis) fixes it.
+- **Serverless hosting splits rooms.** On the temporary Vercel adapter each function instance has its own rooms in memory, so two people can still land in different copies of the "same" room. Reconnect + invite links soften this; a single always-on server (Railway, `server/railway.json`) or shared state (Redis) fixes it.
 - Music synchronization uses track start timestamps and is approximate, not sample-accurate.
 - No uploads or permanent audio/chat history; backend memory is cleared on restart.
 - The current listening room implementation is a beta. Moderation, scalable presence, track entitlement and anti-abuse protections need validation before opening large public rooms.

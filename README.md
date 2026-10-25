@@ -53,11 +53,11 @@ ChatSpark/
 ├── server/              # Socket.IO relay, matchmaking, game rules, moderation
 │   ├── src/             # Event handlers and security rules
 │   ├── data/            # Movie question bank and local SQLite database
+│   ├── railway.json     # Railway build/runtime config (service Root Directory: /server)
 │   └── test/            # Unit/integration tests
 ├── e2e/                 # Browser-level test scripts
 ├── scripts/             # Development proxy helpers
-├── docs/                # Architecture and deployment guides
-└── railway.json         # Railway build and runtime configuration
+└── docs/                # Architecture and deployment guides
 ```
 
 ## ⚡ Quick start
