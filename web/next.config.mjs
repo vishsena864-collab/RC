@@ -13,7 +13,9 @@ const trustedSocket = api === "same-origin" ? "" : (() => {
 const contentSecurityPolicy = [
   "default-src 'self'", "base-uri 'self'", "object-src 'none'", "frame-ancestors 'none'",
   "form-action 'self'", "img-src 'self' https: data: blob:", "font-src 'self' data:",
-  "worker-src 'none'", "media-src 'self' https:", `connect-src 'self' https://lpbpjffnjbjwzdrcscko.supabase.co${trustedSocket}`,
+  // The auto light show downloads the song once (Audius redirects to rotating content nodes, hence https:) and
+  // analyses it in a Worker built from our own bundled code (blob:).
+  "worker-src 'self' blob:", "media-src 'self' https:", `connect-src 'self' https: https://lpbpjffnjbjwzdrcscko.supabase.co${trustedSocket}`,
   `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'production' ? '' : " 'unsafe-eval'"}`,
   "style-src 'self' 'unsafe-inline'",
 ].join("; ");

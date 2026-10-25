@@ -14,6 +14,25 @@ const HEAT_STEP = {energy:14,love:7,chill:-13};
 const HEAT_DECAY_MS = 18000;
 const CLIENT_KEY = /^[a-zA-Z0-9_-]{8,40}$/;
 const SKIP_GRACE_MS = 4000;
+const CUE_KINDS = ["intro","groove","build","drop","break","outro"];
+const num = (v, lo, hi) => typeof v === "number" && Number.isFinite(v) && v >= lo && v <= hi;
+// The auto light show's cue sheet for the song on air, made by one listener's browser. Checked field by field and
+// rebuilt from scratch, so nothing but numbers and known section names is ever relayed to the room.
+const safeCues = (raw, track) => {
+  if (!raw || typeof raw !== "object" || !track || raw.id !== track.id) return null;
+  if (!num(raw.bpm, 60, 200) || !num(raw.bar, 0, 4) || !num(raw.dur, 20, 7200)) return null;
+  if (!Array.isArray(raw.energy) || raw.energy.length > 15000 || !raw.energy.every((v) => Number.isInteger(v) && v >= 0 && v <= 100)) return null;
+  if (!Array.isArray(raw.sections) || raw.sections.length > 400 || !Array.isArray(raw.drops) || raw.drops.length > 80) return null;
+  let prev = -1;
+  const sections = [];
+  for (const s of raw.sections) {
+    if (!s || !num(s.t, 0, 7200) || s.t < prev || !CUE_KINDS.includes(s.k) || !num(s.e, 0, 100)) return null;
+    sections.push({t:s.t, k:s.k, e:Math.round(s.e)}); prev = s.t;
+  }
+  prev = -1;
+  for (const d of raw.drops) { if (!num(d, 0, 7200) || d < prev) return null; prev = d; }
+  return {id:track.id, bpm:raw.bpm, bar:raw.bar, dur:raw.dur, conf:num(raw.conf, 0, 1000) ? raw.conf : 0, energy:raw.energy.slice(), sections, drops:raw.drops.slice()};
+};
 const heatNow = (room, now=Date.now()) => {
   const elapsed=Math.max(0,now-(room.heatAt||now));
   return Math.max(0,Math.min(100,Math.round(50+(room.heatValue-50)*Math.exp(-elapsed/HEAT_DECAY_MS))));
@@ -23,7 +42,7 @@ const HANDLE_WORDS = ["luna","mars","kiwi","neon","skye","jett","kael","rhea","m
 const handleHash = (id) => { let h = 2166136261; for (const c of String(id)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
 const handleFor = (id) => { const h = handleHash(id); return HANDLE_WORDS[h % HANDLE_WORDS.length] + "." + String((h >>> 8) % 90 + 10); };
 const hueFor = (id) => handleHash(id + "hue") % 360;
-const defaultLights = () => ({theme:"infrared",fx:"sweep",intensity:2,beatBpm:116,updatedAt:Date.now(),showMoment:null});
+const defaultLights = () => ({theme:"infrared",fx:"sweep",intensity:2,auto:true,beatBpm:116,updatedAt:Date.now(),showMoment:null});
 
 // djHoldMs: how long the controller seat (and an otherwise empty room) is kept for a controller who dropped or refreshed.
 export function createUnderground(io, { djHoldMs = 15000 } = {}) {
@@ -36,7 +55,7 @@ export function createUnderground(io, { djHoldMs = 15000 } = {}) {
   const state = (room) => ({
     room: room.code, listeners: room.members.size,
     dj: room.dj, track: room.track, startedAt: room.startedAt,
-    queue: room.queue.slice(0, MAX_QUEUE).map((q) => ({track:q.track,by:q.by})), djHold: Boolean(room.hold), djHandle: room.dj ? name(room.dj) : null, djHue: room.dj ? tint(room.dj) : 0, reactionCounts:room.reactionCounts, lights:room.lights, mood:room.mood, moodAt:room.moodAt, heat:heatNow(room), heatUpdatedAt:Date.now(), djSince:room.djSince, djTurnMs:DJ_TURN_MS, updatedAt: Date.now()
+    queue: room.queue.slice(0, MAX_QUEUE).map((q) => ({track:q.track,by:q.by})), djHold: Boolean(room.hold), cues: room.cues && room.cues.id === room.track?.id ? room.cues.id : null, djHandle: room.dj ? name(room.dj) : null, djHue: room.dj ? tint(room.dj) : 0, reactionCounts:room.reactionCounts, lights:room.lights, mood:room.mood, moodAt:room.moodAt, heat:heatNow(room), heatUpdatedAt:Date.now(), djSince:room.djSince, djTurnMs:DJ_TURN_MS, updatedAt: Date.now()
   });
   const publish = (room) => io.to("fm:" + room.code).emit("fm:state", state(room));
   const system = (room, text) => io.to("fm:" + room.code).emit("fm:chat", {text, at:Date.now(), from:"SYSTEM"});
@@ -55,7 +74,7 @@ export function createUnderground(io, { djHoldMs = 15000 } = {}) {
     const room = rooms.get(code);
     if (!room) return;
     const key = room.keys.get(socket.id);
-    room.members.delete(socket.id);room.keys.delete(socket.id);room.reactionAt.delete(socket.id);room.lastMood.delete(socket.id);
+    room.members.delete(socket.id);room.keys.delete(socket.id);room.cueAt.delete(socket.id);room.reactionAt.delete(socket.id);room.lastMood.delete(socket.id);
     if (room.dj === socket.id) {
       room.dj = null;
       if (!deliberate && key) room.hold = {key, until:Date.now() + djHoldMs, djSince:room.djSince};
@@ -64,7 +83,7 @@ export function createUnderground(io, { djHoldMs = 15000 } = {}) {
     if (room.members.size === 0 && !room.hold) { rooms.delete(code); return; }
     publish(room);
   };
-  const newRoom = (code) => ({code,members:new Set(),keys:new Map(),hold:null,dj:null,djSince:Date.now(),track:null,startedAt:null,queue:[],lights:defaultLights(),mood:{energy:0,chill:0,love:0},moodAt:Date.now(),heatValue:50,heatAt:Date.now(),reactionAt:new Map(),reactionCounts:{heart:0,fire:0,spark:0,wave:0},lastMood:new Map(),lastMoment:0});
+  const newRoom = (code) => ({code,members:new Set(),keys:new Map(),hold:null,dj:null,djSince:Date.now(),track:null,startedAt:null,queue:[],lights:defaultLights(),mood:{energy:0,chill:0,love:0},moodAt:Date.now(),heatValue:50,heatAt:Date.now(),reactionAt:new Map(),reactionCounts:{heart:0,fire:0,spark:0,wave:0},lastMood:new Map(),lastMoment:0,cues:null,cueAt:new Map()});
   // A client that lost its connection (or a host instance that restarted) sends what it was hearing, so the room it
   // asks for comes back with the same song, position and lights instead of empty. Only used when the room is gone.
   const restore = (room, seed) => {
@@ -100,6 +119,7 @@ export function createUnderground(io, { djHoldMs = 15000 } = {}) {
     else if (!room.dj && !room.hold) {room.dj = socket.id;room.djSince=Date.now();}
     ack?.({ok:true,room:room.code,handle:name(socket.id),hue:tint(socket.id)});
     publish(room);
+    if (room.cues && room.cues.id === room.track?.id) socket.emit("fm:cues", room.cues);
   };
   const safeTrack = (track) => {
     if (!track || typeof track !== "object" || !TRACK_ID.test(track.id)) return null;
@@ -128,6 +148,19 @@ export function createUnderground(io, { djHoldMs = 15000 } = {}) {
     socket.on("fm:join", (...a) => join(socket, typeof a.at(-1) === "function" ? a.at(-1) : undefined, a[0] && typeof a[0] === "object" ? a[0] : null));
     socket.on("fm:leave", (ack) => { leave(socket); if(typeof ack==="function") ack({ok:true}); });
     // Any listener whose audio reached the end reports it; the server moves to the next queued song once.
+    // first valid cue sheet for the song on air wins; one submission per listener every 5 s
+    socket.on("fm:cues", (raw, ack) => {
+      const room = rooms.get(bySocket.get(socket.id));
+      if (!room) return ack?.({ok:false});
+      if (Date.now() - (room.cueAt.get(socket.id) || 0) < 5000) return ack?.({ok:false,error:"cooldown"});
+      room.cueAt.set(socket.id, Date.now());
+      if (room.cues && room.cues.id === room.track?.id) return ack?.({ok:false,error:"exists"});
+      const cues = safeCues(raw, room.track);
+      if (!cues) return ack?.({ok:false,error:"invalid"});
+      room.cues = cues;
+      io.to("fm:" + room.code).emit("fm:cues", cues);
+      publish(room); ack?.({ok:true});
+    });
     socket.on("fm:ended", (payload, ack) => {
       const room = rooms.get(bySocket.get(socket.id));
       if (!room || !room.track || payload?.id !== room.track.id) return ack?.({ok:false});
@@ -139,7 +172,7 @@ export function createUnderground(io, { djHoldMs = 15000 } = {}) {
       if (!room || room.dj !== socket.id) return ack?.({ok:false,error:"dj_only"});
       const track = safeTrack(raw);
       if (!track) return ack?.({ok:false,error:"invalid_track"});
-      room.track = track;
+      room.track = track; room.cues = null;
       room.startedAt = Date.now() + 1800;
       room.queue = room.queue.filter((item) => item.track.id !== track.id);
       publish(room);
@@ -181,7 +214,7 @@ export function createUnderground(io, { djHoldMs = 15000 } = {}) {
       const room = rooms.get(bySocket.get(socket.id));
       if (!room || room.dj !== socket.id) return ack?.({ok:false,error:"dj_only"});
       const item = room.queue.shift();
-      if (item) {room.track=item.track;room.startedAt=Date.now()+1800;publish(room);}
+      if (item) {room.track=item.track;room.cues=null;room.startedAt=Date.now()+1800;publish(room);}
       ack?.({ok:Boolean(item)});
     });
     socket.on("fm:pass", (...args) => {
@@ -207,6 +240,10 @@ export function createUnderground(io, { djHoldMs = 15000 } = {}) {
       if (payload.intensity !== undefined) {
         if (![0,1,2,3].includes(payload.intensity)) return ack?.({ok:false,error:"invalid_intensity"});
         next.intensity=payload.intensity;
+      }
+      if (payload.auto !== undefined) {
+        if (typeof payload.auto !== "boolean") return ack?.({ok:false,error:"invalid_auto"});
+        next.auto=payload.auto;
       }
       if (payload.beatBpm !== undefined) {
         if (!Number.isInteger(payload.beatBpm) || payload.beatBpm<60 || payload.beatBpm>180) return ack?.({ok:false,error:"invalid_bpm"});
@@ -263,7 +300,7 @@ export function createUnderground(io, { djHoldMs = 15000 } = {}) {
   const advance = (room) => {
     const item = room.queue.shift();
     if (!item) return false;
-    room.track = item.track; room.startedAt = Date.now() + 1800; publish(room);
+    room.track = item.track; room.cues = null; room.startedAt = Date.now() + 1800; publish(room);
     return true;
   };
   const turnTimer=setInterval(()=>{
