@@ -111,5 +111,5 @@ try{
  await b.getByRole('button',{name:'Leave room'.toUpperCase(),exact:true}).first().click({force:true}).catch(()=>{});
  await a.locator('.fx-leave').first().click({force:true}).catch(()=>{});
  assert.deepEqual(errors,[]);
- console.log('PASS: discovery, solo audio, volume, two-browser join, cover broadcast, quick queue, room-wide vote effect, heat/cooldown, guide, chat (typing, bubbles, request cards, animated emoji + picker, reactions), request, play-now, next with autoplay + crossfade, lights, motion toggle, pass controller, phone panes, 6 viewport widths, OS reduced motion; no browser errors.');
+ console.log('PASS: discovery, solo audio, volume, two-browser join, cover broadcast, quick queue, room-wide vote effect, heat/cooldown, guide, chat (typing, bubbles, request cards, neon emoji + picker, reactions), request, play-now, next with autoplay + crossfade, lights, motion toggle, pass controller, phone panes, 6 viewport widths, OS reduced motion; no browser errors.');
 }finally{await browser.close();}
