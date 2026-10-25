@@ -647,3 +647,5 @@ canvas.fx-wave{display:block;width:100%;height:62px}
 .fx-shell .fx-invite:hover:not(:disabled){filter:brightness(1.08);box-shadow:0 0 18px rgba(212,255,58,.5)}
 .fx-live.is-reconnecting{background:#3a2a0a;color:#ffd27a;border-color:#7a5a1f}
 .fx-live.is-reconnecting i{background:#ffb02e;box-shadow:0 0 12px #ffb02e}
+/* tall screens get the portrait venue photo from first paint (the stage engine then fits it exactly) */
+@media (max-aspect-ratio:20/23){.fx-photo{background-image:url(/underground/stage-portrait-800.webp);background-position:50% 30%}}

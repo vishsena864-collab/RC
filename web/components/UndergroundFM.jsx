@@ -160,7 +160,7 @@ export default function UndergroundFM({locale="en"}){
   stage.current=createStage(stageCv.current,{quality,photo:true,onLevels});
   overlay.current=createOverlay(overlayCv.current,{quality});
   spectrum.current=createSpectrum(specCv.current);
-  const place=()=>{const f=photoFit(innerWidth,innerHeight),el=photoRef.current;if(el){el.style.backgroundSize=f.dw+"px "+f.dh+"px";el.style.backgroundPosition=f.ox+"px "+f.oy+"px";}};
+  const place=()=>{const f=photoFit(innerWidth,innerHeight),el=photoRef.current;if(el){el.style.backgroundImage="url("+f.src+")";el.style.backgroundSize=f.dw+"px "+f.dh+"px";el.style.backgroundPosition=f.ox+"px "+f.oy+"px";}};
   place();addEventListener("resize",place);
   if(analyser.current){stage.current.audio(analyser.current);spectrum.current.audio(analyser.current);}
   return ()=>{removeEventListener("resize",place);stage.current?.destroy();overlay.current?.destroy();spectrum.current?.destroy();stage.current=overlay.current=spectrum.current=null;};
