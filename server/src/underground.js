@@ -119,7 +119,7 @@ export function createUnderground(io, { djHoldMs = 15000, crossfadeMs = 8000 } =
     bySocket.set(socket.id, room.code);
     if (room.hold && key && room.hold.key === key && Date.now() < room.hold.until) { room.dj = socket.id; room.djSince = room.hold.djSince; room.hold = null; }
     else if (!room.dj && !room.hold) {room.dj = socket.id;room.djSince=Date.now();}
-    ack?.({ok:true,room:room.code,handle:name(socket.id),hue:tint(socket.id)});
+    ack?.({ok:true,room:room.code,handle:name(socket.id),hue:tint(socket.id),silent:idle(room)});
     publish(room);
     if (room.cues && room.cues.id === room.track?.id) socket.emit("fm:cues", room.cues);
   };
@@ -148,6 +148,18 @@ export function createUnderground(io, { djHoldMs = 15000, crossfadeMs = 8000 } =
   };
   const attach = (socket) => {
     socket.on("fm:join", (...a) => join(socket, typeof a.at(-1) === "function" ? a.at(-1) : undefined, a[0] && typeof a[0] === "object" ? a[0] : null));
+    // Whoever walks into a silent room starts a song for everyone, so nobody arrives to nothing.
+    socket.on("fm:autostart", (raw, ack) => {
+      const room = rooms.get(bySocket.get(socket.id));
+      if (!room) return ack?.({ok:false});
+      if (!idle(room)) return ack?.({ok:false,error:"playing"});
+      const track = safeTrack(raw);
+      if (!track) return ack?.({ok:false,error:"invalid_track"});
+      room.track = track; room.cues = null; room.startedAt = Date.now() + 1200;
+      room.queue = room.queue.filter((item) => item.track.id !== track.id);
+      publish(room); ack?.({ok:true});
+      system(room, "♫ " + name(socket.id) + " walked in and started the music: " + track.title + " — " + track.artist);
+    });
     socket.on("fm:leave", (ack) => { leave(socket); if(typeof ack==="function") ack({ok:true}); });
     // Any listener whose audio reached the end reports it; the server moves to the next queued song once.
     // first valid cue sheet for the song on air wins; one submission per listener every 5 s

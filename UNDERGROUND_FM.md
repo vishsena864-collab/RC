@@ -49,6 +49,10 @@ messages for the neon version; a line of one to three of them is shown big witho
 sign being switched on and their glow breathes; reduced motion keeps them still. Four reactions (heart, fire, party,
 raised hands; 700 ms cooldown per person) pop with a burst and float up the chat with the sender's name.
 
+Nobody walks into silence: when someone enters a room where nothing is playing (no song, or the last one ran
+out), their device starts one for the whole room (`fm:autostart`, accepted only while the room is silent): the song
+they had selected, otherwise a random pick from the fresh mix. The chat notes who started it.
+
 The queue plays itself: when a song ends the server starts the next one (`fm:ended`, with a timer as backup),
 and every device that was already listening keeps playing the new song without another tap. A song requested or
 queued while the room is silent (nothing loaded, or the last song ran out) starts at once.
