@@ -7,7 +7,7 @@ const MAX_CHAT = 280;
 const MAX_QUEUE = 17;
 const DJ_TURN_MS = 4 * 60_000;
 const COLOR_THEMES = ["acid","infrared","ultraviolet","ocean","gold","rose","midnight","toxic"];
-const FX_MODES = ["pulse","march","sweep","crossfire","tunnel","bloom","drift"];
+const FX_MODES = ["pulse","march","sweep","crossfire","tunnel","bloom","drift","cone","matrix","chase","follow"];
 const MOODS = ["energy","chill","love"];
 const REACTIONS = ["heart","fire","spark","wave"];
 const HEAT_STEP = {energy:14,love:7,chill:-13};
@@ -46,15 +46,31 @@ export function createUnderground(io) {
     if (room.dj === socket.id) {room.dj = [...room.members][randomInt(room.members.size)];room.djSince=Date.now();}
     publish(room);
   };
-  const join = (socket, ack) => {
+  const newRoom = (code) => ({code,members:new Set(),dj:null,djSince:Date.now(),track:null,startedAt:null,queue:[],lights:defaultLights(),mood:{energy:0,chill:0,love:0},moodAt:Date.now(),heatValue:50,heatAt:Date.now(),reactionAt:new Map(),reactionCounts:{heart:0,fire:0,spark:0,wave:0},lastMood:new Map(),lastMoment:0});
+  // A client that lost its connection (or a host instance that restarted) sends what it was hearing, so the room it
+  // asks for comes back with the same song, position and lights instead of empty. Only used when the room is gone.
+  const restore = (room, seed) => {
+    if (!seed || typeof seed !== "object") return;
+    const track = safeTrack(seed.track), started = Number(seed.startedAt), now = Date.now();
+    if (track && Number.isFinite(started) && started <= now + 5000 && now - started < Math.max(track.duration, 60) * 1000) { room.track = track; room.startedAt = started; }
+    const l = seed.lights;
+    if (l && typeof l === "object") room.lights = {...room.lights, ...(COLOR_THEMES.includes(l.theme) ? {theme:l.theme} : {}), ...(FX_MODES.includes(l.fx) ? {fx:l.fx} : {}), ...([0,1,2,3].includes(l.intensity) ? {intensity:l.intensity} : {}), updatedAt:now};
+  };
+  const join = (socket, ack, want) => {
     leave(socket);
-    const available = [...rooms.values()].filter((r) => r.members.size < MAX_PEOPLE);
-    let room = available.length ? available[randomInt(available.length)] : null;
+    const code = typeof want?.room === "string" && ROOM_CODES.includes(want.room) ? want.room : null;
+    let room = code ? rooms.get(code) : null;
+    if (room && room.members.size >= MAX_PEOPLE) room = null;
+    if (!room && code && !rooms.has(code)) { room = newRoom(code); restore(room, want.seed); rooms.set(code, room); }
     if (!room) {
-      const code = ROOM_CODES.find((name) => !rooms.has(name));
-      if (!code) return ack?.({ok:false,error:"full"});
-      room = {code,members:new Set(),dj:null,djSince:Date.now(),track:null,startedAt:null,queue:[],lights:defaultLights(),mood:{energy:0,chill:0,love:0},moodAt:Date.now(),heatValue:50,heatAt:Date.now(),reactionAt:new Map(),reactionCounts:{heart:0,fire:0,spark:0,wave:0},lastMood:new Map(),lastMoment:0};
-      rooms.set(code, room);
+      const available = [...rooms.values()].filter((r) => r.members.size < MAX_PEOPLE);
+      room = available.length ? available[randomInt(available.length)] : null;
+    }
+    if (!room) {
+      const free = ROOM_CODES.find((name) => !rooms.has(name));
+      if (!free) return ack?.({ok:false,error:"full"});
+      room = newRoom(free);
+      rooms.set(free, room);
     }
     room.members.add(socket.id);
     socket.join("fm:" + room.code);
@@ -87,7 +103,7 @@ export function createUnderground(io) {
     return { id:track.id, title, artist, artwork, duration, genre:String(track.genre||"").slice(0,50) };
   };
   const attach = (socket) => {
-    socket.on("fm:join", (...a) => join(socket, typeof a.at(-1) === "function" ? a.at(-1) : undefined));
+    socket.on("fm:join", (...a) => join(socket, typeof a.at(-1) === "function" ? a.at(-1) : undefined, a[0] && typeof a[0] === "object" ? a[0] : null));
     socket.on("fm:leave", (ack) => { leave(socket); if(typeof ack==="function") ack({ok:true}); });
     socket.on("fm:play", (raw, ack) => {
       const room = rooms.get(bySocket.get(socket.id));
