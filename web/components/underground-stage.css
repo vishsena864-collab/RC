@@ -182,30 +182,89 @@ body:has(.fx-shell)>.site-header,body:has(.fx-shell)>.site-footer{display:none}
 
 /* ── chat ── */
 .fx-chat{position:relative;min-height:340px;padding:0}
-.fx-chat-inner{position:absolute;inset:0;display:flex;flex-direction:column;padding:16px 16px 12px;min-height:0}
-.fx-messages{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:12px;padding-right:4px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.2) transparent}
-.fx-msg{display:flex;gap:10px;align-items:flex-start}
-.fx-msg header{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
-.fx-msg b{font-size:13px}
-.fx-msg em{font:normal 700 8px var(--mono);letter-spacing:.12em;padding:2px 6px;border-radius:4px;background:var(--lime);color:#05030a}
-.fx-msg time{font-size:11px;color:var(--dim)}
-.fx-msg p{font-size:14px;color:#e8e3f7;overflow-wrap:anywhere}
-.fx-msg.is-request p{color:var(--lime)}
+.fx-chat-inner{position:absolute;inset:0;display:flex;flex-direction:column;padding:14px 14px 10px;min-height:0}
+/* header: title, live presence and the people in the room */
+.fx-chat-head{flex-wrap:nowrap;margin-bottom:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 2px 12px;border-bottom:1px solid rgba(255,255,255,.07)}
+.fx-chat-head>div:first-child{display:flex;align-items:baseline;gap:10px}
+.fx-chat-head h2{margin:0}
+.fx-chat-live{display:inline-flex;align-items:center;gap:6px;font:600 11px var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.fx-chat-live i{width:7px;height:7px;border-radius:50%;background:#5b566b}
+.fx-chat-live i.on{background:#3dff8b;box-shadow:0 0 0 0 rgba(61,255,139,.6);animation:fx-live-ping 2s ease-out infinite}
+@keyframes fx-live-ping{to{box-shadow:0 0 0 7px rgba(61,255,139,0)}}
+.fx-chat-people{display:flex;align-items:center}
+.fx-chat-people .fx-avatar{width:26px;height:26px;font-size:11px;margin-left:-8px;border:2px solid #120a1c;box-shadow:none}
+.fx-chat-people .fx-avatar:first-child{margin-left:0}
+.fx-chat-people .fx-avatar svg{font-size:12px}
+.fx-chat-more{margin-left:6px;font:600 11px var(--display);color:var(--muted)}
+/* up next strip */
+.fx-chat-next{display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:center;gap:10px;margin:10px 0 2px;padding:6px 10px 6px 6px;border-radius:12px;background:linear-gradient(90deg,rgba(212,255,58,.1),rgba(255,255,255,.03));border:1px solid rgba(212,255,58,.18)}
+.fx-chat-next .fx-art{width:30px;height:30px;border-radius:8px}
+.fx-chat-next small{display:block;font:700 9px var(--mono);letter-spacing:.14em;color:var(--lime)}
+.fx-chat-next b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fx-chat-next em{font:normal 600 10px var(--display);letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+/* the conversation */
+.fx-messages{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:2px;padding:12px 2px 6px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.18) transparent;overscroll-behavior:contain;-webkit-mask-image:linear-gradient(#0000,#000 14px);mask-image:linear-gradient(#0000,#000 14px)}
+.fx-msg{display:flex;align-items:flex-end;gap:8px;max-width:100%;animation:fx-msg-in .28s cubic-bezier(.2,.9,.3,1.2) both}
+.fx-msg.is-first{margin-top:10px}
+@keyframes fx-msg-in{from{opacity:0;transform:translateY(8px) scale(.97)}}
+.fx-msg .fx-avatar{width:28px;height:28px;font-size:12px;box-shadow:none}
+.fx-msg .fx-avatar svg{font-size:13px}
+.fx-avatar-gap{width:28px;flex:none}
+.fx-msg-body{display:flex;flex-direction:column;align-items:flex-start;min-width:0;max-width:min(78%,420px)}
+.fx-msg header{display:flex;align-items:center;gap:6px;margin:0 0 3px 10px}
+.fx-msg header b{font-size:12px;font-weight:700;color:hsl(var(--h) 90% 72%)}
+.fx-msg header em{font:normal 700 8px var(--mono);letter-spacing:.12em;padding:2px 6px;border-radius:999px;background:var(--lime);color:#05030a}
+.fx-msg p{margin:0;padding:8px 13px;font-size:14px;line-height:1.38;color:#efeaff;overflow-wrap:anywhere;background:rgba(255,255,255,.075);border:1px solid rgba(255,255,255,.07);border-radius:18px;backdrop-filter:blur(10px)}
+.fx-msg:not(.is-me):not(.is-first) p{border-top-left-radius:6px}
+.fx-msg:not(.is-me):not(.is-last) p{border-bottom-left-radius:6px}
+.fx-msg:not(.is-me).is-last p{border-bottom-left-radius:6px}
+.fx-msg time{margin:4px 10px 0;font-size:10px;color:var(--dim);font-variant-numeric:tabular-nums}
+/* the controller's lines glow */
+.fx-msg.is-dj p{background:linear-gradient(135deg,rgba(212,255,58,.14),rgba(255,255,255,.05));border-color:rgba(212,255,58,.38);box-shadow:0 0 18px rgba(212,255,58,.1)}
+/* your own lines sit on the right in a lime bubble */
+.fx-msg.is-me{justify-content:flex-end}
+.fx-msg.is-me .fx-msg-body{align-items:flex-end}
+.fx-msg.is-me p{color:#0b0812;font-weight:500;background:linear-gradient(135deg,#e2ff6a,#b6f22a);border-color:transparent;box-shadow:0 6px 18px rgba(190,255,40,.18)}
+.fx-msg.is-me:not(.is-first) p{border-top-right-radius:6px}
+.fx-msg.is-me p{border-bottom-right-radius:6px}
+.fx-msg.is-me:not(.is-last) p{border-bottom-right-radius:6px}
+/* song requests read as cards */
+.fx-msg-req{display:grid;grid-template-columns:32px minmax(0,1fr) auto;align-items:center;gap:10px;margin:10px 0 2px;padding:8px 12px 8px 8px;border-radius:14px;background:rgba(255,255,255,.05);border:1px dashed rgba(212,255,58,.35);animation:fx-msg-in .28s ease-out both}
+.fx-msg-req>svg{width:32px;height:32px;padding:7px;border-radius:10px;color:#0b0812;background:var(--lime)}
+.fx-msg-req small{display:block;font-size:11px;color:var(--muted)}
+.fx-msg-req b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fx-msg-req time{font-size:10px;color:var(--dim)}
 .fx-empty-chat{margin:auto;text-align:center;padding:12px;color:var(--muted)}
+.fx-empty-chat>span{display:block;font-size:34px;margin-bottom:8px;animation:fx-wave-hand 2.4s ease-in-out infinite;transform-origin:70% 80%}
+@keyframes fx-wave-hand{0%,60%,100%{transform:rotate(0)}10%,30%{transform:rotate(16deg)}20%,40%{transform:rotate(-8deg)}}
 .fx-empty-chat strong{display:block;font:900 22px/1.1 var(--display);color:var(--ink);letter-spacing:.03em;margin-bottom:8px}
+/* jump back down when new lines arrive while you read older ones */
+.fx-chat-jump{position:absolute;left:0;right:0;width:max-content;margin:0 auto;white-space:nowrap;bottom:150px;display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;border:0;font:700 11px var(--display);letter-spacing:.08em;text-transform:uppercase;color:#0b0812;background:var(--lime);box-shadow:0 8px 24px rgba(0,0,0,.45);z-index:3;animation:fx-jump-in .25s ease-out both}
+@keyframes fx-jump-in{from{opacity:0;translate:0 8px}}
+.fx-chat-jump svg{width:14px;height:14px}
+/* typing */
+.fx-typing{display:flex;align-items:center;gap:8px;min-height:20px;padding:0 4px;font-size:11px;color:var(--muted)}
+.fx-dots{display:inline-flex;gap:3px;padding:5px 8px;border-radius:999px;background:rgba(255,255,255,.08)}
+.fx-dots i{width:5px;height:5px;border-radius:50%;background:var(--lime);animation:fx-dot 1.1s ease-in-out infinite}
+.fx-dots i:nth-child(2){animation-delay:.15s}.fx-dots i:nth-child(3){animation-delay:.3s}
+@keyframes fx-dot{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
 .fx-float{position:absolute;left:16px;right:16px;bottom:130px;height:0;pointer-events:none}
 .fx-float span{position:absolute;bottom:0;left:var(--x);font-size:26px;animation:fx-floatup 2.3s ease-out forwards}
 @keyframes fx-floatup{from{opacity:0;transform:translateY(0) scale(.6)}15%{opacity:1}to{opacity:0;transform:translateY(-190px) scale(1.4) rotate(12deg)}}
-.fx-react-bar{display:flex;gap:6px;margin-top:10px}
-.fx-react-bar button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:0 6px;border-radius:999px;background:rgba(255,255,255,.05)}
+.fx-react-bar{display:flex;gap:6px;margin-top:4px}
+.fx-react-bar button{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;min-height:34px;padding:0 6px;border-radius:999px;background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08)}
 .fx-react-bar button:hover:not(:disabled){border-color:var(--lime);transform:translateY(-2px)}
-.fx-react-bar span{font-size:17px}
+.fx-react-bar button:active:not(:disabled){transform:scale(.92)}
+.fx-react-bar span{font-size:16px}
 .fx-react-bar b{font:700 12px var(--mono);color:var(--muted)}
-.fx-compose{display:flex;gap:8px;margin-top:10px;padding:5px 5px 5px 16px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid var(--line)}
-.fx-compose:focus-within{border-color:var(--lime)}
-.fx-compose input{flex:1;font-size:14px}
-.fx-compose button{width:40px;height:40px;display:grid;place-items:center;border-radius:50%;border:0;background:var(--lime);color:#05030a}
-.fx-chat-foot{margin-top:8px;font-size:10px;color:var(--dim);text-align:center}
+.fx-compose{position:relative;display:flex;align-items:center;gap:8px;margin-top:8px;padding:5px 5px 5px 16px;border-radius:999px;background:rgba(10,6,18,.75);border:1px solid rgba(255,255,255,.12);transition:border-color .2s,box-shadow .2s}
+.fx-compose:focus-within{border-color:var(--lime);box-shadow:0 0 0 3px rgba(212,255,58,.12),0 0 22px rgba(212,255,58,.12)}
+.fx-compose input{flex:1;min-width:0;font-size:14px}
+.fx-count{font:600 11px var(--display);color:var(--muted)}
+.fx-compose button{width:38px;height:38px;flex:none;display:grid;place-items:center;border-radius:50%;border:0;background:var(--lime);color:#05030a;transition:transform .15s,opacity .2s}
+.fx-compose button:disabled{opacity:.35}
+.fx-compose button:not(:disabled):hover{transform:scale(1.07) rotate(-8deg)}
+.fx-chat-foot{margin-top:6px;font-size:10px;color:var(--dim);text-align:center}
 
 /* ── library / cards ── */
 .fx-library .fx-panel-head{align-items:center}
@@ -649,7 +708,9 @@ canvas.fx-wave{display:block;width:100%;height:62px}
 .fx-live.is-reconnecting i{background:#ffb02e;box-shadow:0 0 12px #ffb02e}
 /* tall screens get the portrait venue photo from first paint (the stage engine then fits it exactly) */
 @media (max-aspect-ratio:20/23){.fx-photo{background-image:url(/underground/stage-portrait-800.webp);background-position:50% 30%}}
-.fx-msg-system{margin:2px auto;padding:6px 12px;border-radius:999px;font-size:12px;color:var(--lime);background:rgba(212,255,58,.08);border:1px solid rgba(212,255,58,.25);text-align:center}
+.fx-msg-system{display:flex;align-items:center;gap:10px;margin:12px 0 4px;font-size:11px;color:var(--lime);text-align:center}
+.fx-msg-system::before,.fx-msg-system::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(212,255,58,.35),transparent)}
+.fx-msg-system span{max-width:80%;padding:5px 12px;border-radius:999px;background:rgba(212,255,58,.08);border:1px solid rgba(212,255,58,.22)}
 
 /* ── auto light show ── */
 .fx-shell .fx-auto{display:inline-flex;align-items:center;gap:8px;margin-left:auto;padding:6px 12px;border-radius:999px;font:600 11px var(--display);letter-spacing:.14em;color:var(--muted)}
@@ -671,3 +732,4 @@ canvas.fx-wave{display:block;width:100%;height:62px}
 .fx-shell[data-lights=off]{--bass:0!important;--kick:0!important}
 .fx-shell[data-lights=off] .fx-cover,.fx-shell[data-lights=off] .fx-aura{animation:none!important}
 @media (max-width:419px){.fx-fx-toggle .fx-long{display:none}}
+.fx-msg.is-last:not(.is-me)>.fx-avatar{margin-bottom:18px}

@@ -135,13 +135,14 @@ export default function UndergroundFM({locale="en"}){
  const [preview,setPreview]=useState(null),[connected,setConnected]=useState(false),[room,setRoom]=useState(null),[isDj,setIsDj]=useState(false),[me,setMe]=useState(null),[messages,setMessages]=useState([]),[draft,setDraft]=useState(""),[playing,setPlaying]=useState(false),[clock,setClock]=useState(Date.now());
  const [volume,setVolume]=useState(80),[liked,setLiked]=useState(false),[reactions,setReactions]=useState([]),[reduced,setReduced]=useState(false),[motionPref,setMotionPref]=useState(null);
  const [selectedTrack,setSelectedTrack]=useState(null),[page,setPage]=useState(0),[hasMore,setHasMore]=useState(true),[loadingMore,setLoadingMore]=useState(false),[requestText,setRequestText]=useState(""),[discoverTab,setDiscoverTab]=useState("For You"),[moodBurst,setMoodBurst]=useState(null),[pulses,setPulses]=useState({energy:0,love:0,chill:0}),[voteBusy,setVoteBusy]=useState(false),[heroGenre,setHeroGenre]=useState("Electronic"),[requestMatches,setRequestMatches]=useState([]),[requestSearching,setRequestSearching]=useState(false),[requestSent,setRequestSent]=useState(null),[tab,setTab]=useState("show"),[showGuide,setShowGuide]=useState(false),[showTune,setShowTune]=useState(false),[cooldownKey,setCooldownKey]=useState(0),[reconnecting,setReconnecting]=useState(false),[cueSheet,setCueSheet]=useState(null),[mapping,setMapping]=useState(false),[inviteRoom,setInviteRoom]=useState(null);
- const socket=useRef(null),audio=useRef(null),streamTrackId=useRef(null),joining=useRef(false),wantsRoom=useRef(false),lastVoteAt=useRef(0),stageCv=useRef(null),overlayCv=useRef(null),stage=useRef(null),overlay=useRef(null),rail=useRef(null),chatList=useRef(null),lastRoom=useRef(null),autoPlay=useRef(false),roomRef=useRef(null),shellRef=useRef(null),photoRef=useRef(null),specCv=useRef(null),spectrum=useRef(null),actx=useRef(null),analyser=useRef(null);
+ const socket=useRef(null),audio=useRef(null),streamTrackId=useRef(null),joining=useRef(false),wantsRoom=useRef(false),lastVoteAt=useRef(0),stageCv=useRef(null),overlayCv=useRef(null),stage=useRef(null),overlay=useRef(null),rail=useRef(null),chatList=useRef(null),lastRoom=useRef(null),autoPlay=useRef(false),listening=useRef(false),roomRef=useRef(null),shellRef=useRef(null),photoRef=useRef(null),specCv=useRef(null),spectrum=useRef(null),actx=useRef(null),analyser=useRef(null);
  const motionOff=motionPref===null?reduced:motionPref;
  const fx=room?.lights||defaults;
  roomRef.current=room;
  const autoShow=fx.auto!==false;
  // Lights off is personal: it only changes this browser, never the room's show.
  const [lightsOff,setLightsOff]=useState(false),lightsOffRef=useRef(false);
+ const [unread,setUnread]=useState(0),[typing,setTyping]=useState({}),lastTypingAt=useRef(0),seenMessages=useRef(0);
  useEffect(()=>{try{setLightsOff(localStorage.getItem("fm:lights-off")==="1");}catch{}},[]);
  useEffect(()=>{lightsOffRef.current=lightsOff;stage.current?.set({off:lightsOff});if(lightsOff)shellRef.current?.style.setProperty("--bass","0");try{localStorage.setItem("fm:lights-off",lightsOff?"1":"0");}catch{}},[lightsOff]);
  const theme=THEMES.find(t=>t.id===fx.theme)||THEMES[0];
@@ -213,7 +214,13 @@ export default function UndergroundFM({locale="en"}){
   change();mq.addEventListener?.("change",change);
   return ()=>mq.removeEventListener?.("change",change);
  },[]);
- useEffect(()=>{if(chatList.current)chatList.current.scrollTop=chatList.current.scrollHeight;},[messages.length,tab]);
+ useEffect(()=>{
+  const el=chatList.current,added=messages.length-seenMessages.current;seenMessages.current=messages.length;
+  if(!el)return;
+  const newest=messages[messages.length-1],mine=newest&&me&&newest.handle===me.handle;
+  if(added<=0||mine||el.scrollHeight-el.scrollTop-el.clientHeight<160){el.scrollTop=el.scrollHeight;setUnread(0);}
+  else setUnread(n=>n+added);
+ },[messages,tab]);
  useEffect(()=>{if(!isDj&&room&&!room.track&&preview)setPreview(null);},[room?.room,isDj,room?.track]);
  useEffect(()=>{if(!room)setTab(t=>t==="chat"?"show":t);},[room?.room]);
 
@@ -254,7 +261,8 @@ export default function UndergroundFM({locale="en"}){
   s.on("connect_error",()=>setNotice("Live rooms are offline. Solo Audius discovery is still available."));
   s.on("fm:state",data=>{setRoom(data);setIsDj(data.dj===s.id);lastRoom.current={room:data.room,track:data.track,startedAt:data.startedAt,lights:data.lights};SS.set("fm:room",lastRoom.current);
    try{const u=new URL(location.href);if(u.searchParams.get("room")!==data.room){u.searchParams.set("room",data.room);history.replaceState(history.state,"",u);}}catch{}});
-  s.on("fm:chat",entry=>setMessages(v=>[...v.slice(-79),entry]));
+  s.on("fm:chat",entry=>{setMessages(v=>[...v.slice(-79),entry]);if(entry?.handle)setTyping(t=>{if(!t[entry.handle])return t;const n={...t};delete n[entry.handle];return n;});});
+  s.on("fm:typing",who=>{if(typeof who?.handle==="string")setTyping(t=>({...t,[who.handle]:Date.now()+3500}));});
   s.on("fm:cues",sheet=>setCueSheet(sheet));
   s.on("fm:reaction",entry=>{setReactions(v=>[...v.slice(-11),{...entry,id:Math.random()}]);stage.current?.react(entry.kind);});
   s.on("fm:mood:burst",entry=>{
@@ -284,7 +292,7 @@ export default function UndergroundFM({locale="en"}){
    streamTrackId.current=current.id;if(!analyser.current)a.crossOrigin="anonymous";a.src="https://api.audius.co/v1/tracks/"+encodeURIComponent(current.id)+"/stream";
    // joining (a click) or coming back from a refresh: pick the room's song up where it is. Browsers may refuse
    // without a fresh tap; then the play button says so.
-   if(room?.track&&autoPlay.current){autoPlay.current=false;a.addEventListener("canplay",()=>{a.play().catch(()=>setNotice("The song is still playing for the room. Tap ▶ to keep listening on this device."));},{once:true});}
+   if(room?.track&&(autoPlay.current||listening.current)){autoPlay.current=false;a.addEventListener("canplay",()=>{a.play().catch(()=>setNotice("The song is still playing for the room. Tap ▶ to keep listening on this device."));},{once:true});}
    a.load();setPlaying(false);setLiked(false);
   }
   const sync=()=>{
@@ -324,7 +332,7 @@ export default function UndergroundFM({locale="en"}){
   wantsRoom.current=false;lastRoom.current=null;setInviteRoom(null);setReconnecting(false);SS.set("fm:room",null);
   try{const u=new URL(location.href);u.searchParams.delete("room");history.replaceState(history.state,"",u);}catch{}
   socket.current?.emit("fm:leave");
-  audio.current?.pause();setRoom(null);setIsDj(false);setPlaying(false);setMessages([]);setNotice("");setSelectedTrack(null);setTab("show");
+  listening.current=false;audio.current?.pause();setRoom(null);setIsDj(false);setPlaying(false);setMessages([]);setNotice("");setSelectedTrack(null);setTab("show");
  };
  const command=(event,payload,label)=>{
   if(!socket.current||!room)return;
@@ -385,10 +393,32 @@ export default function UndergroundFM({locale="en"}){
  const togglePlay=async()=>{
   if(!current||!audio.current)return;
   try{
-   if(audio.current.paused){ensureAnalyser();await audio.current.play();setPlaying(true);}
-   else{audio.current.pause();setPlaying(false);}
+   if(audio.current.paused){ensureAnalyser();await audio.current.play();setPlaying(true);listening.current=true;}
+   else{audio.current.pause();setPlaying(false);listening.current=false;}
   }catch{setNotice("The stream could not play. Try another track or tap play again.");}
  };
+ // chat: consecutive messages from one person within two minutes form a group, like a messenger
+ const sameRun=(a,b)=>a&&b&&a.from!=="SYSTEM"&&b.from!=="SYSTEM"&&a.from!=="REQUEST"&&b.from!=="REQUEST"&&a.handle===b.handle&&Math.abs(b.at-a.at)<120000;
+ const chatTime=at=>new Date(at).toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"});
+ const chatRows=messages.map((msg,i)=>{
+  const key=msg.at+"-"+i;
+  if(msg.from==="SYSTEM")return <p className="fx-msg-system" key={key}><span>{msg.text}</span></p>;
+  if(msg.from==="REQUEST"){const m=/^🎵 Track requested: (.*)$/.exec(msg.text||"");return <div className="fx-msg-req" key={key}><Icon name="note"/><span><small>{msg.handle||"stranger"} requested</small><b>{m?m[1]:msg.text}</b></span><time>{chatTime(msg.at)}</time></div>;}
+  const mine=Boolean(me&&msg.handle===me.handle),first=!sameRun(messages[i-1],msg),last=!sameRun(msg,messages[i+1]),dj=msg.from==="DJ";
+  return <div className={"fx-msg"+(mine?" is-me":"")+(dj?" is-dj":"")+(first?" is-first":"")+(last?" is-last":"")} key={key} style={{"--h":msg.hue??200}}>
+   {!mine&&(last?<Avatar hue={msg.hue??200} label={msg.handle||"?"} crown={dj}/>:<span className="fx-avatar-gap" aria-hidden="true"/>)}
+   <div className="fx-msg-body">
+    {first&&!mine&&<header><b>{msg.handle||"stranger"}</b>{dj&&<em>CONTROLLER</em>}</header>}
+    <p>{msg.text}</p>
+    {last&&<time>{mine?"You · ":""}{chatTime(msg.at)}</time>}
+   </div>
+  </div>;
+ });
+ const nearBottom=()=>{const el=chatList.current;return !el||el.scrollHeight-el.scrollTop-el.clientHeight<80;};
+ const scrollChat=(smooth)=>{const el=chatList.current;if(!el)return;el.scrollTo({top:el.scrollHeight,behavior:smooth?"smooth":"auto"});setUnread(0);};
+ const onChatScroll=()=>{if(nearBottom())setUnread(0);};
+ const typingPing=()=>{const now=Date.now();if(!room||now-lastTypingAt.current<2000)return;lastTypingAt.current=now;socket.current?.emit("fm:typing");};
+ const typingNames=Object.entries(typing).filter(([,until])=>until>clock).map(([h])=>h);
  const submitChat=()=>{
   const text=draft.trim();if(!text||!room)return;
   socket.current?.emit("fm:chat",text,ack=>{
@@ -545,7 +575,7 @@ export default function UndergroundFM({locale="en"}){
         <label className="fx-volume"><Icon name="volume"/><input type="range" min="0" max="100" value={volume} onChange={e=>{const value=Number(e.target.value);setVolume(value);if(audio.current)audio.current.volume=value/100;}} aria-label="Volume"/><output>{volume}%</output></label></div>
       </div>
      </div>
-     <audio ref={audio} preload="none" onPlay={()=>setPlaying(true)} onPause={()=>setPlaying(false)} onEnded={()=>{setPlaying(false);const id=current?.id;if(!room||!id)return;
+     <audio ref={audio} preload="none" onPlay={()=>{setPlaying(true);listening.current=true;}} onPause={()=>setPlaying(false)} onEnded={()=>{setPlaying(false);const id=current?.id;if(!room||!id)return;
       // the server starts the next queued song for everyone; only an empty queue falls back to the controller's library
       socket.current?.emit("fm:ended",{id},ack=>{if(!ack?.advanced&&isDj&&!room.queue?.length)nextTrack();});}} onError={e=>{const a=e.currentTarget;if(a.crossOrigin&&!analyser.current){a.removeAttribute("crossorigin");a.load();return;}setNotice("Track unavailable for external Audius streaming.");}} crossOrigin="anonymous"/>
     </section>
@@ -564,14 +594,17 @@ export default function UndergroundFM({locale="en"}){
     {view==="controller"&&<div className="fx-mobile-only" data-pane="show">{controllerActions}</div>}
 
     <aside className="fx-panel fx-chat" data-pane="chat" aria-label="Room chat"><div className="fx-chat-inner">
-     <header className="fx-panel-head"><h2>Room Chat</h2><span className="fx-dim">{room?.listeners||0} here</span></header>
-     <div className="fx-messages" ref={chatList} role="log" aria-live="polite" aria-label="Room conversation">{messages.length?messages.map((msg,i)=>msg.from==="SYSTEM"?<p className="fx-msg-system" key={msg.at+"-"+i}>{msg.text}</p>:<div className={"fx-msg"+(msg.from==="REQUEST"?" is-request":"")+(msg.from==="DJ"?" is-dj":"")} key={msg.at+"-"+i}>
-      <Avatar hue={msg.hue??200} label={msg.handle||"?"} crown={msg.from==="DJ"}/>
-      <div><header><b>{msg.handle||"stranger"}{me&&msg.handle===me.handle?" (you)":""}</b>{msg.from==="DJ"&&<em>CONTROLLER</em>}<time>{new Date(msg.at).toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"})}</time></header><p>{msg.text}</p></div>
-     </div>):<div className="fx-empty-chat"><strong>Every good night starts with a hello.</strong><p>{room?"Be the first to say hello. Everyone in this room can chat.":"Enter a room to meet the people behind the music."}</p></div>}</div>
+     <header className="fx-panel-head fx-chat-head">
+      <div><h2>Room Chat</h2><span className="fx-chat-live"><i className={room?"on":""}/>{room?(room.listeners||0)+" here":"offline"}</span></div>
+      {room?.people?.length>0&&<div className="fx-chat-people" aria-hidden="true">{room.people.slice(0,5).map((p,i)=><Avatar key={p.handle+i} hue={p.hue} label={p.handle} crown={p.dj}/>)}{room.people.length>5&&<span className="fx-chat-more">+{room.people.length-5}</span>}</div>}
+     </header>
+     {room&&(queue[0]||current)&&<div className="fx-chat-next"><Art track={queue[0]?.track||current}/><span><small>{queue[0]?"UP NEXT":"NOW PLAYING"}</small><b>{(queue[0]?.track||current).title}</b></span><em>{queue[0]?(queue.length>1?"+"+(queue.length-1)+" more":"autoplays"):""}</em></div>}
+     <div className="fx-messages" ref={chatList} onScroll={onChatScroll} role="log" aria-live="polite" aria-label="Room conversation">{messages.length?chatRows:<div className="fx-empty-chat"><span aria-hidden="true">👋</span><strong>Every good night starts with a hello.</strong><p>{room?"Be the first to say hello. Everyone in this room can chat.":"Enter a room to meet the people behind the music."}</p></div>}</div>
+     {unread>0&&<button type="button" className="fx-chat-jump" onClick={()=>scrollChat(true)}><Icon name="down"/>{unread} new message{unread>1?"s":""}</button>}
      <div className="fx-float" aria-hidden="true">{reactions.filter(r=>clock-r.at<2400).map(r=><span key={r.id} style={{"--x":(r.id*997%70)+"%"}}>{REACTIONS.find(x=>x[0]===r.kind)?.[1]||"✨"}</span>)}</div>
+     <div className="fx-typing" aria-live="polite">{typingNames.length>0&&<><span className="fx-dots" aria-hidden="true"><i/><i/><i/></span>{typingNames.length>2?"Several people are typing":typingNames.join(" and ")+(typingNames.length>1?" are":" is")+" typing"}</>}</div>
      {reactionBar}
-     <form onSubmit={e=>{e.preventDefault();submitChat();}} className="fx-compose"><input value={draft} onChange={e=>setDraft(e.target.value)} maxLength={280} disabled={!room} aria-label="Message the room" placeholder={room?"Message the room…":"Join a room to chat"}/><button disabled={!room||!draft.trim()} type="submit" aria-label="Send message"><Icon name="send"/></button></form>
+     <form onSubmit={e=>{e.preventDefault();submitChat();}} className="fx-compose"><input value={draft} onChange={e=>{setDraft(e.target.value);typingPing();}} maxLength={280} disabled={!room} aria-label="Message the room" placeholder={room?"Message the room…":"Join a room to chat"}/>{draft.length>200&&<small className="fx-count">{280-draft.length}</small>}<button disabled={!room||!draft.trim()} type="submit" aria-label="Send message"><Icon name="send"/></button></form>
      <p className="fx-chat-foot">Temporary room chat. No recordings or profiles. Be kind.</p>
     </div></aside>
 

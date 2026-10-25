@@ -51,9 +51,10 @@ export function createUnderground(io, { djHoldMs = 15000 } = {}) {
   const who = new Map();
   const name = (id) => handleFor(who.get(id) || id), tint = (id) => hueFor(who.get(id) || id);
   const bySocket = new Map();
-  const lastChat = new Map();
+  const lastChat = new Map(), lastTyping = new Map();
   const state = (room) => ({
     room: room.code, listeners: room.members.size,
+    people: [...room.members].slice(0, 12).map((id) => ({handle:name(id), hue:tint(id), dj:id===room.dj})),
     dj: room.dj, track: room.track, startedAt: room.startedAt,
     queue: room.queue.slice(0, MAX_QUEUE).map((q) => ({track:q.track,by:q.by})), djHold: Boolean(room.hold), cues: room.cues && room.cues.id === room.track?.id ? room.cues.id : null, djHandle: room.dj ? name(room.dj) : null, djHue: room.dj ? tint(room.dj) : 0, reactionCounts:room.reactionCounts, lights:room.lights, mood:room.mood, moodAt:room.moodAt, heat:heatNow(room), heatUpdatedAt:Date.now(), djSince:room.djSince, djTurnMs:DJ_TURN_MS, updatedAt: Date.now()
   });
@@ -184,7 +185,8 @@ export function createUnderground(io, { djHoldMs = 15000 } = {}) {
       if (!room || !track || room.queue.length >= MAX_QUEUE) return ack?.({ok:false,error:"invalid_request"});
       if (room.queue.some((item) => item.track.id === track.id)) return ack?.({ok:false,error:"duplicate"});
       room.queue.push({track,by:name(socket.id)});
-      publish(room); ack?.({ok:true});
+      if (!idle(room) || !advance(room)) publish(room);
+      ack?.({ok:true});
       io.to("fm:"+room.code).emit("fm:chat",{text:"🎵 Track requested: "+track.title+" — "+track.artist,at:Date.now(),from:"REQUEST",handle:name(socket.id),hue:tint(socket.id)});
     });
     socket.on("fm:queue:add", (raw, ack) => {
@@ -194,7 +196,7 @@ export function createUnderground(io, { djHoldMs = 15000 } = {}) {
       const track=safeTrack(raw);
       if(!track) return ack?.({ok:false,error:"invalid_track"});
       if(room.queue.some(item=>item.track.id===track.id)) return ack?.({ok:false,error:"duplicate"});
-      room.queue.push({track,by:name(socket.id)});publish(room);ack?.({ok:true});
+      room.queue.push({track,by:name(socket.id)});if(!idle(room)||!advance(room))publish(room);ack?.({ok:true});
     });
     socket.on("fm:queue:remove", (index, ack) => {
       const room=rooms.get(bySocket.get(socket.id));
@@ -295,8 +297,17 @@ export function createUnderground(io, { djHoldMs = 15000 } = {}) {
       io.to("fm:"+room.code).emit("fm:chat",{text,at:now,from:socket.id===room.dj?"DJ":"GUEST",handle:name(socket.id),hue:tint(socket.id)});
       ack?.({ok:true});
     });
-    socket.on("disconnect",()=>{leave(socket,false);lastChat.delete(socket.id);who.delete(socket.id);});
+    socket.on("fm:typing", () => {
+      const room=rooms.get(bySocket.get(socket.id));
+      const now=Date.now();
+      if(!room || now-(lastTyping.get(socket.id)||0)<1500) return;
+      lastTyping.set(socket.id,now);
+      socket.to("fm:"+room.code).emit("fm:typing",{handle:name(socket.id)});
+    });
+    socket.on("disconnect",()=>{leave(socket,false);lastChat.delete(socket.id);lastTyping.delete(socket.id);who.delete(socket.id);});
   };
+  // nothing loaded, or the current song has run out
+  const idle = (room) => !room.track || Boolean(room.track.duration && Date.now() > room.startedAt + room.track.duration * 1000);
   const advance = (room) => {
     const item = room.queue.shift();
     if (!item) return false;

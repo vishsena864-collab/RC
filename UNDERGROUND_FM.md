@@ -35,6 +35,18 @@ Music streams directly from Audius to each visitor's browser. ChatSpark doesn't 
 - A dropped realtime connection (e.g. the Vercel adapter's 5-minute function cap, a restart, mobile backgrounding) no longer clears the room: the song keeps playing, the LIVE badge reads RECONNECTING…, and the client rejoins the same room code with a snapshot (track, start time, lights). If the server lost the room it is rebuilt from that snapshot; a snapshot never overrides a room that still exists.
 - The room code is kept in the URL (`?room=STATIC`). INVITE copies/shares it; opening it joins that room.
 
+## Room chat and the queue
+
+The chat reads like a messenger: your own lines are lime bubbles on the right, lines from one person within two
+minutes group together, the controller's lines glow, requests show as song cards and system notes as dividers.
+The header shows who is in the room (`people` in `fm:state`) and the next queued song. Typing sends `fm:typing`
+(at most every 1.5 s per person; the server relays it to the others). When new lines arrive while someone is
+reading older ones, a "new messages" button takes them back down instead of yanking the scroll.
+
+The queue plays itself: when a song ends the server starts the next one (`fm:ended`, with a timer as backup),
+and every device that was already listening keeps playing the new song without another tap. A song requested or
+queued while the room is silent (nothing loaded, or the last song ran out) starts at once.
+
 ## Auto light show
 
 When a song starts, one browser (the controller first, listeners after a short random delay) downloads the

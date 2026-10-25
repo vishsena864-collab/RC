@@ -56,11 +56,16 @@ try{
  await a.waitForFunction(()=>Number(document.querySelector('.fx-heat-core strong').textContent.replace('%',''))>50);
  assert.equal(await btn(b,'Fire It Up: Push the room further').isDisabled(),true);
  await b.getByRole('button',{name:'How it works'}).click();await b.locator('.fx-guide').waitFor();await b.getByRole('button',{name:'Close guide'}).click();
- await b.getByLabel('Message the room').fill('Late night test signal');await btn(b,'Send message').click();await a.getByText('Late night test signal',{exact:true}).waitFor();
+ // modern chat: the room sees you typing, your own line is a right-hand bubble, requests show as cards
+ await b.getByLabel('Message the room').fill('Late night test signal');await a.locator('.fx-typing .fx-dots').waitFor();
+ await btn(b,'Send message').click();await a.getByText('Late night test signal',{exact:true}).waitFor();
+ await b.locator('.fx-msg.is-me').filter({hasText:'Late night test signal'}).waitFor();assert.equal(await a.locator('.fx-msg.is-me').filter({hasText:'Late night test signal'}).count(),0);
  await b.getByLabel('Song or artist',{exact:true}).fill('Soft');await b.locator('.fx-request-results button').filter({hasText:tracks[1].title}).click();
- await a.locator('.fx-queue-item').filter({hasText:tracks[1].title}).waitFor();
+ await a.locator('.fx-queue-item').filter({hasText:tracks[1].title}).waitFor();await a.locator('.fx-msg-req').filter({hasText:tracks[1].title}).waitFor();
  await a.getByRole('button',{name:'Play '+tracks[1].title+' now',exact:true}).click();await b.getByRole('heading',{name:tracks[1].title,exact:true}).waitFor();
  await a.getByRole('button',{name:/NEXT TRACK/}).click();await b.getByRole('heading',{name:tracks[2].title,exact:true}).waitFor();
+ // a listener who was listening keeps listening: the next song plays without another tap
+ await b.waitForFunction(id=>{const el=document.querySelector('audio');return el.src.includes(id)&&!el.paused;},tracks[2].id);
  await btn(a,'Supernova High Energy').click();await b.waitForFunction(()=>document.querySelector('.fx-scene-supernova[aria-pressed=true]')||true);
  await a.getByRole('button',{name:'Drop',exact:true}).click({force:true}).catch(()=>{});
  await a.waitForFunction(()=>document.querySelector('.fx-scene-supernova')?.getAttribute('aria-pressed')==='true');
@@ -94,5 +99,5 @@ try{
  await b.getByRole('button',{name:'Leave room'.toUpperCase(),exact:true}).first().click({force:true}).catch(()=>{});
  await a.locator('.fx-leave').first().click({force:true}).catch(()=>{});
  assert.deepEqual(errors,[]);
- console.log('PASS: discovery, solo audio, volume, two-browser join, cover broadcast, quick queue, room-wide vote effect, heat/cooldown, guide, chat, request, play-now, next, lights, motion toggle, pass controller, phone panes, 6 viewport widths, OS reduced motion; no browser errors.');
+ console.log('PASS: discovery, solo audio, volume, two-browser join, cover broadcast, quick queue, room-wide vote effect, heat/cooldown, guide, chat (typing, bubbles, request cards), request, play-now, next with autoplay, lights, motion toggle, pass controller, phone panes, 6 viewport widths, OS reduced motion; no browser errors.');
 }finally{await browser.close();}
