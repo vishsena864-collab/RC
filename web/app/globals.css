@@ -3830,3 +3830,16 @@ main:has(.home-entertainment) { padding: 0; }
 @keyframes cs-graffiti-wiggle{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @media(max-width:690px){.creative-feature-grid{grid-template-columns:1fr}.creative-poem-art,.creative-graffiti-art{height:165px}}
 @media(prefers-reduced-motion:reduce){.creative-feature-card,.creative-feature-card *{animation:none!important;transition:none!important}}
+
+/* legal pages: document switcher, lists and data tables */
+.legal-nav{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 28px}
+.legal-nav a,.legal-nav span{padding:6px 14px;border-radius:999px;border:1px solid var(--border);font-size:.92rem;text-decoration:none}
+.legal-nav span[aria-current]{background:var(--text);color:var(--bg);border-color:var(--text)}
+.legal ul{margin:0 0 1em;padding-left:1.3em}
+.legal li{margin:.35em 0}
+.legal-table{overflow-x:auto;margin:0 0 1.2em;border:1px solid var(--border);border-radius:var(--radius)}
+.legal-table table{width:100%;border-collapse:collapse;font-size:.94rem;min-width:520px}
+.legal-table th,.legal-table td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--border)}
+.legal-table thead th{font-weight:700;background:color-mix(in srgb,var(--text) 6%,transparent)}
+.legal-table tbody tr:last-child th,.legal-table tbody tr:last-child td{border-bottom:0}
+.legal-table tbody th{font-weight:600;white-space:nowrap}

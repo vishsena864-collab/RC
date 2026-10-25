@@ -388,3 +388,18 @@ main:not(:has(.home-entertainment)) { background: radial-gradient(680px 480px at
 @keyframes rc-sun-sparkle { 0%,85%,100% { transform: rotate(0) scale(1); } 92% { transform: rotate(70deg) scale(1.14); } }
 @media (max-width: 767px) { .rc-ambient-particles i:nth-child(n+7) { display:none; } .studio-hero-stage .social-preview { rotate: none; } }
 @media (prefers-reduced-motion: reduce) { .rc-ambient-particles i, .studio-btn-lime::before, .studio-eyebrow-sun { animation: none !important; } .studio-hero-stage .social-float { translate: none; } .studio-hero-stage .social-preview { rotate: none; } }
+/* Long translations (fr, pt, es) must not push the header past a phone screen: tighten the call to action and let
+   the link row scroll inside the header instead of the page scrolling sideways. */
+@media (max-width: 520px) {
+  .site-header .bar { gap: 8px; }
+  .site-header .brand { flex: none; }
+  .site-header .nav { min-width: 0; overflow-x: auto; scrollbar-width: none; gap: 2px; }
+  .site-header .nav::-webkit-scrollbar { display: none; }
+  .site-header .nav > a:not(.btn), .site-header .lang summary { padding-inline: 7px; font-size: .82rem; white-space: nowrap; }
+  .site-header .nav > .btn { flex: none; padding: 7px 11px; font-size: .78rem; white-space: nowrap; }
+  .site-header .nav > .btn span { display: none; }
+  .site-header .lang-name { display: none; }
+}
+@media (max-width: 360px) {
+  .site-header .brand > span:not([aria-hidden]) { display: none; }
+}

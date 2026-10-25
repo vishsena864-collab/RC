@@ -8,7 +8,7 @@ const es = {
     termsTitle: "Términos de uso",
     privacyTitle: "Política de privacidad",
   },
-  nav: { start: "Empezar a chatear", safety: "Seguridad", terms: "Términos", privacy: "Privacidad", language: "Idioma", home: "Inicio" },
+  nav: { start: "Empezar a chatear", safety: "Seguridad", terms: "Términos", privacy: "Privacidad", cookies: "Cookies", language: "Idioma", home: "Inicio" },
   home: {
     ui: {
       eyebrow: "INTERNET, PERO MÁS AMABLE",

@@ -10,9 +10,10 @@ const en = {
     safetyDescription: "How {name} keeps chats safer: 18+ only, reporting, moderation and automatic blocks for abusive users.",
     termsTitle: "Terms of Use",
     privacyTitle: "Privacy Policy",
+    cookiesTitle: "Cookie Policy",
   },
 
-  nav: { start: "Start chatting", safety: "Safety", terms: "Terms", privacy: "Privacy", language: "Language", home: "Home", skip: "Skip to content" },
+  nav: { start: "Start chatting", safety: "Safety", terms: "Terms", privacy: "Privacy", cookies: "Cookies", language: "Language", home: "Home", skip: "Skip to content" },
 
   home: {
     ui: {

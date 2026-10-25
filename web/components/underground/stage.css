@@ -787,3 +787,26 @@ canvas.fx-wave{display:block;width:100%;height:62px}
 /* neon needs a dark backing on your own lime bubble */
 .fx-msg.is-me:not(.is-jumbo) p .fx-emo{background:#160b22;border-radius:7px;padding:1px}
 .fx-compose .fx-emo-toggle{background:transparent;width:34px;height:34px}
+/* mute / report */
+.fx-msg header{position:relative}
+.fx-msg-more{margin-left:2px;padding:0 6px;border:0;border-radius:8px;background:transparent;color:var(--dim);font-size:11px;letter-spacing:.1em;line-height:18px;opacity:.55;transition:opacity .2s,background .2s}
+.fx-msg:hover .fx-msg-more,.fx-msg-more:focus-visible,.fx-msg-more[aria-expanded=true]{opacity:1;background:rgba(255,255,255,.08)}
+@media (hover:none){.fx-msg-more{opacity:.85}}
+.fx-msg-menu{position:absolute;left:0;top:calc(100% + 4px);z-index:4;display:flex;gap:4px;padding:5px;border-radius:12px;background:rgba(14,8,24,.96);border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 26px rgba(0,0,0,.5)}
+.fx-msg-menu button{padding:6px 12px;border:0;border-radius:8px;background:rgba(255,255,255,.06);color:#fff;font-size:12px}
+.fx-msg-menu button:hover,.fx-msg-menu button:focus-visible{background:var(--lime);color:#0b0812}
+.fx-muted{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:8px 2px 0;font-size:11px;color:var(--muted)}
+.fx-muted button{padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.15);background:transparent;color:var(--muted);font-size:11px}
+/* the shared report dialog, dressed for the stage */
+.fx-shell .dialog{background:#150b21;color:#f3eeff;border:1px solid rgba(212,255,58,.3);border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.6),0 0 40px rgba(212,255,58,.08)}
+.fx-shell .dialog::backdrop{background:rgba(5,2,10,.7);backdrop-filter:blur(4px)}
+.fx-shell .dialog h2{font:900 20px/1.1 var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--lime)}
+.fx-shell .dialog legend,.fx-shell .dialog label{color:#e8e3f7}
+.fx-shell .dialog input[type=radio]{accent-color:var(--lime)}
+.fx-shell .dialog textarea{width:100%;background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:10px}
+.fx-shell .dialog .btn{padding:10px 18px;border-radius:999px;border:0;background:var(--lime);color:#0b0812;font-weight:700}
+.fx-shell .dialog .btn-ghost{background:transparent;color:#e8e3f7;border:1px solid rgba(255,255,255,.2)}
+/* legal links (the site footer is hidden on the stage) */
+.fx-legal{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;padding:22px 0 calc(18px + var(--dock,0px));font:600 11px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.fx-legal a{color:var(--muted);text-decoration:none}
+.fx-legal a:hover,.fx-legal a:focus-visible{color:var(--lime)}

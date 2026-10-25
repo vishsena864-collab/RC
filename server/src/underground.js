@@ -1,5 +1,8 @@
-// Ephemeral, server-authoritative underground music rooms. Never stores audio or chat.
+// Ephemeral, server-authoritative underground music rooms. Never stores audio; chat lives only in memory, except
+// the reported person's recent lines when someone files a report (kept by Moderation for its short retention).
 import { randomInt } from "node:crypto";
+import { cleanMessage } from "./moderation.js";
+import { RateLimiter } from "./ratelimit.js";
 const MAX_PEOPLE = 12;
 const ROOM_CODES = ["STATIC","MIDNIGHT","BASEMENT","ECHO","FREQUENCY","AFTERHOURS"];
 const TRACK_ID = /^[a-zA-Z0-9_-]{1,48}$/;
@@ -14,6 +17,8 @@ const HEAT_STEP = {energy:14,love:7,chill:-13};
 const HEAT_DECAY_MS = 18000;
 const CLIENT_KEY = /^[a-zA-Z0-9_-]{8,40}$/;
 const SKIP_GRACE_MS = 4000;
+const REPORT_REASONS = ["underage","sexual_content","harassment","spam","other"];
+const RECENT_LINES = 40;
 const CUE_KINDS = ["intro","groove","build","drop","break","outro"];
 const num = (v, lo, hi) => typeof v === "number" && Number.isFinite(v) && v >= lo && v <= hi;
 // The auto light show's cue sheet for the song on air, made by one listener's browser. Checked field by field and
@@ -46,13 +51,14 @@ const defaultLights = () => ({theme:"infrared",fx:"sweep",intensity:2,auto:true,
 
 // djHoldMs: how long the controller seat (and an otherwise empty room) is kept for a controller who dropped or refreshed.
 // crossfadeMs: the next queued song starts this long before the current one ends, so devices blend the two like a DJ.
-export function createUnderground(io, { djHoldMs = 15000, crossfadeMs = 8000 } = {}) {
+// moderation/onBan: room-chat reports go through the same report and auto-ban pipeline as one-to-one chats.
+export function createUnderground(io, { djHoldMs = 15000, crossfadeMs = 8000, moderation = null, onBan = () => {} } = {}) {
   const rooms = new Map();
   // Stage names follow the tab key when the client sends one, so a refresh keeps the same name.
   const who = new Map();
   const name = (id) => handleFor(who.get(id) || id), tint = (id) => hueFor(who.get(id) || id);
   const bySocket = new Map();
-  const lastChat = new Map(), lastTyping = new Map();
+  const lastChat = new Map(), lastTyping = new Map(), lastRequest = new Map(), lastReport = new Map();
   const state = (room) => ({
     room: room.code, listeners: room.members.size,
     people: [...room.members].slice(0, 12).map((id) => ({handle:name(id), hue:tint(id), dj:id===room.dj})),
@@ -85,7 +91,7 @@ export function createUnderground(io, { djHoldMs = 15000, crossfadeMs = 8000 } =
     if (room.members.size === 0 && !room.hold) { rooms.delete(code); return; }
     publish(room);
   };
-  const newRoom = (code) => ({code,members:new Set(),keys:new Map(),hold:null,dj:null,djSince:Date.now(),track:null,startedAt:null,queue:[],lights:defaultLights(),mood:{energy:0,chill:0,love:0},moodAt:Date.now(),heatValue:50,heatAt:Date.now(),reactionAt:new Map(),reactionCounts:{heart:0,fire:0,spark:0,wave:0,party:0,hands:0},lastMood:new Map(),lastMoment:0,cues:null,cueAt:new Map()});
+  const newRoom = (code) => ({code,recent:[],members:new Set(),keys:new Map(),hold:null,dj:null,djSince:Date.now(),track:null,startedAt:null,queue:[],lights:defaultLights(),mood:{energy:0,chill:0,love:0},moodAt:Date.now(),heatValue:50,heatAt:Date.now(),reactionAt:new Map(),reactionCounts:{heart:0,fire:0,spark:0,wave:0,party:0,hands:0},lastMood:new Map(),lastMoment:0,cues:null,cueAt:new Map()});
   // A client that lost its connection (or a host instance that restarted) sends what it was hearing, so the room it
   // asks for comes back with the same song, position and lights instead of empty. Only used when the room is gone.
   const restore = (room, seed) => {
@@ -147,6 +153,13 @@ export function createUnderground(io, { djHoldMs = 15000, crossfadeMs = 8000 } =
     return { id:track.id, title, artist, artwork, duration, genre:String(track.genre||"").slice(0,50) };
   };
   const attach = (socket) => {
+    // every room event counts against one budget, so no single connection can flood a room
+    const budget = new RateLimiter(40, 10_000);
+    socket.use((packet, next) => {
+      if (typeof packet[0] !== "string" || !packet[0].startsWith("fm:") || budget.take()) return next();
+      const ack = packet.at(-1);
+      if (typeof ack === "function") ack({ok:false,error:"rate_limited"});
+    });
     socket.on("fm:join", (...a) => join(socket, typeof a.at(-1) === "function" ? a.at(-1) : undefined, a[0] && typeof a[0] === "object" ? a[0] : null));
     // Whoever walks into a silent room starts a song for everyone, so nobody arrives to nothing.
     socket.on("fm:autostart", (raw, ack) => {
@@ -197,6 +210,8 @@ export function createUnderground(io, { djHoldMs = 15000, crossfadeMs = 8000 } =
       const track = safeTrack(raw);
       if (!room || !track || room.queue.length >= MAX_QUEUE) return ack?.({ok:false,error:"invalid_request"});
       if (room.queue.some((item) => item.track.id === track.id)) return ack?.({ok:false,error:"duplicate"});
+      if (Date.now() - (lastRequest.get(socket.id) || 0) < 4000) return ack?.({ok:false,error:"cooldown"});
+      lastRequest.set(socket.id, Date.now());
       room.queue.push({track,by:name(socket.id)});
       if (!idle(room) || !advance(room)) publish(room);
       ack?.({ok:true});
@@ -302,12 +317,35 @@ export function createUnderground(io, { djHoldMs = 15000, crossfadeMs = 8000 } =
     });
     socket.on("fm:chat", (message, ack) => {
       const room=rooms.get(bySocket.get(socket.id));
-      const text=typeof message==="string" ? message.trim() : "";
-      if(!room || !text || text.length>MAX_CHAT || /https?:\/\//i.test(text)) return ack?.({ok:false,error:"invalid_chat"});
+      if(!room) return ack?.({ok:false,error:"invalid_chat"});
+      // same hygiene as one-to-one chat: no control or direction-override characters, no links
+      const clean=cleanMessage(message, MAX_CHAT);
+      if(!clean.ok) return ack?.({ok:false,error:clean.reason==="links"?"links":"invalid_chat"});
       const now=Date.now();
       if(now-(lastChat.get(socket.id)||0)<1250) return ack?.({ok:false,error:"cooldown"});
       lastChat.set(socket.id,now);
-      io.to("fm:"+room.code).emit("fm:chat",{text,at:now,from:socket.id===room.dj?"DJ":"GUEST",handle:name(socket.id),hue:tint(socket.id)});
+      const handle=name(socket.id);
+      room.recent.push({handle,text:clean.text,at:now}); if(room.recent.length>RECENT_LINES) room.recent.shift();
+      io.to("fm:"+room.code).emit("fm:chat",{text:clean.text,at:now,from:socket.id===room.dj?"DJ":"GUEST",handle,hue:tint(socket.id)});
+      ack?.({ok:true});
+    });
+    // Report someone in the room by stage name: their recent lines go to the moderation log, and enough distinct
+    // reporters ban their network key (and drop them) exactly like a one-to-one chat report.
+    socket.on("fm:report", (payload, ack) => {
+      const room=rooms.get(bySocket.get(socket.id));
+      if(!room || !moderation) return ack?.({ok:false});
+      const reason=REPORT_REASONS.includes(payload?.reason) ? payload.reason : null;
+      const handle=typeof payload?.handle==="string" ? payload.handle : "";
+      const target=[...room.members].find((id)=>id!==socket.id && name(id)===handle);
+      if(!reason || !target) return ack?.({ok:false,error:"invalid"});
+      if(Date.now()-(lastReport.get(socket.id)||0)<10_000) return ack?.({ok:false,error:"cooldown"});
+      lastReport.set(socket.id,Date.now());
+      const reportedKey=io.sockets.sockets.get(target)?.data?.networkKey;
+      const reporterKey=socket.data?.networkKey;
+      if(!reportedKey || !reporterKey) return ack?.({ok:false});
+      const result=moderation.report({reporterKey,reportedKey,reason,note:typeof payload?.note==="string"?payload.note:"",category:"underground",mode:"room",
+        transcript:room.recent.filter((l)=>l.handle===handle).slice(-12).map((l)=>({from:"reported",text:l.text,ts:l.at}))});
+      if(result.banned) onBan(reportedKey);
       ack?.({ok:true});
     });
     socket.on("fm:typing", () => {
@@ -317,7 +355,7 @@ export function createUnderground(io, { djHoldMs = 15000, crossfadeMs = 8000 } =
       lastTyping.set(socket.id,now);
       socket.to("fm:"+room.code).emit("fm:typing",{handle:name(socket.id)});
     });
-    socket.on("disconnect",()=>{leave(socket,false);lastChat.delete(socket.id);lastTyping.delete(socket.id);who.delete(socket.id);});
+    socket.on("disconnect",()=>{leave(socket,false);for(const m of [lastChat,lastTyping,lastRequest,lastReport,who])m.delete(socket.id);});
   };
   // nothing loaded, or the current song has run out
   const idle = (room) => !room.track || Boolean(room.track.duration && Date.now() > room.startedAt + room.track.duration * 1000);

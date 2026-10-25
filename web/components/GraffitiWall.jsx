@@ -10,7 +10,7 @@ const NEW_ART={background:"#343a38",style:"concrete",ops:[]};
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 const hexColor=(data)=>"#"+[data[0],data[1],data[2]].map(x=>x.toString(16).padStart(2,"0")).join("");
 function signedCard(ctx,art,entry,certificate){
- const w=1600,h=1100;const scale=2;
+ const w=1600,h=1100;
  ctx.clearRect(0,0,w,h);
  const bg=ctx.createLinearGradient(0,0,w,h);bg.addColorStop(0,"#111b18");bg.addColorStop(.55,"#121619");bg.addColorStop(1,"#1c2d22");ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
  for(let i=0;i<1600;i++){

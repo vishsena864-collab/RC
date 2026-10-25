@@ -19,7 +19,8 @@ export async function GET(request) {
   const params = new URL(request.url).searchParams;
   const query = params.get("q")?.trim().slice(0,80) || "";
   const page = Math.max(0,Math.min(30,Number.parseInt(params.get("page")||"0",10)||0));
-  const seed = Math.abs(Number.parseInt(params.get("seed")||"0",10)||0) % 2147483647;
+  // a thousand seeds is plenty of variety and keeps the edge cache useful (and the upstream fan-out bounded)
+  const seed = Math.abs(Number.parseInt(params.get("seed")||"0",10)||0) % 1000;
   try {
     // a typed search stays a search; no query or a genre chip gets a fresh mix from many feeds
     if (query && !MIX_GENRES[query]) {

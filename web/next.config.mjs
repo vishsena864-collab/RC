@@ -12,7 +12,7 @@ const trustedSocket = api === "same-origin" ? "" : (() => {
 // strict CSP where supported by the chosen deployment.
 const contentSecurityPolicy = [
   "default-src 'self'", "base-uri 'self'", "object-src 'none'", "frame-ancestors 'none'",
-  "form-action 'self'", "img-src 'self' https: data: blob:", "font-src 'self' data:",
+  "form-action 'self'", ...(api.startsWith("https:") ? ["upgrade-insecure-requests"] : []), "img-src 'self' https: data: blob:", "font-src 'self' data:",
   // The auto light show downloads the song once (Audius redirects to rotating content nodes, hence https:) and
   // analyses it in a Worker built from our own bundled code (blob:).
   "worker-src 'self' blob:", "media-src 'self' https:", `connect-src 'self' https: https://lpbpjffnjbjwzdrcscko.supabase.co${trustedSocket}`,
@@ -25,7 +25,9 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "no-referrer" },
   { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), midi=()" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), midi=(), usb=(), serial=(), bluetooth=(), browsing-topics=()" },
+  // no other site can keep a handle on our window (popups, tab-nabbing)
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
 ];
 
 const nextConfig = {

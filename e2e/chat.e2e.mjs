@@ -10,11 +10,13 @@ import { chromium } from "playwright-core";
 
 const WEB = process.env.WEB_URL || "http://localhost:3000";
 const SHOTS = process.env.SHOTS_DIR || "";
+// CHROME_PATH (any Chromium) wins; otherwise Microsoft Edge in its usual Windows locations.
 const EDGE = [
+  process.env.CHROME_PATH,
   "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
   "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
-].find(existsSync);
-assert.ok(EDGE, "Microsoft Edge not found");
+].find((p) => p && existsSync(p));
+assert.ok(EDGE, "No browser found: set CHROME_PATH or install Microsoft Edge");
 
 const browser = await chromium.launch({ executablePath: EDGE, headless: true });
 const problems = [];
@@ -44,7 +46,8 @@ try {
   const startBtn = alice.page.getByRole("button", { name: "Start chatting" });
   await alice.page.waitForFunction(() => document.querySelector("button.btn-large")?.textContent.includes("Start"));
   assert.equal(await startBtn.isDisabled(), true, "Start is disabled until the 18+ box is ticked");
-  assert.equal(await alice.page.locator("#topic option[value='adult']").isDisabled(), true, "adult chat starts locked");
+  // the gated adult category is deliberately never offered on public pages (see web/lib/categories.js)
+  assert.equal(await alice.page.locator("#topic option[value='adult']").count(), 0, "no adult topic in the public list");
   say("Start stays disabled until the 18+ checkbox is ticked");
 
   await shot(alice.page, "01-setup.png");
@@ -61,12 +64,9 @@ try {
   }
   await fill(alice, { gender: "Male", want: "Anyone", interests: ["Guitar", "Gaming"] });
   await fill(bob, { gender: "Female", want: "Anyone", interests: ["guitar"] });
-  assert.equal(await alice.page.locator("#topic option[value='adult']").isDisabled(), false, "18+ confirmation unlocks adult chat");
-  await alice.page.locator("#topic").selectOption("adult");
-  assert.equal(await alice.page.locator("#topic").inputValue(), "adult");
   await alice.page.locator("#topic").selectOption("music");
   assert.equal(await alice.page.locator(".chip").count(), 2, "interests become chips");
-  say("18+ confirmation unlocks adult text chat; interests are added as chips");
+  say("the 18+ confirmation enables Start; interests are added as chips");
 
   // ---------- matching ----------
   await alice.page.getByRole("button", { name: "Start chatting" }).click();
@@ -254,9 +254,7 @@ try {
   await phone.page.goto(`${WEB}/en`);
   const overflow = await phone.page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   assert.ok(overflow <= 0, `no horizontal scroll on a phone (overflow ${overflow}px)`);
-  await phone.page.locator(".ent-game-card").waitFor();
-  await phone.page.locator(".ent-choices button").first().click();
-  await phone.page.locator(".ent-game-card.is-match, .ent-game-card.is-split").waitFor();
+  await phone.page.locator("main h1, h1").first().waitFor();
   await shot(phone.page, "05-home-phone.png");
   await phone.page.goto(`${WEB}/en/start`);
   const overflow2 = await phone.page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -269,19 +267,22 @@ try {
   await dark.page.goto(`${WEB}/en/start`);
   await dark.page.getByRole("heading", { name: "Set up your chat" }).waitFor();
   const bg = await dark.page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  assert.equal(bg, "rgb(15, 17, 21)", "dark system setting gives the dark theme");
+  // the Social Motion design is deliberately light in both OS appearances (web/app/social-motion.css): stay readable
+  assert.equal(bg, "rgb(255, 255, 255)", "dark system setting keeps the light design");
+  const ink = await dark.page.evaluate(() => getComputedStyle(document.querySelector("h1")).color);
+  assert.notEqual(ink, "rgb(255, 255, 255)", "text stays dark on the light page");
   await shot(dark.page, "08-setup-dark.png");
-  say("dark mode follows the system setting");
+  say("a dark system setting keeps the deliberate light design readable");
 
   // ---------- desktop home ----------
   const desk = await visitor("desktop", { width: 1280, height: 900 });
   await desk.page.goto(`${WEB}/en`);
-  const heroBox = await desk.page.locator(".ent-hero").boundingBox();
+  const heroBox = await desk.page.locator(".nostalgia-hero").boundingBox();
   assert.ok(heroBox.width >= 1279, `homepage hero fills the viewport width (actual ${heroBox.width}px)`);
-  assert.ok(heroBox.height >= 839, `homepage hero fills the viewport below the header (actual ${heroBox.height}px)`);
-  assert.equal(await desk.page.locator(".ent-topic-ribbon a").count(), 16, "full-screen hero includes the animated topic ribbon");
+  assert.ok(heroBox.height >= 700, `homepage hero is a full first screen (actual ${heroBox.height}px)`);
+  assert.equal(await desk.page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, "no horizontal scroll on desktop");
   await shot(desk.page, "07-home.png");
-  say("desktop homepage fills the viewport and includes the interactive entertainment rail");
+  say("desktop homepage hero fills the first screen without horizontal scroll");
 } finally {
   await browser.close();
 }

@@ -350,7 +350,6 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
   // Render at screen resolution (thin lasers smear when a small canvas is stretched); cap the pixel count on huge screens.
   let scale = 1;
   const pickScale = () => { const px = innerWidth * innerHeight, cap = quality < 1 && (navigator.hardwareConcurrency || 8) <= 4 ? 7e5 : 1.6e6; scale = Math.min(1, Math.sqrt(cap / px)); };
-  const mix = (c, k) => c.map(v => Math.round(v * k));
   const col = (c, k = 1) => `${Math.round(c[0] * k)},${Math.round(c[1] * k)},${Math.round(c[2] * k)}`;
   const buildCrowd = () => {
     const r = rng(7), rows = quality < 1 ? [[.07, 14, .64], [.0, 11, 1]] : [[.09, 26, .55], [.045, 22, .78], [.0, 17, 1]];

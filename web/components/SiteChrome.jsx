@@ -32,9 +32,10 @@ export function SiteFooter({ locale, dict }) {
           <Link href={`/${locale}/safety`}>{dict.nav.safety}</Link>
           <Link href="/en/terms">{dict.nav.terms}</Link>
           <Link href="/en/privacy">{dict.nav.privacy}</Link>
+          <Link href="/en/cookies">{dict.nav.cookies}</Link>
         </nav>
       </div>
-      <div className="container fine"><span>© {new Date().getFullYear()} {SITE_NAME}. {dict.footer.rights}</span><span>18+ · {dict.home.ctaNote}</span></div>
+      <div className="container fine"><span>© {new Date().getFullYear()} {SITE_NAME}. {dict.footer.rights}</span><span>{dict.home.ctaNote}</span></div>
     </footer>
   );
 }

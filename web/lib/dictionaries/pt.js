@@ -8,7 +8,7 @@ const pt = {
     termsTitle: "Termos de uso",
     privacyTitle: "Política de privacidade",
   },
-  nav: { start: "Começar a conversar", safety: "Segurança", terms: "Termos", privacy: "Privacidade", language: "Idioma", home: "Início" },
+  nav: { start: "Começar a conversar", safety: "Segurança", terms: "Termos", privacy: "Privacidade", cookies: "Cookies", language: "Idioma", home: "Início" },
   home: {
     ui: {
       eyebrow: "A INTERNET, SÓ QUE MAIS LEGAL",
