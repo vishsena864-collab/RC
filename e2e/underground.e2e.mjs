@@ -70,6 +70,8 @@ try{
  for(const width of [320,390,768,1024,1180,1440]){await a.setViewportSize({width,height:1000});await noOverflow(a);}
  await a.setViewportSize({width:390,height:844});
  for(const name of ['Request','Vibe','Chat','The Show']){await a.locator('.fx-dock').getByRole('button',{name,exact:true}).click();await shot(a,'mobile-'+name.toLowerCase().replace(' ','-'));await noOverflow(a);}
+ await a.locator('.fx-dock').getByRole('button',{name:'Vibe',exact:true}).click();
+ assert.equal(await a.evaluate(()=>{const r=[...document.querySelectorAll('.fx-orb')].map(o=>o.getBoundingClientRect());return r.length===3&&r.every((b,i)=>b.right<=innerWidth&&(!i||b.top>=r[i-1].bottom-1));}),true,'phone vibe buttons stack without overlapping');
  await a.locator('.fx-dock').getByRole('button',{name:'Chat',exact:true}).click();await a.locator('[data-tab=chat]').waitFor();
  await a.getByLabel('Message the room').fill('Mobile signal');await btn(a,'Send message').click();await b.getByText('Mobile signal',{exact:true}).waitFor();
  await a.locator('.fx-dock').getByRole('button',{name:'The Show',exact:true}).click();

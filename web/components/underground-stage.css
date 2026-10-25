@@ -608,8 +608,12 @@ body:has(.fx-shell)>.site-header,body:has(.fx-shell)>.site-footer{display:none}
 .fx-orb-name{line-height:30px}
 .fx-orb-blurb{min-height:2.7em}
 @media (max-width:699px){
- .fx-orb{grid-template-rows:auto auto auto;justify-items:start}
- .fx-orb-body{width:104px}
+ .fx-orbs{grid-template-columns:1fr;gap:14px}
+ .fx-orb{grid-template-columns:116px minmax(0,1fr);grid-template-rows:auto auto auto;column-gap:16px;row-gap:6px;justify-items:start;align-items:center;text-align:left}
+ .fx-orb-body{grid-row:1/4;width:104px;margin:6px}
+ .fx-orb-name,.fx-orb-blurb,.fx-orb-cta{grid-column:2;min-width:0;max-width:100%}
+ .fx-orb-blurb{min-height:0}
+ .fx-orb-cta{min-width:0;width:100%;text-align:center}
  .fx-orb-name{line-height:1.1}
  .fx-orb-blurb{min-height:0}
 }

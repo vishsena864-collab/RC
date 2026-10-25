@@ -324,7 +324,9 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
     fast = lerp(fast, L.level, 1 - Math.exp(-dt * 6)); slow = lerp(slow, L.level, 1 - Math.exp(-dt * .45));
     if (fast > slow * 1.5 && fast > .42 && t - lastDrop > 8) { blind = 1; lastDrop = t; }
   };
-  const scale = quality < 1 ? .38 : .5;
+  // Render at screen resolution (thin lasers smear when a small canvas is stretched); cap the pixel count on huge screens.
+  let scale = 1;
+  const pickScale = () => { const px = innerWidth * innerHeight, cap = quality < 1 && (navigator.hardwareConcurrency || 8) <= 4 ? 7e5 : 1.6e6; scale = Math.min(1, Math.sqrt(cap / px)); };
   const mix = (c, k) => c.map(v => Math.round(v * k));
   const col = (c, k = 1) => `${Math.round(c[0] * k)},${Math.round(c[1] * k)},${Math.round(c[2] * k)}`;
   const buildCrowd = () => {
@@ -333,7 +335,7 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
     for (const [lift, step, sc] of rows) for (let x = -step; x < W + step; x += step * (.75 + r() * .5)) crowd.push({ x, lift: lift * H, sc, ph: r() * TAU, arm: r() < .42 ? (r() < .5 ? 1 : 2) : 0, hh: .85 + r() * .3 });
   };
   const resize = () => {
-    W = Math.max(2, Math.round(innerWidth * scale)); H = Math.max(2, Math.round(innerHeight * scale)); canvas.width = W; canvas.height = H; bl.width = W; bl.height = H; buildCrowd();
+    pickScale(); W = Math.max(2, Math.round(innerWidth * scale)); H = Math.max(2, Math.round(innerHeight * scale)); canvas.width = W; canvas.height = H; bl.width = W; bl.height = H; buildCrowd();
     hazePat = blg.createPattern(hazeTile(), "repeat"); hazeMain = main.createPattern(hazeTile(), "repeat"); dotPat = ledg.createPattern(ledTile(W > 600 ? 3 : 2), "repeat");
     if (S.still) paint(2.2, 1 / 60);
   };
@@ -366,20 +368,27 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
     const st = g.createRadialGradient(0, 0, 0, 0, 0, r * 3.5); st.addColorStop(0, `rgba(${col(c)},${a * .45})`); st.addColorStop(1, `rgba(${col(c)},0)`);
     g.fillStyle = st; g.beginPath(); g.arc(0, 0, r * 3.5, 0, TAU); g.fill(); g.restore();
   };
-  // a laser in haze: razor-thin saturated line, faint scatter halo, sparkles off the particles
+  // neon laser: white-hot core inside layered, fully saturated glow, sparkles where it crosses haze.
+  // Drawn straight onto the stage (not through the haze mask) so it stays crisp and bright.
   const SPARKLE = [3, 70, 2, 110, 5, 45];
+  const neon = (c) => { const mx = Math.max(c[0], c[1], c[2], 1), mn = Math.min(c[0], c[1], c[2]); return mx - mn < 30 ? c : c.map(v => Math.round(((v - mn) / (mx - mn)) * 255)); };
   const laser = (x, y, a, len, c, k, wid, phase) => {
-    const x1 = x + Math.cos(a) * len, y1 = y + Math.sin(a) * len, rc = col(c);
-    const gr = g.createLinearGradient(x, y, x1, y1); gr.addColorStop(0, `rgba(${rc},${.85 * k})`); gr.addColorStop(1, `rgba(${rc},${.35 * k})`);
-    g.beginPath(); g.moveTo(x, y); g.lineTo(x1, y1);
-    g.lineWidth = wid * 7; g.strokeStyle = `rgba(${rc},${.035 * k})`; g.stroke();
-    g.lineWidth = wid * 2.4; g.strokeStyle = `rgba(${rc},${.11 * k})`; g.stroke();
-    g.lineWidth = wid; g.strokeStyle = gr; g.stroke();
-    g.setLineDash(SPARKLE); g.lineDashOffset = -phase; g.lineWidth = wid * 1.5; g.strokeStyle = `rgba(255,255,255,${.7 * k})`; g.stroke(); g.setLineDash([]);
+    if (k <= .01) return;
+    const x1 = x + Math.cos(a) * len, y1 = y + Math.sin(a) * len, n = neon(c), rc = col(n), hot = col(n.map(v => Math.round(v * .8 + 50)));
+    const ctx = main; ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x1, y1);
+    ctx.lineWidth = wid * 18; ctx.strokeStyle = `rgba(${rc},${.05 * k})`; ctx.stroke();
+    ctx.lineWidth = wid * 7; ctx.strokeStyle = `rgba(${rc},${.2 * k})`; ctx.stroke();
+    ctx.lineWidth = wid * 3; ctx.strokeStyle = `rgba(${rc},${.85 * k})`; ctx.stroke();
+    const gr = ctx.createLinearGradient(x, y, x1, y1); gr.addColorStop(0, `rgba(${hot},${k})`); gr.addColorStop(.7, `rgba(${hot},${.85 * k})`); gr.addColorStop(1, `rgba(${hot},${.35 * k})`);
+    ctx.lineWidth = wid * 1.4; ctx.strokeStyle = gr; ctx.stroke();
+    ctx.lineWidth = Math.max(.6, wid * .45); ctx.strokeStyle = `rgba(255,255,255,${.55 * k})`; ctx.stroke();
+    ctx.setLineDash(SPARKLE); ctx.lineDashOffset = -phase; ctx.lineWidth = wid * 2; ctx.strokeStyle = `rgba(${hot},${.8 * k})`; ctx.stroke(); ctx.setLineDash([]);
+    ctx.restore();
   };
   const EMITTERS = [{ x: .14, y: .8, dir: -1 }, { x: .5, y: .8, dir: -1 }, { x: .86, y: .8, dir: -1 }, { x: .32, y: .03, dir: 1 }, { x: .68, y: .03, dir: 1 }];
   const lasers = (t, A, B, m, kick, mode) => {
-    const n = W < 360 ? 7 : 11, len = Math.hypot(W, H) * 1.1, open = .6 + kick * .45 + S.heat / 250, wid = Math.max(.8, W / 900);
+    const n = W < 500 ? 8 : 13, len = Math.hypot(W, H) * 1.1, open = .75 + kick * .45 + S.heat / 250, wid = Math.max(1, Math.min(W, H) / 650);
     g.lineCap = "round";
     EMITTERS.forEach((e, ei) => {
       const ex = e.x * W, ey = e.y * H, base = e.dir < 0 ? -Math.PI / 2 : Math.PI / 2, c = ei % 2 ? B : A;
@@ -449,7 +458,7 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
   };
   // the four extra rigs
   const special = (fx, t, A, B, m, kick, bi, sp, ty) => {
-    const ctr = photo ? at(.5, .48) : [W / 2, H * .45], wid = Math.max(.8, W / 900);
+    const ctr = photo ? at(.5, .48) : [W / 2, H * .45], wid = Math.max(1, Math.min(W, H) / 650);
     if (fx === "cone") {
       const n = W < 360 ? 14 : 22, len = Math.hypot(W, H);
       for (let i = 0; i < n; i++) laser(ctr[0], ctr[1], t * .6 * sp + i / n * TAU, len, i % 2 ? A : B, Math.min(1, (.55 + kick * .5) * m), wid, t * 160 + i * 41);
@@ -482,7 +491,7 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
   // a reaction from anyone in the room fires a matching light: heart sweep, fire floor flames, sparkle burst, wave of light
   // a reaction from anyone in the room fires a matching light in the visible top of the stage
   const drawReacts = (t) => {
-    const now = performance.now(), wid = Math.max(1, W / 700);
+    const now = performance.now(), wid = Math.max(1, Math.min(W, H) / 650);
     reacts = reacts.filter(r => now - r.at < 1800);
     for (const r of reacts) {
       const k = (now - r.at) / 1800, c = REACT_RGB[r.kind], a = Math.pow(1 - k, 1.4);
@@ -543,7 +552,8 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
     else if (S.power > 0) {
       const n = [0, 5, 8, 12][S.power], sp = (kind === "drop" ? 1.9 : 1) * heatK, al = (.34 + kick * .42) * m * live, fx = S.fx, ty = H * .022, oy = ty + 12;
       if (!photo && fx !== "crossfire" && fx !== "tunnel") truss(ty, Array.from({ length: n }, (_, i) => W * (.08 + (n === 1 ? .5 : i / (n - 1)) * .84)));
-      if (fx === "sweep" || fx === "crossfire" || fx === "pulse") lasers(t, A, B, m, kick, fx === "sweep" ? 0 : fx === "pulse" ? 3 : (Math.floor(t * S.bpm / 60 / 8) % 2 ? 2 : 1));
+      // neon laser fans run in every beam scene; the pattern follows the scene, or rotates every 8 bars
+      if (S.power >= 2 && fx !== "bloom") lasers(t, A, B, m, kick, fx === "sweep" ? 0 : fx === "pulse" ? 3 : fx === "crossfire" ? (Math.floor(bi / 8) % 2 ? 2 : 1) : Math.floor(bi / 32) % 4);
       for (let i = 0; i < n; i++) {
         const f = n === 1 ? .5 : i / (n - 1), c = i % 2 ? B : A, ox = W * (.08 + f * .84);
         let ang = 0, len = H * 1.45, spr = .07, a = al;
@@ -561,11 +571,11 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
     }
     if (rich) {
       // smoke: keep the light only where there is haze, drifting at two speeds, then add it to the stage
-      hazePat.setTransform?.(new DOMMatrix([2.2, 0, 0, 2.2, -t * 9 % (256 * 2.2), Math.sin(t * .05) * 30]));
+      const hz = Math.max(1.6, W / 330); hazePat.setTransform?.(new DOMMatrix([hz, 0, 0, hz, -t * 9 * hz / 2.2 % (256 * hz), Math.sin(t * .05) * 30 * hz / 2.2]));
       g.globalCompositeOperation = "destination-in"; g.fillStyle = hazePat; g.fillRect(0, 0, W, H);
       g = main; g.globalCompositeOperation = "lighter"; g.drawImage(bl, 0, 0);
       // and a faint lit haze over everything
-      hazeMain.setTransform?.(new DOMMatrix([3, 0, 0, 3, t * 6 % (256 * 3), 0]));
+      const hm = Math.max(2.2, W / 240); hazeMain.setTransform?.(new DOMMatrix([hm, 0, 0, hm, t * 6 * hm / 3 % (256 * hm), 0]));
       g.globalAlpha = .05 + (L.live ? L.level * .05 : .02); g.fillStyle = hazeMain; g.fillRect(0, 0, W, H); g.globalAlpha = 1;
     }
     g = main; g.globalCompositeOperation = "lighter"; drawReacts(t);
