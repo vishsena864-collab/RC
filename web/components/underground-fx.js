@@ -282,13 +282,18 @@ const hazeTile = () => {
 const ledTile = (p) => { const c = document.createElement("canvas"); c.width = c.height = p; const x = c.getContext("2d"); x.fillStyle = "#fff"; x.beginPath(); x.arc(p / 2, p / 2, p * .36, 0, TAU); x.fill(); return c; };
 
 // Where things are in the venue photo (fractions of the image) and how the CSS places it (cover, x 50%, y 28% / 30% on narrow screens).
-const PHOTO = { ratio: 670 / 1200, screens: [{ u0: .37, v0: .36, u1: .63, v1: .56, main: true }, { u0: .16, v0: .37, u1: .25, v1: .68 }, { u0: .74, v0: .37, u1: .84, v1: .68 }], bars: [[.375, .358], [.63, .358], [.785, .358]], dj: [.5, .55] };
+// Two venue photos: wide for landscape screens, tall for phones. Each maps its LED screens, white light bars and DJ.
+const PHOTOS = {
+  wide: { src: "/underground/stage-2400.webp", small: "/underground/stage-1200.webp", ratio: 670 / 1200, zoom: 1.6, screens: [{ u0: .37, v0: .36, u1: .63, v1: .56, main: true }, { u0: .16, v0: .37, u1: .25, v1: .68 }, { u0: .74, v0: .37, u1: .84, v1: .68 }], bars: [[.375, .358], [.63, .358], [.785, .358]], dj: [.5, .55] },
+  tall: { src: "/underground/stage-portrait-1300.webp", small: "/underground/stage-portrait-800.webp", ratio: 2752 / 1536, zoom: 1.35, screens: [{ u0: .3, v0: .44, u1: .72, v1: .53, main: true }, { u0: .02, v0: .45, u1: .1, v1: .6 }, { u0: .9, v0: .45, u1: .98, v1: .6 }], bars: [[.27, .413], [.73, .413]], dj: [.5, .575] }
+};
 // Photo placement shared by the CSS backdrop and the rig: zoomed so the stage, LED screens and DJ sit in the hero
 // (about a third of the way down the viewport) while the image still covers the whole screen.
 export const photoFit = (w, h) => {
-  let dh = Math.max(h * 1.6, w * PHOTO.ratio), dw = dh / PHOTO.ratio;
-  if (dw < w) { dw = w; dh = dw * PHOTO.ratio; }
-  return { dw, dh, ox: (w - dw) / 2, oy: clamp(h * .33 - PHOTO.dj[1] * dh, h - dh, 0) };
+  const P = h > w * 1.15 ? PHOTOS.tall : PHOTOS.wide;
+  let dh = Math.max(h * P.zoom, w * P.ratio), dw = dh / P.ratio;
+  if (dw < w) { dw = w; dh = dw * P.ratio; }
+  return { P, src: w * (window.devicePixelRatio || 1) > 1400 || P === PHOTOS.tall && h * (window.devicePixelRatio || 1) > 1600 ? P.src : P.small, dw, dh, ox: (w - dw) / 2, oy: clamp(h * .33 - P.dj[1] * dh, h - dh, 0) };
 };
 const REACT_RGB = { heart: [255, 40, 150], fire: [255, 110, 20], spark: [255, 250, 235], wave: [40, 200, 255] };
 
@@ -414,7 +419,7 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
   const ledWall = (t, A, B, m, kick, bi) => {
     if (!photo || S.power === 0) return;
     const mode = Math.floor(bi / 8) % 3;
-    PHOTO.screens.forEach((sc, si) => {
+    photoFit(innerWidth, innerHeight).P.screens.forEach((sc, si) => {
       const [x0, y0] = at(sc.u0, sc.v0), [x1, y1] = at(sc.u1, sc.v1), w = Math.round(x1 - x0), h = Math.round(y1 - y0);
       if (w < 8 || h < 8 || x1 < 0 || x0 > W) return;
       if (led.width < w || led.height < h) { led.width = Math.max(led.width, w); led.height = Math.max(led.height, h); dotPat = ledg.createPattern(ledTile(W > 600 ? 3 : 2), "repeat"); }
@@ -445,11 +450,11 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
       main.globalCompositeOperation = "lighter"; main.globalAlpha = (.5 + kick * .3) * Math.min(1, m); main.drawImage(led, 0, 0, w, h, x0, y0, w, h); main.globalAlpha = 1;
     });
     // the white LED bars over the screens hit on the kick
-    for (const [u, v] of PHOTO.bars) { const [x, y] = at(u, v); flare(x, y, B, H * .035 * (.6 + kick), .25 + kick * .6); }
+    for (const [u, v] of photoFit(innerWidth, innerHeight).P.bars) { const [x, y] = at(u, v); flare(x, y, B, H * .035 * (.6 + kick), .25 + kick * .6); }
   };
   // light shafts radiating from behind the DJ
   const godRays = (t, A, B, m) => {
-    const [ox, oy] = photo ? at(...PHOTO.dj) : [W / 2, H * .45], len = Math.max(W, H) * .9, k = (.5 + (L.live ? L.bass : .3)) * Math.min(1, m);
+    const [ox, oy] = photo ? at(...photoFit(innerWidth, innerHeight).P.dj) : [W / 2, H * .45], len = Math.max(W, H) * .9, k = (.5 + (L.live ? L.bass : .3)) * Math.min(1, m);
     for (let i = 0; i < 14; i++) {
       const a = i / 14 * TAU + t * .05 + Math.sin(t * .3 + i) * .08, w = .035 + (i % 3) * .015, c = i % 2 ? A : B;
       const gr = g.createRadialGradient(ox, oy, 0, ox, oy, len); gr.addColorStop(0, `rgba(${col(c)},${.16 * k})`); gr.addColorStop(1, `rgba(${col(c)},0)`);
