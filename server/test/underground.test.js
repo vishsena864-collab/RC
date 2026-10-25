@@ -13,7 +13,7 @@ const open = [];
 
 before(async () => {
   dataDir = mkdtempSync(join(tmpdir(), "randomchat-fm-test-"));
-  app = createApp({ dataDir, config: { relaxMs: 300, tickMs: 50, adultEnabled: false, rematchCooldownMs: 0, limits: { ...defaultConfig.limits } } });
+  app = createApp({ dataDir, config: { relaxMs: 300, tickMs: 50, adultEnabled: false, rematchCooldownMs: 0, fmDjHoldMs: 1500, limits: { ...defaultConfig.limits } } });
   url = `http://127.0.0.1:${await app.listen(0)}`;
 });
 afterEach(() => { for (const s of open.splice(0)) s.disconnect(); });
@@ -107,4 +107,77 @@ test("joining by room code lands in that room, and a lost room is rebuilt from t
   assert.equal(other.track.id, track.id);
   const e = await client();
   assert.equal((await ask(e, "fm:join", { room: "NOT-A-ROOM" })).ok, true);
+});
+
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const stateOf = (socket, pred, ms = 4000) => new Promise((resolve, reject) => {
+  const timer = setTimeout(() => { socket.off("fm:state", on); reject(new Error("state never matched")); }, ms);
+  const on = (st) => { if (pred(st)) { clearTimeout(timer); socket.off("fm:state", on); resolve(st); } };
+  socket.on("fm:state", on);
+});
+
+test("controller refresh keeps the aux, the song and the controller's own queue", async () => {
+  const dj = await client(), fan = await client();
+  const joined = await ask(dj, "fm:join", { key: "tab-aaaa-1111" });
+  await ask(fan, "fm:join", { room: joined.room, key: "tab-bbbb-2222" });
+  await ask(dj, "fm:play", track);
+  await ask(dj, "fm:queue:add", { ...track, id: "fmq1", title: "Queued by the DJ" });
+  const held = stateOf(fan, (st) => st.djHold);
+  dj.disconnect();
+  const during = await held;
+  assert.equal(during.dj, null);
+  assert.equal(during.track.id, track.id, "song keeps playing while the controller reloads");
+  assert.equal(during.queue[0].track.id, "fmq1", "controller's queue survives the drop");
+  const again = await client();
+  const back = await new Promise((resolve) => { again.once("fm:state", resolve); ask(again, "fm:join", { room: joined.room, key: "tab-aaaa-1111" }); });
+  assert.equal(back.dj, again.id, "same tab gets the aux back");
+  assert.equal(back.djHandle, during.queue[0].by, "same stage name after the refresh");
+  assert.equal(back.djHold, false);
+  assert.equal(back.track.id, track.id);
+});
+
+test("controller leaving on purpose hands the aux over without stopping the music", async () => {
+  const dj = await client(), fan = await client();
+  const joined = await ask(dj, "fm:join", { key: "tab-cccc-3333" });
+  await ask(fan, "fm:join", { room: joined.room, key: "tab-dddd-4444" });
+  await ask(dj, "fm:play", track);
+  const chat = next(fan, "fm:chat");
+  const st = stateOf(fan, (s) => s.dj === fan.id);
+  await ask(dj, "fm:leave");
+  const after = await st;
+  assert.equal(after.track.id, track.id);
+  assert.match((await chat).text, /has the aux now/);
+});
+
+test("a controller who never comes back is replaced after the hold, and a solo controller's room survives a refresh", async () => {
+  const dj = await client(), fan = await client();
+  const joined = await ask(dj, "fm:join", { key: "tab-eeee-5555" });
+  await ask(fan, "fm:join", { room: joined.room, key: "tab-ffff-6666" });
+  await ask(dj, "fm:play", track);
+  dj.disconnect();
+  const after = await stateOf(fan, (s) => s.dj === fan.id && !s.djHold);
+  assert.equal(after.track.id, track.id);
+  fan.disconnect();
+  const solo = await client();
+  const j = await ask(solo, "fm:join", { key: "tab-gggg-7777" });
+  await ask(solo, "fm:play", { ...track, id: "fmsolo" });
+  solo.disconnect();
+  await wait(300);
+  const again = await client();
+  const back = await new Promise((resolve) => { again.once("fm:state", resolve); ask(again, "fm:join", { room: j.room, key: "tab-gggg-7777" }); });
+  assert.equal(back.track.id, "fmsolo", "empty room is kept during the hold");
+  assert.equal(back.dj, again.id);
+});
+
+test("the next queued song starts when a listener's audio ends, without the controller's device", async () => {
+  const dj = await client(), fan = await client();
+  const joined = await ask(dj, "fm:join");
+  await ask(fan, "fm:join", { room: joined.room });
+  await ask(dj, "fm:play", { ...track, id: "fmshort", duration: 1 });
+  await ask(fan, "fm:request", { ...track, id: "fmnext", title: "Next up" });
+  assert.equal((await ask(fan, "fm:ended", { id: "fmnext" })).ok, false, "only the song on air can end");
+  await wait(200);
+  const res = await ask(fan, "fm:ended", { id: "fmshort" });
+  assert.equal(res.advanced, true);
+  assert.equal((await ask(dj, "fm:ended", { id: "fmshort" })).ok, false, "a second report does not skip again");
 });

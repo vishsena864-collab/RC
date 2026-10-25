@@ -35,7 +35,8 @@ try{
  await btn(a,'Select '+tracks[0].title+' by '+tracks[0].artist).click();
  await btn(a,'Play '+tracks[0].title+' for the whole room').click();
  await b.getByRole('heading',{name:tracks[0].title,exact:true}).waitFor();
- await btn(b,'Play audio').click();await btn(b,'Pause audio').waitFor();
+ // a listener who joined with a click picks up the room's song without pressing play again
+ await btn(b,'Pause audio').waitFor();
  // quick actions on a library card: queue it, then the listener sees the controller's handle
  await btn(a,'Add '+tracks[2].title+' to the queue').click({force:true});
  await a.locator('.fx-queue-item').filter({hasText:tracks[2].title}).waitFor();
@@ -67,6 +68,11 @@ try{
  assert.equal(await a.evaluate(()=>document.getAnimations().filter(a=>a.playState==='running').length),0);
  await btn(a,'ENABLE FX').click();await shot(a,'desktop-controller');
  await a.getByRole('button',{name:/PASS CONTROLLER/}).click();await b.locator('.fx-controller').waitFor();await a.locator('.fx-listener').waitFor();await shot(a,'desktop-listener');
+ // controller refresh: the room's song keeps going for listeners and the same tab gets the aux back without rejoining
+ const onAir=await a.locator('.fx-song h3').innerText();
+ await b.reload();await b.locator('.fx-controller').waitFor({timeout:15000});
+ assert.equal(await a.locator('.fx-song h3').innerText(),onAir,'song unchanged for listeners across the controller refresh');
+ assert.equal(await a.locator('.fx-listener').count(),1);
  for(const width of [320,390,768,1024,1180,1440]){await a.setViewportSize({width,height:1000});await noOverflow(a);}
  await a.setViewportSize({width:390,height:844});
  for(const name of ['Request','Vibe','Chat','The Show']){await a.locator('.fx-dock').getByRole('button',{name,exact:true}).click();await shot(a,'mobile-'+name.toLowerCase().replace(' ','-'));await noOverflow(a);}
