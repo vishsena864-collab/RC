@@ -58,12 +58,43 @@ test("chat, requests and mood bursts carry the sender's stage name", async () =>
   assert.equal(vote.kind, "energy");
   assert.equal(vote.handle, joinedB.handle);
   assert.ok(vote.heat > 50);
-  const queued = next(a, "fm:state");
+  // a silent room starts the first request at once
+  const started = next(a, "fm:state");
   assert.equal((await ask(b, "fm:request", track)).ok, true);
+  const playing = await started;
+  assert.equal(playing.track.id, track.id);
+  assert.equal(playing.queue.length, 0);
+  // while a song plays, the next request waits in the queue under the requester's stage name
+  const queued = next(a, "fm:state");
+  assert.equal((await ask(b, "fm:request", { ...track, id: "fmtest2", title: "Soft Focus" })).ok, true);
   const withQueue = await queued;
   assert.equal(withQueue.queue[0].by, joinedB.handle);
-  assert.equal(withQueue.queue[0].track.id, track.id);
+  assert.equal(withQueue.queue[0].track.id, "fmtest2");
   assert.equal(JSON.stringify(withQueue.queue).includes(b.id), false, "queue entries name the requester by stage name, not connection id");
+  assert.deepEqual(withQueue.people.map((p) => p.handle).sort(), [joinedB.handle, (await ask(a, "fm:join")).handle].sort());
+});
+
+test("typing is shown to the others in the room, throttled per person", async () => {
+  const a = await client(), b = await client();
+  await ask(a, "fm:join"); const joinedB = await ask(b, "fm:join");
+  const typing = next(a, "fm:typing");
+  b.emit("fm:typing");
+  assert.equal((await typing).handle, joinedB.handle);
+  let extra = 0; a.on("fm:typing", () => extra++);
+  b.emit("fm:typing"); await new Promise((r) => setTimeout(r, 200));
+  assert.equal(extra, 0, "a second ping within 1.5s is dropped");
+});
+
+test("a song queued after the music ran out starts straight away", async () => {
+  const a = await client();
+  await ask(a, "fm:join");
+  assert.equal((await ask(a, "fm:play", { ...track, duration: 1 })).ok, true);
+  await new Promise((r) => setTimeout(r, 3000));
+  const started = next(a, "fm:state");
+  assert.equal((await ask(a, "fm:queue:add", { ...track, id: "fmtest3", title: "Night Service" })).ok, true);
+  const state = await started;
+  assert.equal(state.track.id, "fmtest3");
+  assert.equal(state.queue.length, 0);
 });
 
 test("only the controller can play a queued track right now", async () => {
