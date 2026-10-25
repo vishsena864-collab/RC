@@ -140,6 +140,10 @@ export default function UndergroundFM({locale="en"}){
  const fx=room?.lights||defaults;
  roomRef.current=room;
  const autoShow=fx.auto!==false;
+ // Lights off is personal: it only changes this browser, never the room's show.
+ const [lightsOff,setLightsOff]=useState(false),lightsOffRef=useRef(false);
+ useEffect(()=>{try{setLightsOff(localStorage.getItem("fm:lights-off")==="1");}catch{}},[]);
+ useEffect(()=>{lightsOffRef.current=lightsOff;stage.current?.set({off:lightsOff});if(lightsOff)shellRef.current?.style.setProperty("--bass","0");try{localStorage.setItem("fm:lights-off",lightsOff?"1":"0");}catch{}},[lightsOff]);
  const theme=THEMES.find(t=>t.id===fx.theme)||THEMES[0];
  const current=room?room.track:preview;
  const roomElapsed=room?.startedAt?Math.max(0,(clock-room.startedAt)/1000):0;
@@ -165,7 +169,7 @@ export default function UndergroundFM({locale="en"}){
   // the rig reports its drive every frame; globes and the cover breathe with it through CSS variables
   const shell=shellRef.current,onLevels=lv=>{shell.style.setProperty("--bass",lv.bass.toFixed(3));shell.style.setProperty("--kick",lv.kick.toFixed(3));};
   // a mapped drop fires the pyro for everyone in sync (each device follows the same cue sheet and room clock)
-  stage.current=createStage(stageCv.current,{quality,photo:true,onLevels,onCue:kind=>{if(kind==="drop")overlay.current?.burst("energy",1.15);}});
+  stage.current=createStage(stageCv.current,{quality,photo:true,onLevels,onCue:kind=>{if(kind==="drop"&&!lightsOffRef.current)overlay.current?.burst("energy",1.15);}});
   overlay.current=createOverlay(overlayCv.current,{quality});
   spectrum.current=createSpectrum(specCv.current);
   const place=()=>{const f=photoFit(innerWidth,innerHeight),el=photoRef.current;if(el){el.style.backgroundImage="url("+f.src+")";el.style.backgroundSize=f.dw+"px "+f.dh+"px";el.style.backgroundPosition=f.ox+"px "+f.oy+"px";}};
@@ -175,7 +179,7 @@ export default function UndergroundFM({locale="en"}){
  },[]);
  useEffect(()=>{stage.current?.setReduced(motionOff);overlay.current?.setReduced(motionOff);spectrum.current?.setReduced(motionOff);if(motionOff)shellRef.current?.style.setProperty("--bass","0");},[motionOff]);
  useEffect(()=>{spectrum.current?.playing(playing);},[playing]);
- useEffect(()=>{stage.current?.set({theme,fx:fx.fx,power:fx.intensity,bpm:cueSheet?.id===current?.id&&cueSheet?cueSheet.bpm:fx.beatBpm,heat:room?heatScore:50,playing,auto:autoShow});},[theme.id,fx.fx,fx.intensity,fx.beatBpm,heatScore,playing,room?.room,autoShow,cueSheet,current?.id]);
+ useEffect(()=>{stage.current?.set({theme,fx:fx.fx,power:fx.intensity,bpm:cueSheet?.id===current?.id&&cueSheet?cueSheet.bpm:fx.beatBpm,heat:room?heatScore:50,playing,auto:autoShow,off:lightsOffRef.current});},[theme.id,fx.fx,fx.intensity,fx.beatBpm,heatScore,playing,room?.room,autoShow,cueSheet,current?.id]);
  // song position for the auto show: this device's audio when it is playing the song, else the room clock
  const songClock=()=>{const a=audio.current,r=roomRef.current;if(a&&!a.paused&&streamTrackId.current&&a.currentTime>0)return a.currentTime;if(r?.track&&r.startedAt)return (Date.now()-r.startedAt)/1000;return null;};
  useEffect(()=>{stage.current?.cues(cueSheet&&cueSheet.id===current?.id?cueSheet:null,songClock);},[cueSheet,current?.id]);
@@ -475,7 +479,7 @@ export default function UndergroundFM({locale="en"}){
  </button>;
  const reactionBar=<div className="fx-react-bar" role="group" aria-label="Send a reaction">{REACTIONS.map(([kind,emoji])=><button key={kind} type="button" onClick={()=>react(kind)} disabled={!room} aria-label={"React "+kind}><span>{emoji}</span><b>{room?.reactionCounts?.[kind]||0}</b></button>)}</div>;
 
- return <div ref={shellRef} className={"fx-shell fx-"+view+" "+oswald.variable} style={vars} data-view={view} data-tab={tab} data-motion={motionOff?"reduced":"full"} data-playing={playing} data-heat={hottest} data-fab={view==="controller"&&Boolean(selectedTrack)}>
+ return <div ref={shellRef} className={"fx-shell fx-"+view+" "+oswald.variable} style={vars} data-view={view} data-tab={tab} data-motion={motionOff?"reduced":"full"} data-lights={lightsOff?"off":"on"} data-playing={playing} data-heat={hottest} data-fab={view==="controller"&&Boolean(selectedTrack)}>
   <div ref={photoRef} className="fx-photo" aria-hidden="true"/>
   <canvas ref={stageCv} className="fx-stage" aria-hidden="true"/>
   <div className="fx-scrim" aria-hidden="true"/>
@@ -499,7 +503,8 @@ export default function UndergroundFM({locale="en"}){
    <header className="fx-topbar">
     <Link href={"/"+locale} className="fx-brand fx-brand-mobile">ChatSpark<span aria-hidden="true">⚡</span></Link>
     <nav className="fx-pills" aria-label="Site sections"><Link href={"/"+locale}>EXPLORE</Link><Link className="is-active" href={"/"+locale+"/underground"} aria-current="page">UNDERGROUND FM</Link><Link href={"/"+locale+"/poem-wall"}>COMMUNITY</Link></nav>
-    <button type="button" className="fx-fx-toggle" onClick={toggleMotion} aria-pressed={motionOff}>{motionOff?"ENABLE FX":"REDUCE MOTION"}</button>
+    <button type="button" className="fx-fx-toggle fx-lights-toggle" onClick={()=>setLightsOff(v=>!v)} aria-pressed={lightsOff} title={lightsOff?"Turn the light show back on for you":"Turn the light show off just for you"}>{lightsOff?"LIGHTS ON":"LIGHTS OFF"}</button>
+    <button type="button" className="fx-fx-toggle" onClick={toggleMotion} aria-pressed={motionOff}>{motionOff?"ENABLE FX":<><span className="fx-long">REDUCE </span>MOTION</>}</button>
    </header>
 
    <section className="fx-hero" data-pane="show">

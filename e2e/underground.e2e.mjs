@@ -67,6 +67,11 @@ try{
  await btn(a,'REDUCE MOTION').click();assert.equal(await a.locator('.fx-shell').getAttribute('data-motion'),'reduced');
  assert.equal(await a.evaluate(()=>document.getAnimations().filter(a=>a.playState==='running').length),0);
  await btn(a,'ENABLE FX').click();await shot(a,'desktop-controller');
+ // lights off is personal: the listener's stage goes dark, the controller's keeps running
+ await btn(b,'LIGHTS OFF').click();assert.equal(await b.locator('.fx-shell').getAttribute('data-lights'),'off');
+ assert.equal(await a.locator('.fx-shell').getAttribute('data-lights'),'on');
+ await b.waitForFunction(()=>{const c=document.querySelector('.fx-stage'),d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;for(let i=3;i<d.length;i+=64)if(d[i])return false;return true;});
+ await btn(b,'LIGHTS ON').click();assert.equal(await b.locator('.fx-shell').getAttribute('data-lights'),'on');
  await a.getByRole('button',{name:/PASS CONTROLLER/}).click();await b.locator('.fx-controller').waitFor();await a.locator('.fx-listener').waitFor();await shot(a,'desktop-listener');
  // controller refresh: the room's song keeps going for listeners and the same tab gets the aux back without rejoining
  const onAir=await a.locator('.fx-song h3').innerText();

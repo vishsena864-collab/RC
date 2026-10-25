@@ -44,6 +44,8 @@ server (`fm:cues`), which validates it, keeps it for the current track only and 
 late joiners. Each browser then runs the lights against the song clock: sweeps and risers in builds, a
 half-beat blackout and a new rig on each drop, slow blooms and extra haze in breakdowns, and flares every
 32 beats. Light Mode scenes still set colours; the AUTO SHOW toggle in Light Mode switches it off for the room.
+Anyone can also press LIGHTS OFF in the top bar. That only affects their own browser (saved in localStorage):
+the rig, strobes, flashes and beat pulses stop, while the music, chat and reactor keep working.
 
 Nothing is stored or uploaded except the small cue sheet. The CSP allows `connect-src https:` (Audius redirects
 to rotating content nodes) and `worker-src blob:` (the Worker is built from our bundled analyser). Run the
