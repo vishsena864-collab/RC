@@ -8,7 +8,7 @@ const de = {
     termsTitle: "Nutzungsbedingungen",
     privacyTitle: "Datenschutzerklärung",
   },
-  nav: { start: "Chat starten", safety: "Sicherheit", terms: "Bedingungen", privacy: "Datenschutz", language: "Sprache", home: "Start" },
+  nav: { start: "Chat starten", safety: "Sicherheit", terms: "Bedingungen", privacy: "Datenschutz", cookies: "Cookies", language: "Sprache", home: "Start" },
   home: {
     ui: {
       eyebrow: "DAS INTERNET, NUR NETTER",

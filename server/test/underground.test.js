@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, afterEach, before, test } from "node:test";
@@ -64,6 +64,7 @@ test("chat, requests and mood bursts carry the sender's stage name", async () =>
   const playing = await started;
   assert.equal(playing.track.id, track.id);
   assert.equal(playing.queue.length, 0);
+  await new Promise((r) => setTimeout(r, 4100)); // past the per-person request cooldown
   // while a song plays, the next request waits in the queue under the requester's stage name
   const queued = next(a, "fm:state");
   assert.equal((await ask(b, "fm:request", { ...track, id: "fmtest2", title: "Soft Focus" })).ok, true);
@@ -276,4 +277,45 @@ test("someone walking into a silent room starts a song for everyone, but never o
   assert.equal(second.silent, false);
   assert.equal((await ask(b, "fm:autostart", { ...track, id: "fmother" })).error, "playing");
   assert.equal((await ask(b, "fm:autostart", { title: "no id" })).ok, false);
+});
+
+test("room chat uses the shared message hygiene: control characters stripped, links refused", async () => {
+  const a = await client(), b = await client();
+  await ask(a, "fm:join"); await ask(b, "fm:join");
+  const seen = next(a, "fm:chat");
+  assert.equal((await ask(b, "fm:chat", "hi\u202Ethere\u0007")).ok, true);
+  assert.equal((await seen).text, "hithere");
+  await wait(1300);
+  assert.equal((await ask(b, "fm:chat", "join me at example.com")).error, "links");
+});
+
+test("song requests have a per-person cooldown so they cannot flood the chat", async () => {
+  const a = await client(), b = await client();
+  await ask(a, "fm:join"); await ask(b, "fm:join");
+  assert.equal((await ask(a, "fm:play", track)).ok, true);
+  assert.equal((await ask(b, "fm:request", { ...track, id: "fmreq1" })).ok, true);
+  assert.equal((await ask(b, "fm:request", { ...track, id: "fmreq2" })).error, "cooldown");
+});
+
+test("one connection cannot flood a room: events past the budget are refused", async () => {
+  const a = await client();
+  await ask(a, "fm:join");
+  const results = await Promise.all(Array.from({ length: 45 }, () => ask(a, "fm:reaction", "nope")));
+  assert.ok(results.filter((r) => r.error === "rate_limited").length >= 4);
+});
+
+test("someone in the room can be reported by stage name, with their recent lines", async () => {
+  const a = await client(), b = await client();
+  await ask(a, "fm:join"); const joinedB = await ask(b, "fm:join");
+  assert.equal((await ask(b, "fm:chat", "rude line")).ok, true);
+  assert.equal((await ask(a, "fm:report", { handle: "nobody.00", reason: "harassment" })).error, "invalid");
+  assert.equal((await ask(a, "fm:report", { handle: joinedB.handle, reason: "made-up" })).error, "invalid");
+  assert.equal((await ask(a, "fm:report", { handle: joinedB.handle, reason: "harassment", note: "test" })).ok, true);
+  assert.equal((await ask(a, "fm:report", { handle: joinedB.handle, reason: "spam" })).error, "cooldown");
+  const log = readFileSync(join(dataDir, "reports.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
+  const entry = log.find((e) => e.category === "underground");
+  assert.ok(entry, "report written");
+  assert.equal(entry.reason, "harassment");
+  assert.deepEqual(entry.transcript.map((l) => l.text), ["rude line"]);
+  assert.match(entry.reportedKey, /^[a-f0-9]{64}$/);
 });

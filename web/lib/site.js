@@ -8,3 +8,5 @@ const rawServerUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:400
 export const SERVER_URL = rawServerUrl === "same-origin" ? "" : rawServerUrl.replace(/\/$/, "");
 export const SOCKET_PATH = process.env.NEXT_PUBLIC_SOCKET_PATH || "/socket.io";
 export const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "support@example.com";
+// The default above is a placeholder; legal pages and the footer only show an address once a real one is set.
+export const HAS_CONTACT = !/@example\.(com|org|net)$/i.test(CONTACT_EMAIL);

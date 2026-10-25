@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Matchmaking and WebRTC signaling server for the random chat site",
+  "description": "Realtime server for ChatSpark: text chat matching and Underground FM rooms",
   "scripts": {
     "dev": "node --env-file-if-exists=.env --watch src/index.js",
     "start": "node --env-file-if-exists=.env src/index.js",
-    "test": "node --test --test-timeout=20000"
+    "test": "node --test --test-timeout=90000"
   },
   "engines": {
     "node": ">=22.9"

@@ -71,6 +71,14 @@ try{
  await a.locator('.fx-chat').getByRole('button',{name:'React party',exact:true}).click();
  await b.locator('.fx-float img.fx-emo').first().waitFor();
  await b.waitForFunction(()=>[...document.querySelectorAll('.fx-chat .fx-react-bar b')].some(el=>el.textContent==='1'));
+ // safety: report someone from their message, then mute and unmute them (mute is only on this device)
+ const bHandle=await a.locator('.fx-msg:not(.is-me) header b').first().textContent();
+ await a.getByRole('button',{name:'Options for '+bHandle}).first().click();await a.getByRole('menuitem',{name:'Report'}).click();
+ await a.locator('dialog.dialog').getByText('Harassment or hate').click();await a.locator('dialog.dialog').getByRole('button',{name:'Send report'}).click();
+ await a.getByText('Thanks. The report was sent to moderation.').waitFor();
+ await a.getByRole('button',{name:'Options for '+bHandle}).first().click();await a.getByRole('menuitem',{name:'Mute'}).click();
+ assert.equal(await a.getByText('Late night test signal',{exact:true}).count(),0,'muted messages are hidden');
+ await a.getByRole('button',{name:'Unmute '+bHandle}).click();await a.getByText('Late night test signal',{exact:true}).waitFor();
  await b.getByLabel('Song or artist',{exact:true}).fill('Soft');await b.locator('.fx-request-results button').filter({hasText:tracks[1].title}).click();
  await a.locator('.fx-queue-item').filter({hasText:tracks[1].title}).waitFor();await a.locator('.fx-msg-req').filter({hasText:tracks[1].title}).waitFor();
  await a.getByRole('button',{name:'Play '+tracks[1].title+' now',exact:true}).click();await b.getByRole('heading',{name:tracks[1].title,exact:true}).waitFor();
@@ -114,5 +122,5 @@ try{
  await b.getByRole('button',{name:'Leave room'.toUpperCase(),exact:true}).first().click({force:true}).catch(()=>{});
  await a.locator('.fx-leave').first().click({force:true}).catch(()=>{});
  assert.deepEqual(errors,[]);
- console.log('PASS: discovery, solo audio, volume, two-browser join, music starts on entering a silent room, cover broadcast, quick queue, room-wide vote effect, heat/cooldown, guide, chat (typing, bubbles, request cards, neon emoji + picker, reactions), request, play-now, next with autoplay + crossfade, lights, motion toggle, pass controller, phone panes, 6 viewport widths, OS reduced motion; no browser errors.');
+ console.log('PASS: discovery, solo audio, volume, two-browser join, music starts on entering a silent room, cover broadcast, quick queue, room-wide vote effect, heat/cooldown, guide, chat (typing, bubbles, request cards, neon emoji + picker, reactions, report + mute), request, play-now, next with autoplay + crossfade, lights, motion toggle, pass controller, phone panes, 6 viewport widths, OS reduced motion; no browser errors.');
 }finally{await browser.close();}

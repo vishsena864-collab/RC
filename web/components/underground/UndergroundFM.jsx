@@ -1,162 +1,34 @@
 "use client";
+// Underground FM: the live room page. Lights live in fx.js, the chat in RoomChat.jsx, shared bits in parts.jsx/constants.js.
 import {useEffect,useRef,useState} from "react";
 import Link from "next/link";
 import {Oswald} from "next/font/google";
 import {io} from "socket.io-client";
 import {SERVER_URL,SOCKET_PATH} from "@/lib/site";
-import {createOverlay,createSpectrum,createStage,photoFit,qualityFor} from "./underground-fx";
-import {EMOJI,REACTION_EMOJI,emojiSrc,splitEmoji,jumboCount} from "@/lib/emoji";
+import {REACTION_EMOJI} from "@/lib/emoji";
 import {canMapSongs,mapSong} from "@/lib/cue-runner";
-import "./underground-stage.css";
+import {createOverlay,createSpectrum,createStage,photoFit,qualityFor} from "./fx";
+import {CROWD,THEMES,FX,MOODS,MOOD_SCENES,REACTIONS,ROOMS,SCENES,MOMENTS,CROSSFADE_MS,DISCOVER_TABS,DISCOVER_TERMS,GENRES,LIGHT_DEFAULTS,clamp,clockFmt,fmtListeners,SS,tabKey} from "./constants";
+import {Icon,Avatar,Emo,Art,OrbVideo,hideBroken,floatStyle} from "./parts";
+import RoomChat from "./RoomChat";
+import "./stage.css";
 
 const oswald=Oswald({subsets:["latin"],weight:["500","600","700"],variable:"--fx-oswald",display:"swap"});
-// Real venue photography (web/public/underground). The stage photo is tinted to the controller's light colour.
-const CROWD="url(/underground/crowd-1200.webp)";
-
-const THEMES=[
- {id:"acid",name:"Acid Lime",a:"#ddff73",b:"#80ffb1",dark:"#1c3221",hue:95},
- {id:"infrared",name:"Infrared Red",a:"#ff625c",b:"#ffb467",dark:"#381d29",hue:0},
- {id:"ultraviolet",name:"Ultraviolet",a:"#cf7cff",b:"#ff70cf",dark:"#251738",hue:290},
- {id:"ocean",name:"Ocean Cyan",a:"#2de5ee",b:"#72aaff",dark:"#122837",hue:185},
- {id:"gold",name:"Solar Gold",a:"#ffe77a",b:"#ff9c55",dark:"#362819",hue:35},
- {id:"rose",name:"Velvet Pulse",a:"#ff84c8",b:"#ffb9a5",dark:"#36202c",hue:330},
- {id:"midnight",name:"Midnight Tunnel",a:"#83a5ff",b:"#75d0ff",dark:"#111b34",hue:225},
- {id:"toxic",name:"Neon Riot",a:"#9cff2d",b:"#fe52b8",dark:"#2c1536",hue:100}
-];
-const FX=[["march","Marching lasers"],["pulse","Pulse"],["sweep","Wave sweep"],["crossfire","Crossfire"],["tunnel","Tunnel"],["bloom","Soft bloom"],["drift","Drift"],["cone","Laser tunnel"],["matrix","Beam matrix"],["chase","LED chase"],["follow","Follow spots"]];
-const MOODS=["energy","love","chill"];
-const MOOD_SCENES=[
- {id:"energy",title:"FIRE",core:"Ignition Core",blurb:"Add energy and intensity to the room.",cta:"Fire It Up",short:"Push the room further"},
- {id:"love",title:"VIBE",core:"Vibe Pulse",blurb:"Keep the current energy going strong.",cta:"Keep the Vibe",short:"Keep this energy alive"},
- {id:"chill",title:"CHILL",core:"Cool Drift",blurb:"Bring the energy down and mellow it out.",cta:"Chill It Down",short:"Ease into the afterhours"}
-];
-const REACTIONS=[["heart","❤️"],["fire","🔥"],["party","🎉"],["hands","🙌"]];
-const ROOMS={
- STATIC:["Static Lounge","Signals from nowhere, tuned in."],
- MIDNIGHT:["The Midnight Lobby","Late night music for random souls."],
- BASEMENT:["The Basement","Low ceilings. Loud ideas."],
- ECHO:["Echo Chamber","Say it once. Hear it everywhere."],
- FREQUENCY:["Frequency Hall","One signal. Everyone tuned in."],
- AFTERHOURS:["Afterhours Club","The night doesn't end here."]
-};
-const SCENES=[
- {id:"supernova",name:"Supernova",subtitle:"High Energy",theme:"infrared",fx:"crossfire",intensity:3,moment:"drop"},
- {id:"spectral",name:"Spectral Shift",subtitle:"Euphoric",theme:"ultraviolet",fx:"sweep",intensity:2,moment:"flip"},
- {id:"ion",name:"Ion Storm",subtitle:"Raw Energy",theme:"ocean",fx:"march",intensity:3,moment:"storm"},
- {id:"blackout",name:"Blackout / Reveal",subtitle:"Dramatic",theme:"midnight",fx:"tunnel",intensity:1,moment:"fade"},
- {id:"dreamscape",name:"Dreamscape",subtitle:"Deep & Hypnotic",theme:"rose",fx:"drift",intensity:2,moment:"fade"},
- {id:"tunnel",name:"Laser Tunnel",subtitle:"Hypnotic",theme:"toxic",fx:"cone",intensity:3,moment:"flip"},
- {id:"matrix",name:"Beam Matrix",subtitle:"Precision",theme:"ocean",fx:"matrix",intensity:3,moment:"drop"},
- {id:"chase",name:"Strobe Wall",subtitle:"Relentless",theme:"infrared",fx:"chase",intensity:3,moment:"storm"},
- {id:"follow",name:"Follow Spot",subtitle:"Spotlight",theme:"gold",fx:"follow",intensity:2,moment:"fade"}
-];
-const MOMENTS=[["drop","Drop"],["flip","Color shift"],["storm","Ion storm"],["fade","Blackout"]];
-const CROSSFADE_MS=8000; // keep in step with the server's crossfadeMs
-// every tab is a fresh mix: "For You" from all of Audius, the rest from that genre family (see lib/mix.js)
-const DISCOVER_TABS=["For You","Electronic","House","Techno","Hip-Hop","Bass","Chill","Pop","Indie"];
-const DISCOVER_TERMS={"For You":""};
-const GENRES=["Electronic","House","Techno","Hip-Hop","Bass","Chill","Pop","Indie"];
-const defaults={theme:"infrared",fx:"sweep",intensity:2,beatBpm:116,showMoment:null};
-const clamp=(n,min,max)=>Math.max(min,Math.min(n,max));
-const clockFmt=seconds=>!Number.isFinite(seconds)?"0:00":Math.floor(Math.max(0,seconds)/60)+":"+String(Math.floor(Math.max(0,seconds)%60)).padStart(2,"0");
-const fmtListeners=n=>Number(n||0).toLocaleString("en-US");
-const hideBroken=e=>{e.currentTarget.style.display="none";};
-// Per-tab memory (sessionStorage survives a refresh, not a closed tab): which room we're in, and a key that lets
-// a refreshing controller reclaim the aux. Storage can be blocked, so every access is guarded.
-const SS={get(k){try{return JSON.parse(sessionStorage.getItem(k));}catch{return null;}},set(k,v){try{v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,JSON.stringify(v));}catch{}}};
-const tabKey=()=>{let k=SS.get("fm:key");if(typeof k!=="string"||!/^[a-z0-9]{12}$/.test(k)){k=Array.from(crypto.getRandomValues(new Uint8Array(12)),b=>(b%36).toString(36)).join("");SS.set("fm:key",k);}return k;};
-
-function Icon({name}){
- const p={fill:"none",stroke:"currentColor",strokeWidth:1.8,strokeLinecap:"round",strokeLinejoin:"round"};
- const paths={
-  home:<path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z" {...p}/>,
-  chat:<path d="M4 5h16v11H9l-5 4z" {...p}/>,
-  wave:<path d="M3 12h3l2-6 4 12 3-9 2 3h4" {...p}/>,
-  poem:<path d="M5 20l1-4L16 6l3 3L9 19zM14 8l3 3" {...p}/>,
-  wall:<path d="M12 4v6M12 14v6M4 12h6M14 12h6M6.5 6.5l4 4M13.5 13.5l4 4M17.5 6.5l-4 4M10.5 13.5l-4 4" {...p}/>,
-  crown:<path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z" {...p}/>,
-  play:<path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/>,
-  pause:<path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" stroke="none"/>,
-  next:<path d="M6 5v14l9-7zM17 5v14" {...p}/>,
-  pass:<path d="M5 12a7 7 0 0112-5l2 2M19 12a7 7 0 01-12 5l-2-2M19 4v5h-5M5 20v-5h5" {...p}/>,
-  plus:<path d="M12 5v14M5 12h14" {...p}/>,
-  heart:<path d="M12 20s-8-5-8-11a4.5 4.5 0 018-2.6A4.5 4.5 0 0120 9c0 6-8 11-8 11z" {...p}/>,
-  fire:<path d="M12 3c1 4 5 5 5 10a5 5 0 01-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-9z" {...p}/>,
-  snow:<path d="M12 3v18M4.2 7.5l15.6 9M19.8 7.5l-15.6 9M9 4l3 2 3-2M9 20l3-2 3 2" {...p}/>,
-  headphones:<path d="M4 15v-3a8 8 0 0116 0v3M4 15h3v5H5a1 1 0 01-1-1zM20 15h-3v5h2a1 1 0 001-1z" {...p}/>,
-  search:<path d="M11 4a7 7 0 100 14 7 7 0 000-14zM20 20l-4-4" {...p}/>,
-  send:<path d="M4 12l16-8-6 16-3-7z" {...p}/>,
-  globe:<path d="M12 3a9 9 0 100 18 9 9 0 000-18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" {...p}/>,
-  left:<path d="M15 5l-7 7 7 7" {...p}/>,
-  right:<path d="M9 5l7 7-7 7" {...p}/>,
-  up:<path d="M6 15l6-6 6 6" {...p}/>,
-  down:<path d="M6 9l6 6 6-6" {...p}/>,
-  close:<path d="M6 6l12 12M18 6L6 18" {...p}/>,
-  bulb:<path d="M9 18h6M10 21h4M12 3a6 6 0 00-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0012 3z" {...p}/>,
-  note:<path d="M9 18V6l10-2v12M9 18a3 3 0 11-6 0 3 3 0 016 0zM19 16a3 3 0 11-6 0 3 3 0 016 0z" {...p}/>,
-  eq:<path d="M2 12h3M19 12h3M8 8v8M11 4v16M14 7v10M17 10v4M5 10v4" {...p}/>,
-  volume:<path d="M4 9v6h4l5 4V5L8 9zM16 9a4 4 0 010 6" {...p}/>
- };
- return <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">{paths[name]}</svg>;
-}
-
-function Avatar({hue=200,label="?",crown=false,size=""}){
- return <span className={"fx-avatar "+size} style={{"--h":hue}} aria-hidden="true">{crown?<Icon name="crown"/>:String(label).charAt(0).toUpperCase()}</span>;
-}
-
-// a neon emoji; CSS flickers it on and lets the glow breathe (none of that when motion is reduced)
-function Emo({code,label="",className=""}){
- return <img className={"fx-emo "+className} src={emojiSrc(code)} alt={label} draggable={false} decoding="async"/>;
-}
-
-function Art({track,className=""}){
- return <span className={"fx-art "+className}>{track?.artwork?<img src={track.artwork} alt="" loading="lazy" referrerPolicy="no-referrer" onError={hideBroken}/>:<Icon name="note"/>}</span>;
-}
-
-// Energy-globe loops (web/public/underground/orbs). Black backgrounds drop out with mix-blend-mode:screen,
-// so nothing between the video and its panel may create an isolated group (no transform/opacity/filter on ancestors).
-const ORB_VIDEO={energy:"fire",love:"vibe",chill:"chill",room:"room"};
-// Sparks orbiting each globe on a tilted ellipse: fixed angles/radii/speeds so server and client render the same.
-const SPARKS=Array.from({length:12},(_,i)=>({"--a":(i*137)%360+"deg","--r":(39+(i*7)%9)+"%","--d":(5+(i*3)%6)+"s","--t":(-(i*.83)).toFixed(2)+"s","--s":(i%3?3:5)+"px","--k":i%2?"var(--g1)":"var(--g2)"}));
-function OrbVideo({kind,motionOff,level=.8,pulseKey=0,small=false}){
- const ref=useRef(null),[flare,setFlare]=useState(0),name=ORB_VIDEO[kind];
- useEffect(()=>{
-  const v=ref.current;if(!v)return;
-  v.muted=true;
-  if(motionOff){v.pause();return;}
-  const io=new IntersectionObserver(([e])=>{if(e.isIntersecting)v.play().catch(()=>{});else v.pause();});
-  io.observe(v);return ()=>io.disconnect();
- },[motionOff]);
- useEffect(()=>{if(pulseKey)setFlare(n=>n+1);},[pulseKey]);
- return <span className={"fx-orb-video fx-orb-video-"+name} style={{"--lvl":level}} aria-hidden="true">
-  <i className="fx-aura"/><i className="fx-floor"/>
-  <video ref={ref} src={"/underground/orbs/"+name+"-"+(small?320:480)+".mp4"} poster={"/underground/orbs/"+name+"-poster.jpg"} muted loop playsInline preload="auto" disablePictureInPicture/>
-  <i className="fx-corona"/><i className="fx-corona fx-corona-b"/>
-  <span className="fx-sparks">{SPARKS.slice(0,small?6:12).map((p,i)=><i key={i} style={p}/>)}</span>
-  {flare>0&&!motionOff&&<i key={flare} className="fx-orb-flare"/>}
- </span>;
-}
 
 export default function UndergroundFM({locale="en"}){
  const [tracks,setTracks]=useState([]),[query,setQuery]=useState(""),[term,setTerm]=useState(""),[loading,setLoading]=useState(false),[notice,setNotice]=useState("");
- const [preview,setPreview]=useState(null),[connected,setConnected]=useState(false),[room,setRoom]=useState(null),[isDj,setIsDj]=useState(false),[me,setMe]=useState(null),[messages,setMessages]=useState([]),[draft,setDraft]=useState(""),[playing,setPlaying]=useState(false),[clock,setClock]=useState(Date.now());
+ const [preview,setPreview]=useState(null),[connected,setConnected]=useState(false),[room,setRoom]=useState(null),[isDj,setIsDj]=useState(false),[me,setMe]=useState(null),[messages,setMessages]=useState([]),[playing,setPlaying]=useState(false),[clock,setClock]=useState(Date.now());
  const [volume,setVolume]=useState(80),[liked,setLiked]=useState(false),[reactions,setReactions]=useState([]),[reduced,setReduced]=useState(false),[motionPref,setMotionPref]=useState(null);
  const [selectedTrack,setSelectedTrack]=useState(null),[page,setPage]=useState(0),[hasMore,setHasMore]=useState(true),[loadingMore,setLoadingMore]=useState(false),[requestText,setRequestText]=useState(""),[discoverTab,setDiscoverTab]=useState("For You"),[moodBurst,setMoodBurst]=useState(null),[pulses,setPulses]=useState({energy:0,love:0,chill:0}),[voteBusy,setVoteBusy]=useState(false),[heroGenre,setHeroGenre]=useState("Electronic"),[requestMatches,setRequestMatches]=useState([]),[requestSearching,setRequestSearching]=useState(false),[requestSent,setRequestSent]=useState(null),[tab,setTab]=useState("show"),[showGuide,setShowGuide]=useState(false),[showTune,setShowTune]=useState(false),[cooldownKey,setCooldownKey]=useState(0),[reconnecting,setReconnecting]=useState(false),[cueSheet,setCueSheet]=useState(null),[mapping,setMapping]=useState(false),[inviteRoom,setInviteRoom]=useState(null);
- const socket=useRef(null),audio=useRef(null),streamTrackId=useRef(null),joining=useRef(false),wantsRoom=useRef(false),lastVoteAt=useRef(0),stageCv=useRef(null),overlayCv=useRef(null),stage=useRef(null),overlay=useRef(null),rail=useRef(null),chatList=useRef(null),lastRoom=useRef(null),autoPlay=useRef(false),listening=useRef(false),deckA=useRef(null),deckB=useRef(null),sources=useRef(new Map()),fadeJob=useRef(null),volRef=useRef(.8),earlyNext=useRef(null),roomRef=useRef(null),shellRef=useRef(null),photoRef=useRef(null),specCv=useRef(null),spectrum=useRef(null),actx=useRef(null),analyser=useRef(null);
+ const socket=useRef(null),audio=useRef(null),streamTrackId=useRef(null),joining=useRef(false),wantsRoom=useRef(false),lastVoteAt=useRef(0),stageCv=useRef(null),overlayCv=useRef(null),stage=useRef(null),overlay=useRef(null),rail=useRef(null),lastRoom=useRef(null),autoPlay=useRef(false),listening=useRef(false),deckA=useRef(null),deckB=useRef(null),sources=useRef(new Map()),fadeJob=useRef(null),volRef=useRef(.8),earlyNext=useRef(null),roomRef=useRef(null),shellRef=useRef(null),photoRef=useRef(null),specCv=useRef(null),spectrum=useRef(null),actx=useRef(null),analyser=useRef(null);
  const motionOff=motionPref===null?reduced:motionPref;
- const fx=room?.lights||defaults;
+ const fx=room?.lights||LIGHT_DEFAULTS;
  roomRef.current=room;
  const autoShow=fx.auto!==false;
  // Lights off is personal: it only changes this browser, never the room's show.
  const [lightsOff,setLightsOff]=useState(false),lightsOffRef=useRef(false);
  const [mixNonce,setMixNonce]=useState(0),mixSeed=useRef(0);
- const [tapped,setTapped]=useState(null),[picker,setPicker]=useState(false),draftRef=useRef(null);
- const [unread,setUnread]=useState(0),[typing,setTyping]=useState({}),lastTypingAt=useRef(0),seenMessages=useRef(0);
- useEffect(()=>{
-  if(!picker)return;
-  const close=e=>{if(!e.target.closest?.(".fx-emo-picker,.fx-emo-toggle"))setPicker(false);};
-  document.addEventListener("pointerdown",close);return ()=>document.removeEventListener("pointerdown",close);
- },[picker]);
+ const [tapped,setTapped]=useState(null);
  useEffect(()=>{try{setLightsOff(localStorage.getItem("fm:lights-off")==="1");}catch{}},[]);
  useEffect(()=>{lightsOffRef.current=lightsOff;stage.current?.set({off:lightsOff});if(lightsOff)shellRef.current?.style.setProperty("--bass","0");try{localStorage.setItem("fm:lights-off",lightsOff?"1":"0");}catch{}},[lightsOff]);
  const theme=THEMES.find(t=>t.id===fx.theme)||THEMES[0];
@@ -228,13 +100,6 @@ export default function UndergroundFM({locale="en"}){
   change();mq.addEventListener?.("change",change);
   return ()=>mq.removeEventListener?.("change",change);
  },[]);
- useEffect(()=>{
-  const el=chatList.current,added=messages.length-seenMessages.current;seenMessages.current=messages.length;
-  if(!el)return;
-  const newest=messages[messages.length-1],mine=newest&&me&&newest.handle===me.handle;
-  if(added<=0||mine||el.scrollHeight-el.scrollTop-el.clientHeight<160){el.scrollTop=el.scrollHeight;setUnread(0);}
-  else setUnread(n=>n+added);
- },[messages,tab]);
  useEffect(()=>{if(!isDj&&room&&!room.track&&preview)setPreview(null);},[room?.room,isDj,room?.track]);
  useEffect(()=>{if(!room)setTab(t=>t==="chat"?"show":t);},[room?.room]);
 
@@ -277,8 +142,7 @@ export default function UndergroundFM({locale="en"}){
   s.on("connect_error",()=>setNotice("Live rooms are offline. Solo Audius discovery is still available."));
   s.on("fm:state",data=>{setRoom(data);setIsDj(data.dj===s.id);lastRoom.current={room:data.room,track:data.track,startedAt:data.startedAt,lights:data.lights};SS.set("fm:room",lastRoom.current);
    try{const u=new URL(location.href);if(u.searchParams.get("room")!==data.room){u.searchParams.set("room",data.room);history.replaceState(history.state,"",u);}}catch{}});
-  s.on("fm:chat",entry=>{setMessages(v=>[...v.slice(-79),entry]);if(entry?.handle)setTyping(t=>{if(!t[entry.handle])return t;const n={...t};delete n[entry.handle];return n;});});
-  s.on("fm:typing",who=>{if(typeof who?.handle==="string")setTyping(t=>({...t,[who.handle]:Date.now()+3500}));});
+  s.on("fm:chat",entry=>setMessages(v=>[...v.slice(-79),entry]));
   s.on("fm:cues",sheet=>setCueSheet(sheet));
   s.on("fm:reaction",entry=>{setReactions(v=>[...v.slice(-11),{...entry,id:Math.random()}]);stage.current?.react(entry.kind);});
   s.on("fm:mood:burst",entry=>{
@@ -436,43 +300,6 @@ export default function UndergroundFM({locale="en"}){
    if(audio.current.paused){ensureAnalyser();await audio.current.play();setPlaying(true);listening.current=true;}
    else{audio.current.pause();setPlaying(false);listening.current=false;}
   }catch{setNotice("The stream could not play. Try another track or tap play again.");}
- };
- // chat: consecutive messages from one person within two minutes form a group, like a messenger
- const sameRun=(a,b)=>a&&b&&a.from!=="SYSTEM"&&b.from!=="SYSTEM"&&a.from!=="REQUEST"&&b.from!=="REQUEST"&&a.handle===b.handle&&Math.abs(b.at-a.at)<120000;
- const chatTime=at=>new Date(at).toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"});
- const chatRows=messages.map((msg,i)=>{
-  const key=msg.at+"-"+i;
-  if(msg.from==="SYSTEM")return <p className="fx-msg-system" key={key}><span>{msg.text}</span></p>;
-  if(msg.from==="REQUEST"){const m=/^🎵 Track requested: (.*)$/.exec(msg.text||"");return <div className="fx-msg-req" key={key}><Icon name="note"/><span><small>{msg.handle||"stranger"} requested</small><b>{m?m[1]:msg.text}</b></span><time>{chatTime(msg.at)}</time></div>;}
-  const mine=Boolean(me&&msg.handle===me.handle),first=!sameRun(messages[i-1],msg),last=!sameRun(msg,messages[i+1]),dj=msg.from==="DJ";
-  const parts=splitEmoji(msg.text||""),jumbo=jumboCount(parts);
-  return <div className={"fx-msg"+(mine?" is-me":"")+(dj?" is-dj":"")+(first?" is-first":"")+(last?" is-last":"")+(jumbo?" is-jumbo":"")} key={key} style={{"--h":msg.hue??200}}>
-   {!mine&&(last?<Avatar hue={msg.hue??200} label={msg.handle||"?"} crown={dj}/>:<span className="fx-avatar-gap" aria-hidden="true"/>)}
-   <div className="fx-msg-body">
-    {first&&!mine&&<header><b>{msg.handle||"stranger"}</b>{dj&&<em>CONTROLLER</em>}</header>}
-    <p>{parts.map((part,j)=>typeof part==="string"?part:<Emo key={j} code={part.code} label={part.char}/>)}</p>
-    {last&&<time>{mine?"You · ":""}{chatTime(msg.at)}</time>}
-   </div>
-  </div>;
- });
- const nearBottom=()=>{const el=chatList.current;return !el||el.scrollHeight-el.scrollTop-el.clientHeight<80;};
- const scrollChat=(smooth)=>{const el=chatList.current;if(!el)return;el.scrollTo({top:el.scrollHeight,behavior:smooth?"smooth":"auto"});setUnread(0);};
- const onChatScroll=()=>{if(nearBottom())setUnread(0);};
- // a reaction drifts up from a spot and on a sway that both come from its id, so every client draws the same path
- const floatStyle=id=>{const n=Math.floor(id*1e6);return {"--x":(n%72)+"%","--dx":((n>>3)%60-30)+"px","--r":((n>>5)%40-20)+"deg","--s":(.85+(n>>7)%5/10).toFixed(2),"--d":(2.2+(n>>9)%6/10).toFixed(2)+"s"};};
- const addEmoji=char=>{
-  const el=draftRef.current,at=el?.selectionStart??draft.length,end=el?.selectionEnd??at,next=(draft.slice(0,at)+char+draft.slice(end)).slice(0,280);
-  setDraft(next);typingPing();
-  requestAnimationFrame(()=>{if(!el)return;el.focus();const c=Math.min(next.length,at+char.length);el.setSelectionRange(c,c);});
- };
- const typingPing=()=>{const now=Date.now();if(!room||now-lastTypingAt.current<2000)return;lastTypingAt.current=now;socket.current?.emit("fm:typing");};
- const typingNames=Object.entries(typing).filter(([,until])=>until>clock).map(([h])=>h);
- const submitChat=()=>{
-  const text=draft.trim();if(!text||!room)return;
-  socket.current?.emit("fm:chat",text,ack=>{
-   if(ack?.ok){setDraft("");setPicker(false);}
-   else setNotice(ack?.error==="cooldown"?"You're sending messages too quickly.":"Message couldn't be delivered.");
-  });
  };
  const react=kind=>{if(room)command("fm:reaction",kind,"send reaction");};
  const styleChange=payload=>{if(isDj)command("fm:lights",payload,"update room lighting");};
@@ -655,25 +482,8 @@ export default function UndergroundFM({locale="en"}){
 
     {view==="controller"&&<div className="fx-mobile-only" data-pane="show">{controllerActions}</div>}
 
-    <aside className="fx-panel fx-chat" data-pane="chat" aria-label="Room chat"><div className="fx-chat-inner">
-     <header className="fx-panel-head fx-chat-head">
-      <div><h2>Room Chat</h2><span className="fx-chat-live"><i className={room?"on":""}/>{room?(room.listeners||0)+" here":"offline"}</span></div>
-      {room?.people?.length>0&&<div className="fx-chat-people" aria-hidden="true">{room.people.slice(0,5).map((p,i)=><Avatar key={p.handle+i} hue={p.hue} label={p.handle} crown={p.dj}/>)}{room.people.length>5&&<span className="fx-chat-more">+{room.people.length-5}</span>}</div>}
-     </header>
-     {room&&(queue[0]||current)&&<div className="fx-chat-next"><Art track={queue[0]?.track||current}/><span><small>{queue[0]?"UP NEXT":"NOW PLAYING"}</small><b>{(queue[0]?.track||current).title}</b></span><em>{queue[0]?(queue.length>1?"+"+(queue.length-1)+" more":"autoplays"):""}</em></div>}
-     <div className="fx-messages" ref={chatList} onScroll={onChatScroll} role="log" aria-live="polite" aria-label="Room conversation">{messages.length?chatRows:<div className="fx-empty-chat"><span aria-hidden="true">👋</span><strong>Every good night starts with a hello.</strong><p>{room?"Be the first to say hello. Everyone in this room can chat.":"Enter a room to meet the people behind the music."}</p></div>}</div>
-     {unread>0&&<button type="button" className="fx-chat-jump" onClick={()=>scrollChat(true)}><Icon name="down"/>{unread} new message{unread>1?"s":""}</button>}
-     <div className="fx-float" aria-hidden="true">{reactions.filter(r=>clock-r.at<2600).map(r=><span key={r.id} style={floatStyle(r.id)}><Emo code={REACTION_EMOJI[r.kind]||REACTION_EMOJI.spark}/>{r.handle&&<small>{r.handle}</small>}</span>)}</div>
-     <div className="fx-typing" aria-live="polite">{typingNames.length>0&&<><span className="fx-dots" aria-hidden="true"><i/><i/><i/></span>{typingNames.length>2?"Several people are typing":typingNames.join(" and ")+(typingNames.length>1?" are":" is")+" typing"}</>}</div>
-     {reactionBar}
-     <form onSubmit={e=>{e.preventDefault();submitChat();}} className="fx-compose">
-      <button type="button" className="fx-emo-toggle" onClick={()=>setPicker(v=>!v)} disabled={!room} aria-expanded={picker} aria-label="Add an emoji"><Emo code="love" label=""/></button>
-      {picker&&room&&<div className="fx-emo-picker" role="dialog" aria-label="Emoji" onKeyDown={e=>{if(e.key==="Escape"){setPicker(false);draftRef.current?.focus();}}}>
-       {EMOJI.map(([char,code,name],i)=><button type="button" key={code} onClick={()=>addEmoji(char)} aria-label={name} title={name} style={{"--i":i}}><Emo code={code} label=""/></button>)}
-      </div>}
-      <input ref={draftRef} value={draft} onChange={e=>{setDraft(e.target.value);typingPing();}} maxLength={280} disabled={!room} aria-label="Message the room" placeholder={room?"Message the room…":"Join a room to chat"}/>{draft.length>200&&<small className="fx-count">{280-draft.length}</small>}<button disabled={!room||!draft.trim()} type="submit" aria-label="Send message"><Icon name="send"/></button></form>
-     <p className="fx-chat-foot">Temporary room chat. No recordings or profiles. Be kind.</p>
-    </div></aside>
+
+    <RoomChat socket={socket} room={room} me={me} messages={messages} queue={queue} current={current} reactions={reactions} clock={clock} reactionBar={reactionBar} tab={tab} onNotice={setNotice}/>
 
     {view!=="listener"&&library}
 
@@ -738,6 +548,7 @@ export default function UndergroundFM({locale="en"}){
 
     {view==="discover"&&<div className="fx-row fx-row-howto" data-pane="show">{[["01","Enter a room","Strangers, one shared playlist, no profiles."],["02","Take the aux","Everyone gets a turn as controller — pick tracks and set the lights."],["03","Shape the vibe","Fire, Vibe or Chill. The whole room feels it, live."]].map(([n,t,d])=><div className="fx-panel fx-howto" key={n}><b>{n}</b><h2>{t}</h2><p>{d}</p></div>)}</div>}
    </div>
+   <footer className="fx-legal"><span>18+ only</span><Link href="/en/privacy">Privacy</Link><Link href="/en/cookies">Cookies</Link><Link href="/en/terms">Terms</Link><Link href={"/"+locale+"/safety"}>Safety</Link></footer>
   </div>
 
   {view==="controller"&&selectedTrack&&<div className={"fx-fab"+(current&&tab!=="show"?" has-mini":"")} role="region" aria-label="Selected track">

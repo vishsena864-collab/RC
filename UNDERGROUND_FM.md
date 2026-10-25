@@ -4,8 +4,9 @@ A temporary listening-room experience for discovering independent music together
 
 ## Shipped source
 - `web/app/[locale]/underground/page.jsx` — room route.
-- `web/components/UndergroundFM.jsx` + `underground-stage.css` — the live-show UI: one console per role. **Controller** sees the library carousel (with play-now / add-to-queue on every cover), Light Mode scenes + show moments, a floating cover button (the selected track, pinned on top while scrolling, one tap plays it for the room), Controller Panel, Live Queue and Next / Pass buttons all on one screen, no scrolling to find a song. **Listener** sees Shape the Vibe (three live orbs), reactions, track requests and discovery. Below 1180px the same panels become four panes (The Show / Library or Request / Lights or Vibe / Chat) behind a bottom dock with a mini player.
-- `web/components/underground-fx.js` — dependency-free Canvas 2D engine: `createStage` (truss-mounted moving heads, razor-thin laser fans in haze with anamorphic flares — ported from the earlier light-show samples — haze, backlit crowd, LED wall, strobe/lightning/blackout show moments), `createOverlay` (room-wide pyro flame cannons, cryo smoke and neon vibe bursts fired for everyone when anyone votes Fire / Vibe / Chill), `createOrb` (small always-alive versions inside the vote buttons). Renders at reduced resolution, pauses with the tab, draws one still frame under reduced motion.
+- `web/components/underground/` — `UndergroundFM.jsx` (the page and its state), `RoomChat.jsx` (room chat, emoji picker, mute and report), `parts.jsx` (icons, avatars, globes, neon emoji), `constants.js` (themes, scenes, rooms, helpers) and `stage.css`.
+- `UndergroundFM.jsx` + `stage.css` — the live-show UI: one console per role. **Controller** sees the library carousel (with play-now / add-to-queue on every cover), Light Mode scenes + show moments, a floating cover button (the selected track, pinned on top while scrolling, one tap plays it for the room), Controller Panel, Live Queue and Next / Pass buttons all on one screen, no scrolling to find a song. **Listener** sees Shape the Vibe (three live orbs), reactions, track requests and discovery. Below 1180px the same panels become four panes (The Show / Library or Request / Lights or Vibe / Chat) behind a bottom dock with a mini player.
+- `web/components/underground/fx.js` — dependency-free Canvas 2D engine: `createStage` (truss-mounted moving heads, razor-thin laser fans in haze with anamorphic flares — ported from the earlier light-show samples — haze, backlit crowd, LED wall, strobe/lightning/blackout show moments), `createOverlay` (room-wide pyro flame cannons, cryo smoke and neon vibe bursts fired for everyone when anyone votes Fire / Vibe / Chill), `createOrb` (small always-alive versions inside the vote buttons). Renders at reduced resolution, pauses with the tab, draws one still frame under reduced motion.
 - `web/app/api/underground/tracks/route.js` — Audius metadata search and trending proxy (no audio relay).
 - `server/src/underground.js` — ephemeral Socket.IO rooms; random assignment and DJ rotation, server-side DJ enforcement, room chat throttling, queue validation, no audio files or stored chat logs. Each connection gets an anonymous, ephemeral stage name (`luna.42`) used in chat, the controller card and queue requests.
 - `web/public/underground/` — venue photography (wide stage + crowd at 1200/2400px, tall stage-portrait at 800/1300px for phones, WebP). The stage photo is the page backdrop, hue-tinted to the controller's light colour with live canvas lasers over it; crowd/stage crops back the panels, scene thumbnails and discover tiles. Song covers always come from Audius.
@@ -87,6 +88,15 @@ the rig, strobes, flashes and beat pulses stop, while the music, chat and reacto
 Nothing is stored or uploaded except the small cue sheet. The CSP allows `connect-src https:` (Audius redirects
 to rotating content nodes) and `worker-src blob:` (the Worker is built from our bundled analyser). Run the
 analyser tests with `cd web && node --test lib/cues.test.mjs`.
+
+## Safety in rooms
+
+Room chat goes through the same cleaner as one-to-one chat (control and direction-override characters stripped, links
+refused). Every room action counts against one budget per connection (40 events per 10 s), song requests have a 4 s
+cooldown, and chat a 1.25 s one. Anyone can open ••• on a message to mute that person (hidden on their own device
+only) or report them: `fm:report` writes the reason, an optional note and up to 12 of the reported person's recent
+lines to the moderation log, and enough distinct reporters ban their network key and drop them, exactly like a
+one-to-one chat report. Reports expire after 7 days.
 
 ## Known limitations
 - **Serverless hosting splits rooms.** On the temporary Vercel adapter each function instance has its own rooms in memory, so two people can still land in different copies of the "same" room. Reconnect + invite links soften this; a single always-on server (Railway, `server/railway.json`) or shared state (Redis) fixes it.

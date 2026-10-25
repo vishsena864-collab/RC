@@ -8,7 +8,7 @@ const fr = {
     termsTitle: "Conditions d'utilisation",
     privacyTitle: "Politique de confidentialité",
   },
-  nav: { start: "Commencer à discuter", safety: "Sécurité", terms: "Conditions", privacy: "Confidentialité", language: "Langue", home: "Accueil" },
+  nav: { start: "Commencer à discuter", safety: "Sécurité", terms: "Conditions", privacy: "Confidentialité", cookies: "Cookies", language: "Langue", home: "Accueil" },
   home: {
     ui: {
       eyebrow: "INTERNET, MAIS PLUS SYMPA",

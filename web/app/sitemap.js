@@ -19,7 +19,7 @@ export default function sitemap() {
     })),
   );
 
-  const legal = ["/terms", "/privacy"].map((path) => ({
+  const legal = ["/terms", "/privacy", "/cookies"].map((path) => ({
     url: `${SITE_URL}/en${path}`,
     lastModified,
     changeFrequency: "yearly",

@@ -13,7 +13,7 @@ export default function LanguageSwitcher({ locale, label }) {
   return (
     <details className="lang">
       <summary aria-label={label}>
-        <span aria-hidden="true">🌐</span> {localeNames[locale]}
+        <span aria-hidden="true">🌐</span> <span className="lang-name">{localeNames[locale]}</span>
       </summary>
       <ul>
         {locales.map((l) => (

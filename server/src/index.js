@@ -59,6 +59,10 @@ export function createApp(overrides = {}) {
   function handleHttp(req, res) {
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("X-Content-Type-Options", "nosniff");
+    // JSON only: nothing here may be framed, run scripts or leak a referrer
+    res.setHeader("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("Referrer-Policy", "no-referrer");
     const origin = req.headers.origin;
     if (origin && cfg.corsOrigins.includes(origin)) {
       res.setHeader("Access-Control-Allow-Origin", origin);
@@ -84,7 +88,7 @@ export function createApp(overrides = {}) {
     return sendJson(res, 404, { error: "not_found" });
   }
 
-  const underground = createUnderground(io, { djHoldMs: cfg.fmDjHoldMs, crossfadeMs: cfg.fmCrossfadeMs });
+  const underground = createUnderground(io, { djHoldMs: cfg.fmDjHoldMs, crossfadeMs: cfg.fmCrossfadeMs, moderation, onBan: (key) => kickNetworkKey(key) });
 
   // ---------- Connection guard ----------
 
