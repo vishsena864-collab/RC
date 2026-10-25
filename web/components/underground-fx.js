@@ -303,17 +303,35 @@ const REACT_RGB = { heart: [255, 40, 150], fire: [255, 110, 20], spark: [255, 25
 // Without it (nobody pressed play on this device) the rig follows the room BPM. onLevels reports the drive each frame.
 const SPECIAL = new Set(["cone", "matrix", "chase", "follow"]);
 const MOOD_RGB = { energy: [255, 96, 24], love: [255, 52, 200], chill: [60, 190, 255] };
-export function createStage(canvas, { reduced = false, quality = 1, photo = false, onLevels = null } = {}) {
+export function createStage(canvas, { reduced = false, quality = 1, photo = false, onLevels = null, onCue = null } = {}) {
   const main = canvas.getContext("2d", { alpha: photo });
   let g = main; // beams and lasers are drawn into `bl` first so the haze can break them up, then composited onto `main`
   const bl = document.createElement("canvas"), blg = bl.getContext("2d"), led = document.createElement("canvas"), ledg = led.getContext("2d");
   const rich = quality >= 1; // haze modulation, god rays and LED wall detail on capable devices
   let hazePat = null, hazeMain = null, dotPat = null, beats = 0, reacts = [];
-  const S = { a: [221, 255, 115], b: [128, 255, 177], dark: [28, 50, 33], fx: "march", power: 2, bpm: 116, heat: 50, playing: false, still: reduced };
+  const S = { a: [221, 255, 115], b: [128, 255, 177], dark: [28, 50, 33], fx: "march", power: 2, bpm: 116, heat: 50, playing: false, auto: true, still: reduced };
   const cur = { a: [...S.a], b: [...S.b], dark: [...S.dark] };
   let W = 2, H = 2, crowd = [], dust = [], mom = null, bolts = [], boltAt = 0, pulse = 0;
   let an = null, buf = null, avgBass = 0, beatEnv = 0, lastBeat = -9, onset = false, fast = 0, slow = 0, lastDrop = -99, blind = 0, strobe = 0, lastStrobe = -9, moodT = null;
   const L = { bass: 0, mid: 0, high: 0, level: 0, live: false };
+  // Auto light show: a cue sheet (beats, sections, drops) plus a clock giving the room song's position in seconds.
+  let cues = null, clock = null, lastSong = null, lastCueBeat = -1, phraseHit = 0, cueState = null;
+  const AUTO_DROP_RIGS = ["crossfire", "matrix", "cone", "pulse"];
+  const cueNow = (dt) => {
+    const st = clock?.();
+    if (!cues || st == null || st < 0 || st > cues.dur + 5) { lastSong = null; return (cueState = null); }
+    const beatSec = 60 / cues.bpm, b = (st - cues.bar) / beatSec, beatIdx = Math.floor(b), bar = Math.floor(b / 4);
+    let si = 0; while (si + 1 < cues.sections.length && cues.sections[si + 1].t <= st) si++;
+    const sec = cues.sections[si] || { t: 0, k: "groove", e: 60 }, end = cues.sections[si + 1]?.t ?? cues.dur;
+    let di = 0; while (di < cues.drops.length && cues.drops[di] <= st) di++;
+    const nextDrop = cues.drops[di] ?? null, energy = (cues.energy[Math.round(st * 2)] ?? 60) / 100;
+    if (lastSong != null && st > lastSong && st - lastSong < 1) {
+      for (const d of cues.drops) if (lastSong < d && d <= st) { blind = 1; onCue?.("drop"); }
+      if (beatIdx !== lastCueBeat && b >= 0 && beatIdx % 32 === 0) phraseHit = 1;
+    }
+    const fresh = beatIdx !== lastCueBeat; lastCueBeat = beatIdx; lastSong = st;
+    return (cueState = { st, k: sec.k, prog: clamp((st - sec.t) / Math.max(1, end - sec.t), 0, 1), beatIdx, bar, beatSec, fresh, kick: b >= 0 ? Math.pow(1 - (b - beatIdx), 3) : 0, energy, nextDrop, dropIdx: Math.max(0, di - (sec.k === "drop" ? 1 : 0)) });
+  };
   // FFT bands → smoothed levels, kick onsets (bass jumping over its running average) and drops (energy surging over its slow average).
   const listen = (dt, t) => {
     onset = false; beatEnv *= Math.exp(-dt / .18);
@@ -526,9 +544,18 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
   };
   function paint(t, dt) {
     const e = mom ? (performance.now() - mom.at) / 1000 : 99, kind = e < 4.8 ? mom.kind : null;
-    const m = [0, .55, .85, 1.15][S.power] * (kind === "drop" && e < 3 ? 1.5 : 1);
-    const beat = (t * S.bpm / 60) % 1, kick = L.live ? beatEnv : Math.pow(1 - beat, 3) * (S.playing ? 1 : .35);
-    const live = L.live ? .75 + L.level * .7 : 1;
+    const cue = cueNow(dt);
+    let pw = S.power, fxNow = S.fx, dim = 1;
+    if (cue && S.auto && pw > 0) {
+      if (cue.k === "intro") { fxNow = "drift"; pw = 2; dim = .75; }
+      else if (cue.k === "build") { fxNow = "sweep"; pw = 3; dim = .6 + .55 * cue.prog; }
+      else if (cue.k === "drop") { fxNow = AUTO_DROP_RIGS[cue.dropIdx % AUTO_DROP_RIGS.length]; pw = 3; dim = 1.15; }
+      else if (cue.k === "break") { fxNow = "bloom"; pw = 1; dim = .7; }
+      else if (cue.k === "outro") { fxNow = "drift"; pw = 2; dim = .7 * (1 - cue.prog * .5); }
+    }
+    const m = [0, .55, .85, 1.15][pw] * (kind === "drop" && e < 3 ? 1.5 : 1) * dim;
+    const beat = (t * S.bpm / 60) % 1, kick = cue ? (L.live ? Math.max(beatEnv, cue.kick * .6) : cue.kick) : L.live ? beatEnv : Math.pow(1 - beat, 3) * (S.playing ? 1 : .35);
+    const live = L.live ? .75 + L.level * .7 : cue ? .7 + cue.energy * .6 : 1;
     // a vote tints the rig for a few seconds: fire hot and fast, chill blue and slow, vibe magenta
     const mf = moodT ? clamp(1 - (performance.now() - moodT.at) / 3600, 0, 1) : 0, tint = (c) => mf ? c.map((v, i) => lerp(v, MOOD_RGB[moodT.kind][i], mf * .75)) : c;
     const heatK = (.75 + S.heat / 100 * .6) * (mf && moodT.kind === "energy" ? 1 + mf * .8 : mf && moodT.kind === "chill" ? 1 - mf * .5 : 1), flip = kind === "flip" && e < 3.2;
@@ -543,22 +570,22 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
       g.fillStyle = hz; g.fillRect(hx - hr, hy - hr, hr * 2, hr * 2);
     }
     // LED wall
-    if (!photo && W > 520 && S.power > 0) {
+    if (!photo && W > 520 && pw > 0) {
       const sw = W * .17, sh = H * .062, sx = W * .5 - sw / 2, sy = H * .042;
       g.globalAlpha = (.28 + kick * .22) * Math.min(1, m); g.fillStyle = `rgb(${col(A, .35)})`; g.fillRect(sx, sy, sw, sh);
       g.font = `900 ${Math.round(sh * .3)}px Impact,'Arial Narrow',sans-serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = `rgb(${col(B)})`; g.globalAlpha = .8 * Math.min(1, m);
       ["MUSIC BRINGS", "BETTER STRANGERS"].forEach((line, i) => g.fillText(line, sx + sw / 2, sy + sh * (.3 + i * .42), sw * .92)); g.globalAlpha = 1;
     }
     // beams (into the haze layer on capable devices)
-    const bi = L.live ? beats : Math.floor(t * S.bpm / 60);
+    const bi = cue ? Math.max(0, cue.beatIdx) : L.live ? beats : Math.floor(t * S.bpm / 60);
     ledWall(t, A, B, m, kick, bi);
     if (rich) { blg.globalCompositeOperation = "source-over"; blg.clearRect(0, 0, W, H); g = blg; g.globalCompositeOperation = "lighter"; godRays(t, A, B, m); }
-    if (S.power > 0 && SPECIAL.has(S.fx)) special(S.fx, t, A, B, m * live, kick, bi, heatK, H * .022);
-    else if (S.power > 0) {
-      const n = [0, 5, 8, 12][S.power], sp = (kind === "drop" ? 1.9 : 1) * heatK, al = (.34 + kick * .42) * m * live, fx = S.fx, ty = H * .022, oy = ty + 12;
+    if (pw > 0 && SPECIAL.has(fxNow)) special(fxNow, t, A, B, m * live, kick, bi, heatK, H * .022);
+    else if (pw > 0) {
+      const n = [0, 5, 8, 12][pw], sp = (kind === "drop" ? 1.9 : 1) * heatK, al = (.34 + kick * .42) * m * live, fx = fxNow, ty = H * .022, oy = ty + 12;
       if (!photo && fx !== "crossfire" && fx !== "tunnel") truss(ty, Array.from({ length: n }, (_, i) => W * (.08 + (n === 1 ? .5 : i / (n - 1)) * .84)));
       // neon laser fans run in every beam scene; the pattern follows the scene, or rotates every 8 bars
-      if (S.power >= 2 && fx !== "bloom") lasers(t, A, B, m, kick, fx === "sweep" ? 0 : fx === "pulse" ? 3 : fx === "crossfire" ? (Math.floor(bi / 8) % 2 ? 2 : 1) : Math.floor(bi / 32) % 4);
+      if (pw >= 2 && fx !== "bloom") lasers(t, A, B, m, kick, fx === "sweep" ? 0 : fx === "pulse" ? 3 : fx === "crossfire" ? (Math.floor(bi / 8) % 2 ? 2 : 1) : Math.floor(bi / 32) % 4);
       for (let i = 0; i < n; i++) {
         const f = n === 1 ? .5 : i / (n - 1), c = i % 2 ? B : A, ox = W * (.08 + f * .84);
         let ang = 0, len = H * 1.45, spr = .07, a = al;
@@ -581,12 +608,21 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
       g = main; g.globalCompositeOperation = "lighter"; g.drawImage(bl, 0, 0);
       // and a faint lit haze over everything
       const hm = Math.max(2.2, W / 240); hazeMain.setTransform?.(new DOMMatrix([hm, 0, 0, hm, t * 6 * hm / 3 % (256 * hm), 0]));
-      g.globalAlpha = .05 + (L.live ? L.level * .05 : .02); g.fillStyle = hazeMain; g.fillRect(0, 0, W, H); g.globalAlpha = 1;
+      g.globalAlpha = .05 + (L.live ? L.level * .05 : .02) + (cue && S.auto && cue.k === "break" ? .1 : 0); g.fillStyle = hazeMain; g.fillRect(0, 0, W, H); g.globalAlpha = 1;
     }
     g = main; g.globalCompositeOperation = "lighter"; drawReacts(t);
+    // auto show: build-ups rise to white with beat strobes in the last 2 bars, phrase starts hit the top lamps
+    if (cue && S.auto) {
+      if (cue.k === "build") {
+        g.fillStyle = `rgba(255,240,230,${cue.prog * cue.prog * .16})`; g.fillRect(0, 0, W, H);
+        if (cue.fresh && cue.nextDrop != null && cue.nextDrop - cue.st < cue.beatSec * 8) strobe = .5 + cue.prog * .4;
+      }
+      phraseHit *= Math.exp(-dt / .5);
+      if (phraseHit > .03) for (let i = 0; i < 8; i++) flare(W * (.06 + i * .125), H * .04, i % 2 ? B : A, H * .12, phraseHit);
+    }
     // blinders on a detected drop, and a strobe on hard kicks at peak heat (capped at 3 flashes a second)
     blind *= Math.exp(-dt / .4); strobe *= Math.exp(-dt / .05);
-    if (onset && S.power === 3 && S.heat >= 75 && t - lastStrobe > .34) { strobe = 1; lastStrobe = t; }
+    if (onset && pw === 3 && S.heat >= 75 && t - lastStrobe > .34) { strobe = 1; lastStrobe = t; }
     if (blind > .02) {
       for (let i = 0; i < 6; i++) flare(W * (.12 + i * .152), H * .05, [255, 214, 160], H * .22 * (.6 + blind * .6), blind);
       g.fillStyle = `rgba(255,220,180,${blind * .22})`; g.fillRect(0, 0, W, H);
@@ -641,11 +677,16 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
       g.fillStyle = `rgba(0,0,0,${clamp(a, 0, 1) * .94})`; g.fillRect(0, 0, W, H);
       if (e > 1.6 && e < 3.4) { g.globalCompositeOperation = "lighter"; flare(W / 2, H * .1, A, H * .9 * ((e - 1.6) / 1.8), .35 * (1 - (e - 1.6) / 1.8)); g.globalCompositeOperation = "source-over"; }
     }
+      // the half beat before a drop goes dark, so the drop lands like a hit
+    if (cue && S.auto && cue.nextDrop != null) {
+      const left = cue.nextDrop - cue.st;
+      if (left > 0 && left < cue.beatSec * .5) { g.globalCompositeOperation = "source-over"; g.fillStyle = `rgba(0,0,0,${.88 * (1 - left / (cue.beatSec * .5)) + .1})`; g.fillRect(0, 0, W, H); }
+    }
   }
   const loop = makeLoop((dt, ts) => {
     for (const k of ["a", "b", "dark"]) for (let i = 0; i < 3; i++) cur[k][i] = lerp(cur[k][i], S[k][i], 1 - Math.exp(-dt * 2.4));
     listen(dt, ts); paint(ts, dt);
-    onLevels?.(L.live ? { bass: L.bass, level: L.level, kick: beatEnv, live: true } : { bass: Math.pow(1 - (ts * S.bpm / 60) % 1, 3) * (S.playing ? .45 : .15), level: 0, kick: 0, live: false });
+    onLevels?.(L.live ? { bass: L.bass, level: L.level, kick: beatEnv, live: true } : cueState ? { bass: cueState.kick * (.3 + cueState.energy * .5), level: cueState.energy, kick: cueState.kick, live: false } : { bass: Math.pow(1 - (ts * S.bpm / 60) % 1, 3) * (S.playing ? .45 : .15), level: 0, kick: 0, live: false });
     return true;
   });
   const vis = () => { if (document.hidden) loop.stop(); else if (!S.still) loop.start(); };
@@ -654,10 +695,12 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
   return {
     set(p) {
       if (p.theme) { S.a = rgb(p.theme.a); S.b = rgb(p.theme.b); S.dark = rgb(p.theme.dark); }
-      for (const k of ["fx", "power", "bpm", "heat", "playing"]) if (p[k] !== undefined) S[k] = p[k];
+      for (const k of ["fx", "power", "bpm", "heat", "playing", "auto"]) if (p[k] !== undefined) S[k] = p[k];
       if (S.still) { for (const k of ["a", "b", "dark"]) cur[k] = [...S[k]]; paint(2.2, 1 / 60); }
     },
     audio(node) { an = node; buf = node ? new Uint8Array(node.frequencyBinCount) : null; },
+    // cue sheet for the song on air (or null) and a function returning the song position in seconds
+    cues(sheet, songClock) { cues = sheet && sheet.sections ? sheet : null; clock = songClock || null; lastSong = null; },
     react(kind) { if (S.still || !REACT_RGB[kind]) return; reacts.push({ kind, at: performance.now(), pts: Array.from({ length: 40 }, () => [Math.random(), .02 + Math.random() * .4, Math.random()]) }); if (reacts.length > 8) reacts.shift(); },
     mood(kind) { if (!S.still && MOOD_RGB[kind]) moodT = { kind, at: performance.now() }; },
     moment(kind, at) { if (S.still || mom?.sat === at) return; mom = { kind, sat: at, at: performance.now() - clamp(Date.now() - at, 0, 4800) }; boltAt = 0; bolts = []; },

@@ -5,6 +5,7 @@ import {Oswald} from "next/font/google";
 import {io} from "socket.io-client";
 import {SERVER_URL,SOCKET_PATH} from "@/lib/site";
 import {createOverlay,createSpectrum,createStage,photoFit,qualityFor} from "./underground-fx";
+import {canMapSongs,mapSong} from "@/lib/cue-runner";
 import "./underground-stage.css";
 
 const oswald=Oswald({subsets:["latin"],weight:["500","600","700"],variable:"--fx-oswald",display:"swap"});
@@ -133,10 +134,12 @@ export default function UndergroundFM({locale="en"}){
  const [tracks,setTracks]=useState([]),[query,setQuery]=useState(""),[term,setTerm]=useState(""),[loading,setLoading]=useState(false),[notice,setNotice]=useState("");
  const [preview,setPreview]=useState(null),[connected,setConnected]=useState(false),[room,setRoom]=useState(null),[isDj,setIsDj]=useState(false),[me,setMe]=useState(null),[messages,setMessages]=useState([]),[draft,setDraft]=useState(""),[playing,setPlaying]=useState(false),[clock,setClock]=useState(Date.now());
  const [volume,setVolume]=useState(80),[liked,setLiked]=useState(false),[reactions,setReactions]=useState([]),[reduced,setReduced]=useState(false),[motionPref,setMotionPref]=useState(null);
- const [selectedTrack,setSelectedTrack]=useState(null),[page,setPage]=useState(0),[hasMore,setHasMore]=useState(true),[loadingMore,setLoadingMore]=useState(false),[requestText,setRequestText]=useState(""),[discoverTab,setDiscoverTab]=useState("For You"),[moodBurst,setMoodBurst]=useState(null),[pulses,setPulses]=useState({energy:0,love:0,chill:0}),[voteBusy,setVoteBusy]=useState(false),[heroGenre,setHeroGenre]=useState("Electronic"),[requestMatches,setRequestMatches]=useState([]),[requestSearching,setRequestSearching]=useState(false),[requestSent,setRequestSent]=useState(null),[tab,setTab]=useState("show"),[showGuide,setShowGuide]=useState(false),[showTune,setShowTune]=useState(false),[cooldownKey,setCooldownKey]=useState(0),[reconnecting,setReconnecting]=useState(false),[inviteRoom,setInviteRoom]=useState(null);
- const socket=useRef(null),audio=useRef(null),streamTrackId=useRef(null),joining=useRef(false),wantsRoom=useRef(false),lastVoteAt=useRef(0),stageCv=useRef(null),overlayCv=useRef(null),stage=useRef(null),overlay=useRef(null),rail=useRef(null),chatList=useRef(null),lastRoom=useRef(null),autoPlay=useRef(false),shellRef=useRef(null),photoRef=useRef(null),specCv=useRef(null),spectrum=useRef(null),actx=useRef(null),analyser=useRef(null);
+ const [selectedTrack,setSelectedTrack]=useState(null),[page,setPage]=useState(0),[hasMore,setHasMore]=useState(true),[loadingMore,setLoadingMore]=useState(false),[requestText,setRequestText]=useState(""),[discoverTab,setDiscoverTab]=useState("For You"),[moodBurst,setMoodBurst]=useState(null),[pulses,setPulses]=useState({energy:0,love:0,chill:0}),[voteBusy,setVoteBusy]=useState(false),[heroGenre,setHeroGenre]=useState("Electronic"),[requestMatches,setRequestMatches]=useState([]),[requestSearching,setRequestSearching]=useState(false),[requestSent,setRequestSent]=useState(null),[tab,setTab]=useState("show"),[showGuide,setShowGuide]=useState(false),[showTune,setShowTune]=useState(false),[cooldownKey,setCooldownKey]=useState(0),[reconnecting,setReconnecting]=useState(false),[cueSheet,setCueSheet]=useState(null),[mapping,setMapping]=useState(false),[inviteRoom,setInviteRoom]=useState(null);
+ const socket=useRef(null),audio=useRef(null),streamTrackId=useRef(null),joining=useRef(false),wantsRoom=useRef(false),lastVoteAt=useRef(0),stageCv=useRef(null),overlayCv=useRef(null),stage=useRef(null),overlay=useRef(null),rail=useRef(null),chatList=useRef(null),lastRoom=useRef(null),autoPlay=useRef(false),roomRef=useRef(null),shellRef=useRef(null),photoRef=useRef(null),specCv=useRef(null),spectrum=useRef(null),actx=useRef(null),analyser=useRef(null);
  const motionOff=motionPref===null?reduced:motionPref;
  const fx=room?.lights||defaults;
+ roomRef.current=room;
+ const autoShow=fx.auto!==false;
  const theme=THEMES.find(t=>t.id===fx.theme)||THEMES[0];
  const current=room?room.track:preview;
  const roomElapsed=room?.startedAt?Math.max(0,(clock-room.startedAt)/1000):0;
@@ -161,7 +164,8 @@ export default function UndergroundFM({locale="en"}){
   const quality=qualityFor();
   // the rig reports its drive every frame; globes and the cover breathe with it through CSS variables
   const shell=shellRef.current,onLevels=lv=>{shell.style.setProperty("--bass",lv.bass.toFixed(3));shell.style.setProperty("--kick",lv.kick.toFixed(3));};
-  stage.current=createStage(stageCv.current,{quality,photo:true,onLevels});
+  // a mapped drop fires the pyro for everyone in sync (each device follows the same cue sheet and room clock)
+  stage.current=createStage(stageCv.current,{quality,photo:true,onLevels,onCue:kind=>{if(kind==="drop")overlay.current?.burst("energy",1.15);}});
   overlay.current=createOverlay(overlayCv.current,{quality});
   spectrum.current=createSpectrum(specCv.current);
   const place=()=>{const f=photoFit(innerWidth,innerHeight),el=photoRef.current;if(el){el.style.backgroundImage="url("+f.src+")";el.style.backgroundSize=f.dw+"px "+f.dh+"px";el.style.backgroundPosition=f.ox+"px "+f.oy+"px";}};
@@ -171,7 +175,28 @@ export default function UndergroundFM({locale="en"}){
  },[]);
  useEffect(()=>{stage.current?.setReduced(motionOff);overlay.current?.setReduced(motionOff);spectrum.current?.setReduced(motionOff);if(motionOff)shellRef.current?.style.setProperty("--bass","0");},[motionOff]);
  useEffect(()=>{spectrum.current?.playing(playing);},[playing]);
- useEffect(()=>{stage.current?.set({theme,fx:fx.fx,power:fx.intensity,bpm:fx.beatBpm,heat:room?heatScore:50,playing});},[theme.id,fx.fx,fx.intensity,fx.beatBpm,heatScore,playing,room?.room]);
+ useEffect(()=>{stage.current?.set({theme,fx:fx.fx,power:fx.intensity,bpm:cueSheet?.id===current?.id&&cueSheet?cueSheet.bpm:fx.beatBpm,heat:room?heatScore:50,playing,auto:autoShow});},[theme.id,fx.fx,fx.intensity,fx.beatBpm,heatScore,playing,room?.room,autoShow,cueSheet,current?.id]);
+ // song position for the auto show: this device's audio when it is playing the song, else the room clock
+ const songClock=()=>{const a=audio.current,r=roomRef.current;if(a&&!a.paused&&streamTrackId.current&&a.currentTime>0)return a.currentTime;if(r?.track&&r.startedAt)return (Date.now()-r.startedAt)/1000;return null;};
+ useEffect(()=>{stage.current?.cues(cueSheet&&cueSheet.id===current?.id?cueSheet:null,songClock);},[cueSheet,current?.id]);
+ // map the song on air once: the controller first, other desktops a moment later, phones last; the first sheet the
+ // server accepts is sent to everyone, so most listeners never download anything extra
+ useEffect(()=>{
+  const id=current?.id;
+  if(!id||cueSheet?.id===id||(room&&room.cues===id)||!canMapSongs())return;
+  const ctrl=new AbortController(),small=innerWidth<760;
+  const wait=room?(isDj?300:small?6000+Math.random()*3000:1500+Math.random()*1500):800;
+  const timer=setTimeout(async()=>{
+   setMapping(true);
+   try{
+    const sheet=await mapSong(id,{signal:ctrl.signal});
+    if(!sheet||ctrl.signal.aborted)return;
+    setCueSheet(c=>c?.id===id?c:sheet);
+    if(roomRef.current?.track?.id===id)socket.current?.emit("fm:cues",sheet,()=>{});
+   }catch{}finally{if(!ctrl.signal.aborted)setMapping(false);}
+  },wait);
+  return ()=>{clearTimeout(timer);ctrl.abort();setMapping(false);};
+ },[current?.id,room?.cues,cueSheet?.id,isDj]);
  useEffect(()=>{if(mAt)stage.current?.moment(mKind,mAt);},[mAt,mKind]);
  useEffect(()=>{
   const h=room?heatScore:50;
@@ -226,6 +251,7 @@ export default function UndergroundFM({locale="en"}){
   s.on("fm:state",data=>{setRoom(data);setIsDj(data.dj===s.id);lastRoom.current={room:data.room,track:data.track,startedAt:data.startedAt,lights:data.lights};SS.set("fm:room",lastRoom.current);
    try{const u=new URL(location.href);if(u.searchParams.get("room")!==data.room){u.searchParams.set("room",data.room);history.replaceState(history.state,"",u);}}catch{}});
   s.on("fm:chat",entry=>setMessages(v=>[...v.slice(-79),entry]));
+  s.on("fm:cues",sheet=>setCueSheet(sheet));
   s.on("fm:reaction",entry=>{setReactions(v=>[...v.slice(-11),{...entry,id:Math.random()}]);stage.current?.react(entry.kind);});
   s.on("fm:mood:burst",entry=>{
    setMoodBurst({...entry,nonce:Math.random()});
@@ -498,6 +524,15 @@ export default function UndergroundFM({locale="en"}){
       <div className="fx-song">
        <div className="fx-song-head"><div><h3 title={current?.title}>{current?.title||"Your next discovery."}</h3><p>{current?.artist||"Select a track. Let the night unfold."}</p></div>
         <div className="fx-song-tools"><button type="button" className={"fx-icon-btn"+(liked?" is-on":"")} onClick={()=>setLiked(v=>!v)} aria-pressed={liked} aria-label={liked?"Remove like":"Like this track"} disabled={!current}><Icon name="heart"/></button></div></div>
+       {(()=>{
+        if(mapping&&cueSheet?.id!==current?.id)return <div className="fx-cue fx-cue-wait"><i/>Mapping the song for the light show…</div>;
+        if(!cueSheet||cueSheet.id!==current?.id)return null;
+        const st=songClock();if(st==null)return null;
+        let sec=cueSheet.sections[0];for(const x of cueSheet.sections)if(x.t<=st)sec=x;
+        const next=cueSheet.drops.find(d=>d>st),soon=next!=null&&next-st<=30&&autoShow;
+        const label={intro:"Intro",groove:"In the groove",build:"Building up",drop:"The drop",break:"Breakdown",outro:"Outro"}[sec?.k]||"Live";
+        return <div className={"fx-cue fx-cue-"+(soon?"soon":sec?.k||"groove")} aria-live="off"><i/>{soon?<b>DROP IN {clockFmt(next-st)}</b>:<b>{label}</b>}<span>{Math.round(cueSheet.bpm)} BPM{autoShow?" · AUTO SHOW":""}</span></div>;
+       })()}
        <div className="fx-tags"><span>{current?.genre||"Underground"}</span><span>{room?"Live broadcast":"Discover"}</span><span>{theme.name}</span></div>
        <canvas ref={specCv} className="fx-wave" aria-hidden="true"/>
        <div className="fx-progress"><div className="fx-progress-track"><span style={{width:current&&duration?clamp(time/duration*100,0,100)+"%":room?.track?clamp((time%180)/180*100,0,100)+"%":"0%"}}/></div><small>{clockFmt(time)} {duration?"/ "+clockFmt(duration):current?"/ LIVE":"/ 0:00"}</small></div>
@@ -539,7 +574,7 @@ export default function UndergroundFM({locale="en"}){
 
     {view==="controller"&&<div className="fx-row fx-row-controller">
      <section className="fx-panel fx-lights" data-pane="vibe" aria-label="Light mode">
-      <header className="fx-panel-head"><h2>Light Mode</h2><span className="fx-dim">Transform the room's atmosphere</span><button type="button" className="fx-link" onClick={()=>styleChange({theme:"infrared",fx:"sweep",intensity:2})}>Reset</button></header>
+      <header className="fx-panel-head"><h2>Light Mode</h2><span className="fx-dim">{autoShow?"Auto show follows the song · scenes set colour + groove":"Manual: your scene runs as is"}</span><button type="button" className={"fx-auto"+(autoShow?" is-on":"")} aria-pressed={autoShow} onClick={()=>styleChange({auto:!autoShow})}><i/>AUTO SHOW</button><button type="button" className="fx-link" onClick={()=>styleChange({theme:"infrared",fx:"sweep",intensity:2})}>Reset</button></header>
       <div className="fx-scenes">{SCENES.map(scene=><button type="button" key={scene.id} onClick={()=>activateScene(scene)} aria-pressed={fx.theme===scene.theme&&fx.fx===scene.fx} className={"fx-scene fx-scene-"+scene.id}><span className="fx-scene-art"><i/><i/><i/></span><strong>{scene.name}</strong><small>{scene.subtitle}</small></button>)}</div>
       <div className="fx-moments" role="group" aria-label="Show moments"><span>MOMENTS</span>{MOMENTS.map(([kind,label])=><button type="button" key={kind} onClick={()=>fxTrigger(kind)}>{label}</button>)}</div>
       <button type="button" className="fx-link fx-tune-toggle" onClick={()=>setShowTune(v=>!v)} aria-expanded={showTune}>{showTune?"Hide fine-tune":"Fine-tune colors, pattern & power"}</button>

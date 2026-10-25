@@ -181,3 +181,29 @@ test("the next queued song starts when a listener's audio ends, without the cont
   assert.equal(res.advanced, true);
   assert.equal((await ask(dj, "fm:ended", { id: "fmshort" })).ok, false, "a second report does not skip again");
 });
+
+test("auto light show: the first valid cue sheet for the song on air is shared with the room and late joiners", async () => {
+  const dj = await client(), fan = await client();
+  const joined = await ask(dj, "fm:join");
+  await ask(fan, "fm:join", { room: joined.room });
+  await ask(dj, "fm:play", track);
+  const sheet = { id: track.id, bpm: 128, bar: .42, dur: 180, conf: 3.1, energy: [10, 40, 90], sections: [{ t: 0, k: "intro", e: 20 }, { t: 30, k: "groove", e: 60 }, { t: 105, k: "drop", e: 100 }], drops: [105] };
+  assert.equal((await ask(fan, "fm:cues", { ...sheet, id: "fmother" })).error, "invalid", "only for the song on air");
+  assert.equal((await ask(dj, "fm:cues", { ...sheet, sections: [{ t: 0, k: "<script>", e: 1 }] })).error, "invalid");
+  assert.equal((await ask(dj, "fm:cues", { ...sheet, extra: "dropped" })).ok, false, "cooldown after the rejected try");
+  await new Promise((r) => setTimeout(r, 5100));
+  const got = next(fan, "fm:cues");
+  assert.equal((await ask(dj, "fm:cues", { ...sheet, extra: "dropped" })).ok, true);
+  const shared = await got;
+  assert.equal(shared.bpm, 128);
+  assert.equal(shared.extra, undefined, "unknown fields are not relayed");
+  assert.equal((await ask(fan, "fm:cues", sheet)).error, "exists", "first sheet wins");
+  const late = await client();
+  const cues = next(late, "fm:cues");
+  await ask(late, "fm:join", { room: joined.room });
+  assert.deepEqual((await cues).drops, [105]);
+  const st = await new Promise((r) => { late.once("fm:state", r); ask(dj, "fm:play", { ...track, id: "fmnew", title: "New song" }); });
+  assert.equal(st.cues, null, "a new song clears the cue sheet");
+  assert.equal((await ask(dj, "fm:lights", { auto: false })).ok, true);
+  assert.equal((await ask(dj, "fm:lights", { auto: "yes" })).error, "invalid_auto");
+});

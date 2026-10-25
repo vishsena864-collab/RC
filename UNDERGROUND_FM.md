@@ -35,6 +35,20 @@ Music streams directly from Audius to each visitor's browser. ChatSpark doesn't 
 - A dropped realtime connection (e.g. the Vercel adapter's 5-minute function cap, a restart, mobile backgrounding) no longer clears the room: the song keeps playing, the LIVE badge reads RECONNECTING…, and the client rejoins the same room code with a snapshot (track, start time, lights). If the server lost the room it is rebuilt from that snapshot; a snapshot never overrides a room that still exists.
 - The room code is kept in the URL (`?room=STATIC`). INVITE copies/shares it; opening it joins that room.
 
+## Auto light show
+
+When a song starts, one browser (the controller first, listeners after a short random delay) downloads the
+Audius stream once, decodes it and runs `web/lib/cues.js` in a Worker. It finds the tempo, beat grid, bar-level
+sections (intro, groove, build, drop, break, outro) and the drops. The first valid cue sheet goes to the room
+server (`fm:cues`), which validates it, keeps it for the current track only and sends it to everyone, including
+late joiners. Each browser then runs the lights against the song clock: sweeps and risers in builds, a
+half-beat blackout and a new rig on each drop, slow blooms and extra haze in breakdowns, and flares every
+32 beats. Light Mode scenes still set colours; the AUTO SHOW toggle in Light Mode switches it off for the room.
+
+Nothing is stored or uploaded except the small cue sheet. The CSP allows `connect-src https:` (Audius redirects
+to rotating content nodes) and `worker-src blob:` (the Worker is built from our bundled analyser). Run the
+analyser tests with `cd web && node --test lib/cues.test.mjs`.
+
 ## Known limitations
 - **Serverless hosting splits rooms.** On the temporary Vercel adapter each function instance has its own rooms in memory, so two people can still land in different copies of the "same" room. Reconnect + invite links soften this; a single always-on server (Railway, `server/railway.json`) or shared state (Redis) fixes it.
 - Music synchronization uses track start timestamps and is approximate, not sample-accurate.
