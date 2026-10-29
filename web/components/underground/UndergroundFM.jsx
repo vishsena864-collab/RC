@@ -202,6 +202,31 @@ export default function UndergroundFM({locale="en"}){
   return ()=>a.removeEventListener("loadedmetadata",sync);
  },[current?.id,room?.startedAt]);
  useEffect(()=>()=>{const job=fadeJob.current;if(job)clearInterval(job.timer);},[]);
+ // A failed Audius stream must not leave the player silently stuck.
+ // Retry once with a fresh URL (content-node redirects may be transient), then surface the failure.
+ useEffect(()=>{
+  const decks=[deckA.current,deckB.current].filter(Boolean);
+  const retries=new Map();
+  const onError=e=>{
+   const el=e.currentTarget,id=streamTrackId.current;
+   if(!id||el!==audio.current)return;
+   const count=retries.get(id)||0;
+   if(count<1){
+    retries.set(id,count+1);
+    setNotice("Reconnecting to the music stream…");
+    el.src="https://api.audius.co/v1/tracks/"+encodeURIComponent(id)+"/stream?retry="+Date.now();
+    el.load();
+    if(listening.current)el.play().catch(()=>{});
+   }else{
+    setPlaying(false);
+    setNotice("This song's stream is unavailable. Select another song or try again.");
+   }
+  };
+  const onPlaying=()=>{setPlaying(true);setNotice(n=>n==="Reconnecting to the music stream…"?"":n);};
+  decks.forEach(el=>{el.addEventListener("error",onError);el.addEventListener("playing",onPlaying);});
+  return ()=>decks.forEach(el=>{el.removeEventListener("error",onError);el.removeEventListener("playing",onPlaying);});
+ },[]);
+
  useEffect(()=>{
   if(!room||isDj||requestText.trim().length<2){setRequestMatches([]);setRequestSearching(false);return;}
   const signal=new AbortController();
