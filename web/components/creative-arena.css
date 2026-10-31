@@ -65,7 +65,7 @@
 .arena-entry{min-width:0;border:1px solid #475448;background:#1d251f;overflow:hidden}
 .arena-entry.is-winner{border-color:var(--arena-accent);box-shadow:0 0 0 2px #e6ff8325}
 .arena-entry-meta{display:flex;justify-content:space-between;gap:8px;padding:10px 13px;border-bottom:1px solid #3c483e;font:700 9px/1.5 ui-monospace,monospace;letter-spacing:.07em;color:var(--arena-accent)}
-.arena-poem{padding:23px 19px;min-height:180px;background:#eee8d7;color:#212721}
+.arena-poem-entry{padding:23px 19px;min-height:180px;background:#eee8d7;color:#212721}
 .arena-poem h3{font:900 22px/1.08 Georgia,serif;margin:0 0 11px}
 .arena-poem p{white-space:pre-wrap;overflow-wrap:anywhere;font:15px/1.65 Georgia,serif;margin:0;max-height:350px;overflow:auto}
 .arena-art-preview{display:block;width:100%;height:auto;aspect-ratio:8/5}
@@ -95,3 +95,21 @@
 .arena-consent{display:flex;align-items:flex-start;gap:12px;margin:16px 0 3px;font:500 13px/1.5 "Segoe UI",sans-serif;color:#c8d1c0;cursor:pointer}
 .arena-consent input{flex:none;accent-color:var(--arena-accent);width:17px;height:17px;margin-top:2px}
 @media(max-width:660px){.arena-entry-fields{grid-template-columns:1fr}}
+
+/* Arena readability: arena-poem is the page type; poem entry paper must use a separate class. */
+.walls-shell .arena-shell{background:#121714;color:#f4f1e7;border-color:#536651;}
+.walls-shell .arena-shell .arena-head h2{color:#f4f1e7;}
+.walls-shell .arena-shell .arena-head p{color:#d2ddcf;font:500 16px/1.65 'Segoe UI',Arial,sans-serif;}
+.walls-shell .arena-shell .arena-side-note,.walls-shell .arena-shell .arena-footnote{color:#bfceb9;}
+.walls-shell .arena-shell .arena-sidebar-title,.walls-shell .arena-shell .arena-roster>div{color:#f4f1e7;}
+.walls-shell .arena-shell .arena-status{background:#1d2b21;border:1px solid #4b7653;color:#f4f1e7;padding:36px 26px;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:13px;font-family:'Segoe UI',Arial,sans-serif;}
+.arena-status strong{font:900 clamp(20px,3vw,32px)/1.15 Impact,'Arial Black',sans-serif;letter-spacing:.04em;color:var(--arena-accent);}
+.arena-status p{margin:0;color:#d4e1d0;max-width:650px;font-size:15px;line-height:1.65;}
+.arena-retry{background:var(--arena-accent);color:#142015;border:0;padding:13px 22px;font:900 12px/1 ui-monospace,monospace!important;letter-spacing:.05em;cursor:pointer;}
+.arena-retry:hover{filter:brightness(1.12);}
+.arena-retry:focus-visible{outline:3px solid white;outline-offset:3px;}
+.walls-shell .arena-shell .arena-room-btn:disabled:not(.is-current){opacity:.65;color:#bdcbb7;background:#263228;}
+.walls-shell .arena-shell .arena-room-btn small{color:inherit;}
+.walls-shell .arena-shell .arena-feedback{background:#253523;border:1px solid #b1d877;color:#f5ffe5;}
+.walls-shell .arena-shell .arena-poem-entry{background:#eee8d7;color:#212721;}
+.arena-shell .arena-shell-message{max-width:680px;display:block;color:#f8f1d5;font-size:14px;line-height:1.65;}
