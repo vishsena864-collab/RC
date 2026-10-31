@@ -37,7 +37,10 @@ const nextConfig = {
 
   async redirects() {
     // English is the default language and the hreflang x-default.
-    return [{ source: "/", destination: "/en", permanent: false }];
+    return [
+      { source: "/:path*", has: [{ type: "host", value: "www.chatsparkrc.com" }], destination: "https://chatsparkrc.com/:path*", permanent: true },
+      { source: "/", destination: "/en", permanent: false },
+    ];
   },
 
   async headers() {
