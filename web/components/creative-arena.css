@@ -84,3 +84,14 @@
 @media(max-width:1060px){.arena-layout{grid-template-columns:1fr}.arena-sidebar{padding:0 0 18px;border-right:0;border-bottom:1px solid var(--arena-line)}.arena-room-grid{grid-template-columns:repeat(10,minmax(0,1fr))}.arena-roster{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}.arena-roster>div{grid-column:1/-1}}
 @media(max-width:660px){.arena-shell{margin:20px 14px 42px;padding:18px;box-shadow:5px 5px 0 #070a08}.arena-head{grid-template-columns:1fr;gap:18px}.arena-clock{min-height:110px;padding:13px;display:grid;grid-template-columns:auto auto;align-items:center}.arena-clock strong{grid-row:1/3;grid-column:2;font-size:54px}.arena-head h2{font-size:clamp(40px,10.5vw,66px)}.arena-layout{gap:17px;padding-top:20px}.arena-room-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.arena-entry-grid{grid-template-columns:1fr}.arena-roster{grid-template-columns:1fr}.arena-topic{padding:21px 19px}.arena-create-buttons>*{width:100%}.arena-clock span,.arena-clock small{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.arena-shell *{animation:none!important;transition:none!important}}
+
+/* The competition has its own title and eligibility inputs, so the graffiti
+   creator need not scroll to the separate weekly-publishing form below. */
+.arena-entry-fields{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:13px;margin:21px 0 14px}
+.arena-entry-fields label{display:flex;flex-direction:column;gap:8px;color:var(--arena-accent);font:800 11px/1.4 ui-monospace,monospace;letter-spacing:.08em}
+.arena-entry-fields label small{display:inline;font-size:10px;color:#81917d}
+.arena-entry-fields input{width:100%;min-height:44px;background:#252f26;border:1px solid #5b6b59;color:#f7f3e7;padding:12px;font:600 14px "Segoe UI",sans-serif;letter-spacing:normal}
+.arena-entry-fields input::placeholder{color:#8e9b8a}
+.arena-consent{display:flex;align-items:flex-start;gap:12px;margin:16px 0 3px;font:500 13px/1.5 "Segoe UI",sans-serif;color:#c8d1c0;cursor:pointer}
+.arena-consent input{flex:none;accent-color:var(--arena-accent);width:17px;height:17px;margin-top:2px}
+@media(max-width:660px){.arena-entry-fields{grid-template-columns:1fr}}
