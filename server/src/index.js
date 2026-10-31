@@ -90,7 +90,7 @@ export function createApp(overrides = {}) {
   }
 
   const underground = createUnderground(io, { djHoldMs: cfg.fmDjHoldMs, crossfadeMs: cfg.fmCrossfadeMs, moderation, onBan: (key) => kickNetworkKey(key) });
-  const creativeArenas = createCreativeArenas(io);
+  const creativeArenas = createCreativeArenas(io, overrides.arenaOptions);
 
   // ---------- Connection guard ----------
 
