@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SITE_NAME } from "@/lib/site";
+import { getNostalgiaCopy } from "@/lib/nostalgia-locales";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 function BrandMark() {
@@ -14,7 +15,7 @@ export function SiteHeader({ locale, dict }) {
         <nav aria-label="Main" className="nav">
           <Link className="studio-nav-home" href={`/${locale}`}>{dict.nav.home}</Link>
           <Link href={`/${locale}/safety`}>{dict.nav.safety}</Link>
-          <Link href={`/${locale}/underground`} className="nav-side-feature" prefetch={false}>Music room</Link>
+          <Link href={`/${locale}/underground`} className="nav-side-feature" prefetch={false}>{getNostalgiaCopy(locale).hero.cards.radio[0]}</Link>
           <LanguageSwitcher locale={locale} label={dict.nav.language} />
           <Link href={`/${locale}/start`} className="btn btn-small" prefetch={false}>{dict.nav.start}<span aria-hidden="true">↗</span></Link>
         </nav>
