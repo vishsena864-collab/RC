@@ -8,6 +8,7 @@ import { fmt } from "@/lib/format";
 import { getDict } from "@/lib/i18n";
 import { absoluteUrl, pageMetadata } from "@/lib/seo";
 import { SITE_NAME } from "@/lib/site";
+import { getNostalgiaCopy } from "@/lib/nostalgia-locales";
 
 export async function generateMetadata({ params }) {
   const { locale } = await params;
@@ -24,6 +25,7 @@ export default async function HomePage({ params }) {
   const { locale } = await params;
   const dict = getDict(locale);
   const home = dict.home;
+  const closing = getNostalgiaCopy(locale).closing;
 
   const structuredData = [
     {
@@ -50,7 +52,7 @@ export default async function HomePage({ params }) {
       <div className="home-entertainment nostalgia-home">
         <NostalgiaHome locale={locale} dict={dict} />
         <NostalgiaLower locale={locale} dict={dict} />
-        <section className="nostalgia-closing" aria-labelledby="nostalgia-closing-heading"><span>THE END? NOT REALLY.</span><h2 id="nostalgia-closing-heading">A stranger today.<br/><em>A story tomorrow.</em></h2><p>Start with hello. The rest is up to the two of you.</p><Link href={`/${locale}/start`}>MEET SOMEONE NEW <span aria-hidden="true">→</span></Link></section>
+        <section className="nostalgia-closing" aria-labelledby="nostalgia-closing-heading"><span>{closing.overline}</span><h2 id="nostalgia-closing-heading">{closing.a}<br/><em>{closing.b}</em></h2><p>{closing.p}</p><Link href={`/${locale}/start`}>{closing.cta} <span aria-hidden="true">→</span></Link></section>
       </div>
     </>
   );
