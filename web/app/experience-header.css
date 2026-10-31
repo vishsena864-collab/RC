@@ -68,3 +68,16 @@ body:has(.walls-shell) .site-header .lang summary:hover{border-color:#f0ac73}
  body:has(.fx-shell) .site-header .lang summary,body:has(.walls-shell) .site-header .lang summary{padding:10px}
  body:has(.fx-shell) .site-header .nav>.btn,body:has(.walls-shell) .site-header .nav>.btn{padding:10px;gap:6px;font-size:10px}
 }
+
+/* Be explicit when a visitor reaches an English-only feature from a localized
+   homepage. These routes are noindex until the product is fully localized. */
+.experience-language-note {
+  margin:0;padding:16px clamp(20px,4vw,55px);
+  background:#243424;color:#eef6e3;border-bottom:2px solid #8cad68;
+  font:600 14px/1.65 "Segoe UI",Arial,sans-serif;
+  display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between;
+}
+.experience-language-note div{display:flex;flex-wrap:wrap;gap:12px 22px}
+.experience-language-note a{color:#e9ffa9;text-decoration:underline;text-underline-offset:4px;font-weight:800}
+.experience-language-note a:focus-visible{outline:3px solid #fbf0cc;outline-offset:4px}
+@media(max-width:720px){.experience-language-note{padding:14px 20px;font-size:13px}}
