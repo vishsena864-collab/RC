@@ -20,6 +20,7 @@ import { Moderation, cleanMessage } from "./moderation.js";
 import { RateLimiter } from "./ratelimit.js";
 import { REPORT_REASONS, parseJoin } from "./validate.js";
 import { createUnderground } from "./underground.js";
+import { createCreativeArenas } from "./creative-arenas.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const REPORT_LOOKBACK_MS = 5 * 60 * 1000;
@@ -89,6 +90,7 @@ export function createApp(overrides = {}) {
   }
 
   const underground = createUnderground(io, { djHoldMs: cfg.fmDjHoldMs, crossfadeMs: cfg.fmCrossfadeMs, moderation, onBan: (key) => kickNetworkKey(key) });
+  const creativeArenas = createCreativeArenas(io);
 
   // ---------- Connection guard ----------
 
@@ -101,6 +103,7 @@ export function createApp(overrides = {}) {
 
   io.on("connection", (socket) => {
     underground.attach(socket);
+    creativeArenas.attach(socket);
     socket.data.roomId = null;
     socket.data.lastPartner = null;
     const joinLimiter = new RateLimiter(cfg.limits.joinsPerWindow, cfg.limits.joinWindowMs);
@@ -415,6 +418,7 @@ export function createApp(overrides = {}) {
       clearInterval(reportCleanupTimer);
       for (const room of rooms.values()) clearTimeout(room.movie.timer);
       underground.close();
+      creativeArenas.close();
       movieBank.close();
       return new Promise((resolve) => {
         io.close(() => resolve());
