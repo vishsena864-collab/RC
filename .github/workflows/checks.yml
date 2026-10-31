@@ -32,5 +32,5 @@ jobs:
         working-directory: web
       - run: npm run build
         working-directory: web
-      - run: node --test lib/cues.test.mjs lib/mix.test.mjs lib/seo-copy.test.mjs
+      - run: node --test lib/cues.test.mjs lib/mix.test.mjs lib/seo-copy.test.mjs lib/international-seo.test.mjs
         working-directory: web
