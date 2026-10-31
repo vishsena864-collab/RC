@@ -32,7 +32,8 @@ export default function UndergroundFM({locale="en"}){
  const [rigFailed,setRigFailed]=useState(false),[rigNonce,setRigNonce]=useState(0),lastRigFrame=useRef(0);
  const [mixNonce,setMixNonce]=useState(0),mixSeed=useRef(0);
  const [tapped,setTapped]=useState(null);
- useEffect(()=>{try{setLightsOff(localStorage.getItem("fm:lights-off")==="1");}catch{}},[]);
+ // Always start a new visit with the light show enabled. A stale local preference used to keep the entire rig invisible across visits.
+ useEffect(()=>{try{localStorage.removeItem("fm:lights-off");}catch{}},[]);
  useEffect(()=>{lightsOffRef.current=lightsOff;stage.current?.set({off:lightsOff});if(lightsOff)shellRef.current?.style.setProperty("--bass","0");try{localStorage.setItem("fm:lights-off",lightsOff?"1":"0");}catch{}},[lightsOff]);
  const theme=THEMES.find(t=>t.id===fx.theme)||THEMES[0];
  const current=room?room.track:preview;
