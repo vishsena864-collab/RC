@@ -1,7 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Chat">
-  <rect width="64" height="64" rx="14" fill="#6d5efc"/>
-  <path d="M14 18a6 6 0 0 1 6-6h24a6 6 0 0 1 6 6v18a6 6 0 0 1-6 6H31l-9 8v-8h-2a6 6 0 0 1-6-6z" fill="#fff"/>
-  <circle cx="24" cy="27" r="2.6" fill="#6d5efc"/>
-  <circle cx="32" cy="27" r="2.6" fill="#6d5efc"/>
-  <circle cx="40" cy="27" r="2.6" fill="#6d5efc"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ChatSpark">
+  <title>ChatSpark</title>
+  <rect width="64" height="64" rx="14" fill="#151511"/>
+  <rect x="2" y="2" width="60" height="60" rx="12" fill="none" stroke="#494637" stroke-width="1.5"/>
+  <path d="M17.4 14.7h30.8a8.4 8.4 0 0 1 8.4 8.4v15.4a8.4 8.4 0 0 1-8.4 8.4H34.2l-11.2 8.4v-8.4h-5.6A8.4 8.4 0 0 1 9 38.5V23.1a8.4 8.4 0 0 1 8.4-8.4Z" fill="#e1f878"/>
+  <path d="m32.8 21.7-2.8 8.82-8.54 3.08L30 36.4l2.8 9.1 2.94-9.1 8.4-2.8-8.4-3.08-2.94-8.82Z" fill="#151511"/>
+  <circle cx="51.7" cy="13.2" r="4" fill="#fb6548"/>
 </svg>
