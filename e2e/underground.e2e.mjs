@@ -15,31 +15,29 @@ async function visitor(width=1440,motion='no-preference'){
  await context.route('https://api.audius.co/v1/tracks/*/stream',r=>r.fulfill({contentType:'audio/wav',headers:{'Access-Control-Allow-Origin':'*'},body:wav}));
  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
  await page.goto((process.env.WEB_URL||'http://localhost:3000')+'/en/underground');
- await page.waitForFunction(()=>document.querySelector('.fx-join')&&!document.querySelector('.fx-join').disabled);
- await page.locator('.fx-card:not(.fx-skeleton)').first().waitFor();return page;
+ await page.locator('.fx-controller,.fx-listener').first().waitFor();return page;
 }
 const shot=async(p,n)=>shots&&p.screenshot({path:`${shots}/${n}.png`,fullPage:true});
 const btn=(p,name)=>p.getByRole('button',{name,exact:true});
 const noOverflow=async p=>assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'no horizontal overflow');
 try{
  const a=await visitor(),b=await visitor();
- await noOverflow(a);await shot(a,'desktop-discovery');
- await a.locator('.fx-genres').getByRole('button',{name:'Indie',exact:true}).click();assert.equal(await a.locator('.fx-genres').getByRole('button',{name:'Indie',exact:true}).getAttribute('aria-pressed'),'true');assert.equal(await a.locator('.fx-chips').getByRole('button',{name:'Indie',exact:true}).getAttribute('aria-pressed'),'true');
- await btn(a,'Select '+tracks[0].title+' by '+tracks[0].artist).click();
- await btn(a,'Play audio').click();await btn(a,'Pause audio').waitFor();
- await a.getByLabel('Volume',{exact:true}).fill('35');assert.deepEqual(await a.locator('audio').evaluateAll(els=>els.map(el=>el.volume)),[.35,.35]);
- await btn(a,'Pause audio').click();
- await a.locator('.fx-join').click();await a.locator('.fx-controller').waitFor();
- // walking into a silent room starts the song you picked, for the room, and it plays
- await a.locator('.fx-msg-system').filter({hasText:'started the music: '+tracks[0].title}).waitFor();
- await a.waitForFunction(id=>[...document.querySelectorAll('audio')].some(el=>el.src.includes(id)&&!el.paused),tracks[0].id);
- await b.locator('.fx-join').click();await b.locator('.fx-listener').waitFor();
- await shot(b,'desktop-listener-before');
+ await a.locator('.fx-controller').waitFor();await b.locator('.fx-listener').waitFor();
+ await noOverflow(a);await shot(a,'desktop-auto-joined');
+ // The FM URL joins automatically; the old Enter Room button is not part of the journey.
+ assert.equal(await a.locator('.fx-shell').getAttribute('data-view'),'controller');
+ assert.equal(await b.locator('.fx-shell').getAttribute('data-view'),'listener');
+ await a.locator('.fx-genres').getByRole('button',{name:'Indie',exact:true}).click();
+ assert.equal(await a.locator('.fx-genres').getByRole('button',{name:'Indie',exact:true}).getAttribute('aria-pressed'),'true');
  await btn(a,'Select '+tracks[0].title+' by '+tracks[0].artist).click();
  await btn(a,'Play '+tracks[0].title+' for the whole room').click();
  await b.getByRole('heading',{name:tracks[0].title,exact:true}).waitFor();
- // a listener who joined with a click picks up the room's song without pressing play again
+ if(await btn(a,'Play audio').count())await btn(a,'Play audio').click();
+ if(await btn(b,'Play audio').count())await btn(b,'Play audio').click();
  await btn(b,'Pause audio').waitFor();
+ await a.getByLabel('Volume',{exact:true}).fill('35');
+ assert.deepEqual(await a.locator('audio').evaluateAll(els=>els.map(el=>el.volume)),[.35,.35]);
+ await shot(b,'desktop-listener-before');
  // quick actions on a library card: queue it, then the listener sees the controller's handle
  await btn(a,'Add '+tracks[2].title+' to the queue').click({force:true});
  await a.locator('.fx-queue-item').filter({hasText:tracks[2].title}).waitFor();
@@ -122,5 +120,5 @@ try{
  await b.getByRole('button',{name:'Leave room'.toUpperCase(),exact:true}).first().click({force:true}).catch(()=>{});
  await a.locator('.fx-leave').first().click({force:true}).catch(()=>{});
  assert.deepEqual(errors,[]);
- console.log('PASS: discovery, solo audio, volume, two-browser join, music starts on entering a silent room, cover broadcast, quick queue, room-wide vote effect, heat/cooldown, guide, chat (typing, bubbles, request cards, neon emoji + picker, reactions, report + mute), request, play-now, next with autoplay + crossfade, lights, motion toggle, pass controller, phone panes, 6 viewport widths, OS reduced motion; no browser errors.');
+ console.log('PASS: automatic room entry, volume, two-browser join, cover broadcast, quick queue, room-wide vote effect, heat/cooldown, guide, chat (typing, bubbles, request cards, neon emoji + picker, reactions, report + mute), request, play-now, next with autoplay + crossfade, lights, motion toggle, pass controller, phone panes, 6 viewport widths, OS reduced motion; no browser errors.');
 }finally{await browser.close();}
