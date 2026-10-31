@@ -38,7 +38,8 @@ function ArtworkPreview({artwork,title}){
 export default function CreativeArena({kind,draft,allowed=true,canSubmit=true}){
  const [connected,setConnected]=useState(false),[match,setMatch]=useState(null),[lobby,setLobby]=useState(null);
  const [message,setMessage]=useState(""),[pending,setPending]=useState(false),[now,setNow]=useState(Date.now()),[consent,setConsent]=useState(false),[contestTitle,setContestTitle]=useState(""),[contestTag,setContestTag]=useState("");
- const socketRef=useRef(null),desiredRoom=useRef(null),serverOffset=useRef(0),lastRound=useRef(0);
+ const [serviceStatus,setServiceStatus]=useState("connecting");
+ const socketRef=useRef(null),retryRef=useRef(null),desiredRoom=useRef(null),serverOffset=useRef(0),lastRound=useRef(0);
  const entries=match?.entries||[];
  const seconds=match?.endsAt?Math.max(0,Math.ceil((match.endsAt-(now+serverOffset.current))/1000)):0;
  const members=match?.participants||[];
@@ -56,21 +57,49 @@ export default function CreativeArena({kind,draft,allowed=true,canSubmit=true}){
   return ()=>clearInterval(t);
  },[]);
  useEffect(()=>{
-  if(!SERVER_URL || (SERVER_URL.startsWith("http://localhost")&&typeof location!=="undefined"&&location.hostname!=="localhost")){
-   setMessage("Live competitions are offline. The regular weekly gallery is still available.");return;
-  }
-  let gone=false;
-  const s=io(SERVER_URL,{path:SOCKET_PATH,transports:["websocket","polling"],reconnection:true,reconnectionAttempts:Infinity,reconnectionDelayMax:5000,timeout:9000});
-  socketRef.current=s;
-  s.on("connect",()=>{
-   if(gone)return;
-   setConnected(true);setMessage("");
-   s.emit("arena:join",{kind,...(desiredRoom.current?{number:desiredRoom.current}:{})},ack=>{
-    if(!ack?.ok)setMessage(MESSAGES[ack?.error]||"Could not enter a creative room.");
-   });
+  let gone=false,ready=false,attempting=false,failures=0;
+  const unavailable="Live rooms cannot connect to the realtime server. Weekly wall publishing still works.";
+  const s=io(SERVER_URL||"http://localhost:4000",{
+   path:SOCKET_PATH,autoConnect:false,transports:["websocket","polling"],
+   reconnection:true,reconnectionAttempts:Infinity,reconnectionDelay:800,reconnectionDelayMax:7000,timeout:8000
   });
+  socketRef.current=s;
+  const fail=(reason)=>{
+   if(gone)return;
+   ready=false;setConnected(false);setServiceStatus("offline");
+   setMessage(reason);
+  };
+  const join=()=>{
+   if(gone||!s.connected||attempting||ready)return;
+   attempting=true;setServiceStatus("connecting");
+   s.timeout(5000).emit("arena:join",{
+    kind,...(desiredRoom.current?{number:desiredRoom.current}:{})
+   },(error,ack)=>{
+    attempting=false;
+    if(gone||!s.connected)return;
+    if(error || !ack?.ok){
+     failures++;
+     // Older Railway versions don't listen for arena:join; Socket.IO silently
+     // drops the packet. Explicit acknowledgement timeout distinguishes this.
+     const reason=error
+      ?"The realtime server is connected, but live creative rooms have not started on it. Retrying automatically."
+      : MESSAGES[ack?.error]||"Could not enter a creative room. Retrying automatically.";
+     if(ack?.error==="room_closed"||ack?.error==="rooms_full")desiredRoom.current=null;
+     fail(reason);
+    }else{
+     failures=0;ready=true;desiredRoom.current=ack.number;
+     setConnected(true);setServiceStatus("online");setMessage("");
+    }
+   });
+  };
+  retryRef.current=()=>{
+   if(!s.connected){setServiceStatus("connecting");s.connect();}
+   else{ready=false;attempting=false;join();}
+  };
+  s.on("connect",()=>{if(gone)return;ready=false;attempting=false;setServiceStatus("connecting");join();});
   s.on("arena:state",data=>{
    if(data.kind!==kind||gone)return;
+   ready=true;failures=0;setConnected(true);setServiceStatus("online");
    serverOffset.current=data.serverNow-Date.now();
    desiredRoom.current=data.number;
    if(data.phase==="creating" && data.round!==lastRound.current && lastRound.current!==0)
@@ -80,38 +109,54 @@ export default function CreativeArena({kind,draft,allowed=true,canSubmit=true}){
   });
   s.on("arena:lobby",data=>{if(data.kind===kind&&!gone)setLobby(data);});
   s.on("arena:votes",data=>{if(!gone)setMatch(old=>old?{...old,votes:data.count,yourVote:data.yourVote}:old);});
-  s.on("disconnect",()=>{setConnected(false);setMatch(null);setMessage("Reconnecting to your creative room…");});
-  s.on("connect_error",()=>setMessage("Live creative rooms are temporarily unavailable. The weekly wall is still open."));
-  return ()=>{gone=true;s.disconnect();socketRef.current=null;};
+  s.on("disconnect",()=>{
+   if(gone)return;ready=false;attempting=false;
+   setConnected(false);setMatch(null);setLobby(null);setServiceStatus("offline");
+   setMessage("Realtime connection interrupted. Reconnecting automatically.");
+  });
+  s.on("connect_error",()=>{
+   fail(unavailable);
+  });
+  if(!SERVER_URL || (SERVER_URL.startsWith("http://localhost")&&typeof location!=="undefined"&&location.hostname!=="localhost")){
+   setMessage("Live competitions need a configured realtime service. The weekly wall is still available.");
+   setServiceStatus("offline");
+  }else{
+   s.connect();
+  }
+  // Retry an old backend that is online without arena event handlers. Socket.IO
+  // does not emit connect_error in that case, so retries are essential.
+  const timer=setInterval(()=>{if(!gone&&!ready){if(s.connected)join();else if(!s.active)s.connect();}},14000);
+  return ()=>{gone=true;clearInterval(timer);retryRef.current=null;s.removeAllListeners();s.disconnect();socketRef.current=null;};
  },[kind]);
+
  const switchRoom=(number)=>{
   if(!socketRef.current?.connected||pending||number===match?.number)return;
   setPending(true);
-  socketRef.current.emit("arena:join",{kind,number},ack=>{
+  socketRef.current.timeout(8000).emit("arena:join",{kind,number},(err,ack)=>{
    setPending(false);
-   if(ack?.ok){desiredRoom.current=number;setMessage("");}
-   else setMessage(MESSAGES[ack?.error]||"Couldn't switch rooms.");
+   if(!err&&ack?.ok){desiredRoom.current=number;setMessage("");}
+   else setMessage(MESSAGES[ack?.error]||"Could not switch rooms right now. Try again.");
   });
  };
  const submit=()=>{
   if(!ready||pending||!socketRef.current)return;
   setPending(true);setMessage("");
-  socketRef.current.emit("arena:submit",{
+  socketRef.current.timeout(8000).emit("arena:submit",{
    title:resolvedTitle,author_tag:resolvedTag,ageConfirmed:true,
    ...(kind==="poem"?{body:draft.body}:{artwork:draft.artwork})
-  },ack=>{
+  },(err,ack)=>{
    setPending(false);
-   setMessage(ack?.ok?"ENTRY LOCKED. When the seven-minute clock ends, strangers will vote.":
-     (MESSAGES[ack?.error]||"Couldn't submit. Please retry."));
+   setMessage(!err&&ack?.ok?"ENTRY LOCKED. When the seven-minute clock ends, strangers will vote.":
+     (MESSAGES[ack?.error]||"Submission timed out. Please retry."));
   });
  };
  const vote=(id)=>{
   if(pending||match?.phase!=="voting"||myVote)return;
   setPending(true);
-  socketRef.current?.emit("arena:vote",{id},ack=>{
+  socketRef.current?.timeout(8000).emit("arena:vote",{id},(err,ack)=>{
    setPending(false);
-   setMessage(ack?.ok?"VOTE CAST. Your pick is locked until results.":
-     (MESSAGES[ack?.error]||"Unable to vote."));
+   setMessage(!err&&ack?.ok?"VOTE CAST. Your pick is locked until results.":
+     (MESSAGES[ack?.error]||"Voting timed out. Please retry."));
   });
  };
  const winners=new Set(match?.winnerIds||[]);
@@ -121,21 +166,21 @@ export default function CreativeArena({kind,draft,allowed=true,canSubmit=true}){
     <h2 id="arena-title">THE <em>7-MINUTE</em><br/>CHALLENGE.</h2>
     <p>Ten rooms. Ten strangers per room. One surprise topic. Seven minutes to create, 60 seconds to vote. Most hearts wins. Next round starts automatically.</p>
    </div>
-   <div className="arena-clock" aria-live="off"><span>{phaseLabel[match?.phase]||"CONNECTING"}</span>
+   <div className="arena-clock" aria-live="off"><span>{phaseLabel[match?.phase]||(serviceStatus==="offline"?"OFFLINE":"CONNECTING")}</span>
     <strong>{match?.endsAt?clock(seconds):"--:--"}</strong>
     <small>{match?"ROOM "+String(match.number).padStart(2,"0")+" / 10":"REAL-TIME ARENA"}</small>
    </div>
   </div>
   <div className="arena-layout">
    <aside className="arena-sidebar">
-    <div className="arena-sidebar-title">CHOOSE A ROOM <span>{lobby?.rooms.reduce((n,r)=>n+r.count,0)||0} ONLINE</span></div>
+    <div className="arena-sidebar-title">CHOOSE A ROOM <span>{lobby?lobby.rooms.reduce((n,r)=>n+r.count,0)+" ONLINE":"ROOMS UNAVAILABLE"}</span></div>
     <div className="arena-room-grid" aria-label="Available rooms">
       {ROOMS.map(n=>{
        const r=lobby?.rooms.find(x=>x.number===n),current=n===match?.number;
        return <button key={n} type="button" aria-pressed={current} title={"Room "+n+": "+(r?.count||0)+"/10 people, "+(r?.phase||"waiting")}
           disabled={!connected||pending||(!current&&!r?.open)} onClick={()=>switchRoom(n)}
           className={"arena-room-btn"+(current?" is-current":"")}>
-         <span>{String(n).padStart(2,"0")}</span><small>{r?.count||0}/10</small><i aria-hidden="true"/>
+         <span>{String(n).padStart(2,"0")}</span><small>{r?r.count+"/10":"—/10"}</small><i aria-hidden="true"/>
        </button>;
       })}
     </div>
@@ -145,8 +190,8 @@ export default function CreativeArena({kind,draft,allowed=true,canSubmit=true}){
      </div>}
    </aside>
    <div className="arena-main">
-    {!connected?<div className="arena-status">CONNECTING TO LIVE CHALLENGES… <span>●</span></div>:
-     !match?<div className="arena-status">FINDING AN OPEN ROOM…</div>:
+    {!connected?<div className="arena-status" role="status"><strong>{serviceStatus==="offline"?"LIVE ROOMS TEMPORARILY OFFLINE":"CONNECTING TO LIVE ROOMS"}</strong><p>{serviceStatus==="offline"?"The live competition service is not responding yet. Your poems and artwork can still be posted on the weekly wall below. This page automatically retries the room connection.":"Trying to join a room of real people. Online counts appear only after the server confirms them."}</p><button type="button" className="arena-retry" onClick={()=>retryRef.current?.()}>↻ RETRY CONNECTION</button></div>:
+     !match?<div className="arena-status" role="status"><strong>FINDING AN OPEN ROOM</strong><p>Checking available challenge rooms and waiting for the server to place you.</p></div>:
      <>
       <div className="arena-topic"><span>ROUND {String(match.round||0).padStart(2,"0")} / {match.phase==="waiting"?"AWAITING A CHALLENGER":"AUTO-GENERATED PROMPT"}</span>
        <strong>{match.topic||"The next theme is a surprise."}</strong>
@@ -173,7 +218,7 @@ export default function CreativeArena({kind,draft,allowed=true,canSubmit=true}){
       {(match.phase==="voting"||match.phase==="results")&&<div className="arena-entry-grid">
        {entries.length?entries.map(entry=><article key={entry.id} className={"arena-entry"+(winners.has(entry.id)?" is-winner":"")}>
         <div className="arena-entry-meta"><span>{winners.has(entry.id)?"★ ROUND WINNER":"ROOM "+String(match.number).padStart(2,"0")}</span><span>{entry.owner===me?"YOUR ENTRY":entry.author_tag}</span></div>
-        {kind==="poem"?<div className="arena-poem"><h3>{entry.title}</h3><p>{entry.body}</p></div>:
+        {kind==="poem"?<div className="arena-poem-entry"><h3>{entry.title}</h3><p>{entry.body}</p></div>:
           <ArtworkPreview artwork={entry.artwork} title={entry.title}/>}
         <div className="arena-entry-foot"><div><strong>{entry.title}</strong><small>BY {entry.author_tag}</small></div>
          {match.phase==="voting"?<button type="button" onClick={()=>vote(entry.id)} disabled={entry.owner===me||Boolean(myVote)||pending} className="arena-vote-button" aria-label={"Vote for "+entry.title}>♥ {myVote===entry.id?"VOTED":"VOTE"}</button>:
