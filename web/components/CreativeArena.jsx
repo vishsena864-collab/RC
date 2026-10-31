@@ -79,6 +79,7 @@ export default function CreativeArena({kind,draft,allowed=true,canSubmit=true}){
    setMatch(data);
   });
   s.on("arena:lobby",data=>{if(data.kind===kind&&!gone)setLobby(data);});
+  s.on("arena:votes",data=>{if(!gone)setMatch(old=>old?{...old,votes:data.count,yourVote:data.yourVote}:old);});
   s.on("disconnect",()=>{setConnected(false);setMatch(null);setMessage("Reconnecting to your creative room…");});
   s.on("connect_error",()=>setMessage("Live creative rooms are temporarily unavailable. The weekly wall is still open."));
   return ()=>{gone=true;s.disconnect();socketRef.current=null;};
