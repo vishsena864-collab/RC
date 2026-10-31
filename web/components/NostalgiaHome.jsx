@@ -69,7 +69,7 @@ export default function NostalgiaHome({ locale, dict }) {
           a little piece of yourself behind.
         </p>
         <div className="nostalgia-actions">
-          <Link href={`/${locale}/start`} className="nostalgia-cta">
+          <Link href={`/${locale}/start`} className="nostalgia-cta" prefetch={false}>
             <span>{chatLabel}</span>
             <span className="nostalgia-cta-arrow" aria-hidden="true">→</span>
           </Link>
@@ -86,6 +86,7 @@ export default function NostalgiaHome({ locale, dict }) {
             key={feature.id}
             className={`nostalgia-postcard nostalgia-postcard--${feature.id}`}
             href={`/${locale}/${feature.path}`}
+            prefetch={false}
             aria-label={feature.label}
           >
             <span className="nostalgia-tape nostalgia-tape--left" aria-hidden="true" />
