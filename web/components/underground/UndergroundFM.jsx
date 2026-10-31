@@ -22,6 +22,8 @@ export default function UndergroundFM({locale="en"}){
  const [selectedTrack,setSelectedTrack]=useState(null),[page,setPage]=useState(0),[hasMore,setHasMore]=useState(true),[loadingMore,setLoadingMore]=useState(false),[requestText,setRequestText]=useState(""),[discoverTab,setDiscoverTab]=useState("For You"),[moodBurst,setMoodBurst]=useState(null),[pulses,setPulses]=useState({energy:0,love:0,chill:0}),[voteBusy,setVoteBusy]=useState(false),[heroGenre,setHeroGenre]=useState("Electronic"),[requestMatches,setRequestMatches]=useState([]),[requestSearching,setRequestSearching]=useState(false),[requestSent,setRequestSent]=useState(null),[tab,setTab]=useState("show"),[showGuide,setShowGuide]=useState(false),[showTune,setShowTune]=useState(false),[cooldownKey,setCooldownKey]=useState(0),[reconnecting,setReconnecting]=useState(false),[cueSheet,setCueSheet]=useState(null),[mapping,setMapping]=useState(false),[inviteRoom,setInviteRoom]=useState(null);
  const socket=useRef(null),audio=useRef(null),streamTrackId=useRef(null),joining=useRef(false),wantsRoom=useRef(false),lastVoteAt=useRef(0),stageCv=useRef(null),overlayCv=useRef(null),stage=useRef(null),overlay=useRef(null),rail=useRef(null),lastRoom=useRef(null),autoPlay=useRef(false),listening=useRef(false),deckA=useRef(null),deckB=useRef(null),sources=useRef(new Map()),fadeJob=useRef(null),volRef=useRef(.8),earlyNext=useRef(null),roomRef=useRef(null),shellRef=useRef(null),photoRef=useRef(null),specCv=useRef(null),spectrum=useRef(null),actx=useRef(null),analyser=useRef(null);
  const motionOff=motionPref===null?reduced:motionPref;
+ const motionOffRef=useRef(motionOff);
+ motionOffRef.current=motionOff;
  const fx=room?.lights||LIGHT_DEFAULTS;
  roomRef.current=room;
  const autoShow=fx.auto!==false;
@@ -82,16 +84,16 @@ export default function UndergroundFM({locale="en"}){
   place();addEventListener("resize",place);
   if(analyser.current){stage.current?.audio(analyser.current);spectrum.current?.audio(analyser.current);}
   const watchdog=setInterval(()=>{
-   if(!document.hidden&&!lightsOffRef.current&&performance.now()-lastRigFrame.current>5000)setRigFailed(true);
+   if(!document.hidden&&!lightsOffRef.current&&!motionOffRef.current&&performance.now()-lastRigFrame.current>5000)setRigFailed(true);
   },2500);
   return ()=>{active=false;clearInterval(watchdog);removeEventListener("resize",place);stage.current?.destroy();overlay.current?.destroy();spectrum.current?.destroy();stage.current=overlay.current=spectrum.current=null;};
  },[rigNonce]);
- useEffect(()=>{stage.current?.setReduced(motionOff);overlay.current?.setReduced(motionOff);spectrum.current?.setReduced(motionOff);if(motionOff)shellRef.current?.style.setProperty("--bass","0");},[motionOff]);
+ useEffect(()=>{stage.current?.setReduced(motionOff);overlay.current?.setReduced(motionOff);spectrum.current?.setReduced(motionOff);if(motionOff)shellRef.current?.style.setProperty("--bass","0");},[motionOff,rigNonce]);
  useEffect(()=>{spectrum.current?.playing(playing);},[playing]);
- useEffect(()=>{stage.current?.set({theme,fx:fx.fx,power:fx.intensity,bpm:cueSheet?.id===current?.id&&cueSheet?cueSheet.bpm:fx.beatBpm,heat:room?heatScore:50,playing,auto:autoShow,off:lightsOffRef.current});},[theme.id,fx.fx,fx.intensity,fx.beatBpm,heatScore,playing,room?.room,autoShow,cueSheet,current?.id]);
+ useEffect(()=>{stage.current?.set({theme,fx:fx.fx,power:fx.intensity,bpm:cueSheet?.id===current?.id&&cueSheet?cueSheet.bpm:fx.beatBpm,heat:room?heatScore:50,playing,auto:autoShow,off:lightsOffRef.current});},[theme.id,fx.fx,fx.intensity,fx.beatBpm,heatScore,playing,room?.room,autoShow,cueSheet,current?.id,rigNonce]);
  // song position for the auto show: this device's audio when it is playing the song, else the room clock
  const songClock=()=>{const a=audio.current,r=roomRef.current;if(a&&!a.paused&&streamTrackId.current&&a.currentTime>0)return a.currentTime;if(r?.track&&r.startedAt)return (Date.now()-r.startedAt)/1000;return null;};
- useEffect(()=>{stage.current?.cues(cueSheet&&cueSheet.id===current?.id?cueSheet:null,songClock);},[cueSheet,current?.id]);
+ useEffect(()=>{stage.current?.cues(cueSheet&&cueSheet.id===current?.id?cueSheet:null,songClock);},[cueSheet,current?.id,rigNonce]);
  // map the song on air once: the controller first, other desktops a moment later, phones last; the first sheet the
  // server accepts is sent to everyone, so most listeners never download anything extra
  useEffect(()=>{
@@ -110,7 +112,7 @@ export default function UndergroundFM({locale="en"}){
   },wait);
   return ()=>{clearTimeout(timer);ctrl.abort();setMapping(false);};
  },[current?.id,room?.cues,cueSheet?.id,isDj]);
- useEffect(()=>{if(mAt)stage.current?.moment(mKind,mAt);},[mAt,mKind]);
+ useEffect(()=>{if(mAt)stage.current?.moment(mKind,mAt);},[mAt,mKind,rigNonce]);
  useEffect(()=>{
   const h=room?heatScore:50;
   overlay.current?.ambient({energy:clamp((h-70)/30,0,1)*.5,chill:clamp((32-h)/32,0,1)*.65});
