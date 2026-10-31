@@ -60,3 +60,17 @@ The browser renders a high-resolution **1600 × 1100** branded PNG card from the
 - Simple API probe: `/api/walls-health`.
 - If adding another custom domain, explicitly update the Edge Function's `origins` allowlist and redeploy it.
 - These walls **do not depend on Railway / the Socket.IO backend**, unlike Random Chat and Underground FM.
+
+## Live creative battles (October 2026)
+
+Both walls now also contain **live timed competition rooms**, without removing the existing Supabase weekly publishing, signed graffiti certificate, or archive.
+
+- On opening either wall, a Socket.IO client connects to the Railway realtime service and joins an open creative room. Visitors can switch between **ten numbered rooms per wall** (up to **ten participants per room**). Online counters are live Socket.IO memberships.
+- A room waits until **two people** have joined. Then the server selects a surprise topic, opens **seven minutes to create**, and freezes entries at the deadline. One original artwork or poem can be submitted per participant using the page's regular editor / full graffiti canvas.
+- A **60-second voting round** immediately follows. All entries are displayed to the room; each participant gets **one heart for someone else's entry**, and cannot like their own. Highest vote count wins (ties share the win). An uncontested or unvoted round has no automatic winner.
+- Results stay visible for **15 seconds**, then a fresh prompt and round start automatically if two or more people remain. This entire cycle is controlled by server time.
+- Realtime state machine: server/src/creative-arenas.js. UI: web/components/CreativeArena.jsx and creative-arena.css. The paint studio and poem editor still support separate weekly publishing, including the retention system and signed graffiti card.
+
+**Operational limits:** Arena content, votes and scores are **ephemeral memory only**; a Railway restart clears ongoing rounds. Each socket can vote once per round, but anonymous visitors can reconnect in another tab or change networks, so **strong vote anti-fraud is not guaranteed**. For high-stakes prizes or sustained usage, add anonymous server-issued session tokens, shared Redis state and abuse detection. Live-battle winners are not automatically added to the permanent weekly Hall of Fame.
+
+**Routes:** /[locale]/poem-wall and /[locale]/graffiti-wall. Both use the same realtime NEXT_PUBLIC_SERVER_URL and NEXT_PUBLIC_SOCKET_PATH configuration as Underground FM.
