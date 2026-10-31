@@ -130,7 +130,8 @@ export default function UndergroundFM({locale="en"}){
   // Keep the room, the song and the audio on screen, then rejoin the same room with a snapshot of what we were hearing.
   s.on("connect",()=>{
    setConnected(true);setNotice("");
-   if(!wantsRoom.current)return;
+   // Enter automatically on arrival. The old Enter button is only kept as a reconnect fallback.
+   if(!wantsRoom.current){join(s);return;}
    const last=lastRoom.current;
    s.emit("fm:join",{key:tabKey(),...(last?{room:last.room,seed:{track:last.track,startedAt:last.startedAt,lights:last.lights}}:{})},ack=>{
     setReconnecting(false);
@@ -251,12 +252,14 @@ export default function UndergroundFM({locale="en"}){
   const pick=pool[Math.floor(Math.random()*pool.length)];
   if(pick)socket.current?.emit("fm:autostart",pick);
  };
- const join=()=>{
-  if(!connected||joining.current)return;
+ const join=(maybeSocket)=>{
+  const activeSocket=maybeSocket?.connected&&typeof maybeSocket.emit==="function"?maybeSocket:socket.current;
+  if(!activeSocket?.connected||joining.current)return;
   joining.current=true;wantsRoom.current=true;setMessages([]);setReactions([]);
-  const code=lastRoom.current?.room||inviteRoom;
+  const requestedRoom=typeof window!=="undefined"?new URLSearchParams(window.location.search).get("room"):null;
+  const code=lastRoom.current?.room||(requestedRoom&&ROOMS[requestedRoom]?requestedRoom:null)||inviteRoom;
   autoPlay.current=true;
-  socket.current?.emit("fm:join",{key:tabKey(),...(code?{room:code}:{})},ack=>{joining.current=false;if(ack?.ok){setMe({handle:ack.handle,hue:ack.hue});if(ack.silent)startMusic();}else{wantsRoom.current=false;setNotice("All rooms are full. Try again shortly.");}});
+  activeSocket.emit("fm:join",{key:tabKey(),...(code?{room:code}:{})},ack=>{joining.current=false;if(ack?.ok){setMe({handle:ack.handle,hue:ack.hue});if(ack.silent)startMusic();}else{wantsRoom.current=false;setNotice("All rooms are full. Try again shortly.");}});
   setTimeout(()=>{joining.current=false;},8000);
  };
  const leave=()=>{
@@ -452,7 +455,7 @@ export default function UndergroundFM({locale="en"}){
     <div className={"fx-ctrl-card fx-ctrl-card-"+view}>
      {view==="controller"&&<><span className="fx-ctrl-kicker"><Icon name="crown"/>YOU ARE THE CONTROLLER</span><p>Pick the music, set the energy and shape the night for everyone in the room.</p><small>{turnLeft!==null?"AUX ROTATES IN "+clockFmt(turnLeft):"THE AUX CHANGES HANDS"}</small><div className="fx-card-btns"><button type="button" className="fx-invite" onClick={invite}><Icon name="send"/>INVITE</button><button type="button" className="fx-leave" onClick={leave}>LEAVE ROOM</button></div></>}
      {view==="listener"&&<><span className="fx-ctrl-kicker"><Icon name="crown"/>CURRENT CONTROLLER</span><div className="fx-ctrl-who"><Avatar hue={room.djHue} label={room.djHandle} size="lg"/><strong>{room.djHold?"Reconnecting…":room.djHandle||"a stranger"}</strong></div><p>{room.djHold?"The controller is coming back. The music keeps playing.":"Controlling the vibe right now."}</p><small>{turnLeft!==null?"ROTATES IN "+clockFmt(turnLeft):"THE AUX CHANGES HANDS"}</small><div className="fx-card-btns"><button type="button" className="fx-invite" onClick={invite}><Icon name="send"/>INVITE</button><button type="button" className="fx-leave" onClick={leave}>LEAVE ROOM</button></div></>}
-     {view==="discover"&&<><span className="fx-ctrl-kicker"><Icon name="headphones"/>PICK A TRACK. FIND YOUR PEOPLE.</span><p>{inviteRoom?"You were invited to "+ROOMS[inviteRoom][0]+". Join the same room, same song, same lights.":"Enter a live room to meet strangers, take the aux and light up the night."}</p><button type="button" className="fx-join" onClick={join} disabled={!connected}>{connected?(inviteRoom?"JOIN "+ROOMS[inviteRoom][0].toUpperCase()+" ↗":"ENTER THE ROOM ↗"):"ROOMS OFFLINE"}</button></>}
+     {view==="discover"&&<><span className="fx-ctrl-kicker"><Icon name="headphones"/>PICK A TRACK. FIND YOUR PEOPLE.</span><p>{inviteRoom?"You were invited to "+ROOMS[inviteRoom][0]+". Join the same room, same song, same lights.":"You join the live music room automatically. Find a stranger, take the aux, and light up the night."}</p>{wantsRoom.current?<span className="fx-join" role="status">TUNING IN TO YOUR ROOM…</span>:<button type="button" className="fx-join" onClick={()=>join()} disabled={!connected}>{connected?"↻ RETRY ROOM CONNECTION":"CONNECTING TO THE ROOM…"}</button>}</>}
     </div>
    </section>
 
