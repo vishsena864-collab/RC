@@ -1,4 +1,5 @@
 "use client";
+import "@/app/movie-rush.css";
 
 import { useEffect, useState } from "react";
 
