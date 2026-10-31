@@ -14,9 +14,9 @@ export function SiteHeader({ locale, dict }) {
         <nav aria-label="Main" className="nav">
           <Link className="studio-nav-home" href={`/${locale}`}>{dict.nav.home}</Link>
           <Link href={`/${locale}/safety`}>{dict.nav.safety}</Link>
-          <Link href={`/${locale}/underground`} className="nav-side-feature">Music room</Link>
+          <Link href={`/${locale}/underground`} className="nav-side-feature" prefetch={false}>Music room</Link>
           <LanguageSwitcher locale={locale} label={dict.nav.language} />
-          <Link href={`/${locale}/start`} className="btn btn-small">{dict.nav.start}<span aria-hidden="true">↗</span></Link>
+          <Link href={`/${locale}/start`} className="btn btn-small" prefetch={false}>{dict.nav.start}<span aria-hidden="true">↗</span></Link>
         </nav>
       </div>
     </header>
