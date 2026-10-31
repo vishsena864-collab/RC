@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { categories } from "@/lib/categories";
 import { fmt } from "@/lib/format";
 import { localeNames, locales } from "@/lib/i18n";
@@ -90,7 +91,7 @@ export default function NostalgiaLower({ locale, dict }) {
               </ul>
             </div>
             <div className="nlg-atlas-image" aria-hidden="true">
-              <img src="/art/globe.webp" alt="" width="1400" height="788" loading="lazy" decoding="async" />
+              <Image src="/art/globe.webp" alt="" width={1400} height={788} sizes="(max-width: 800px) 100vw, 46vw" loading="lazy" decoding="async" />
               <span className="nlg-atlas-stamp">ANYWHERE / ANYTIME <b>✳</b></span>
               <span className="nlg-atlas-scribble">somewhere,<br />a stranger is waiting.</span>
             </div>
