@@ -1,0 +1,40 @@
+name: Weekly Public SEO Health
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 3 * * 1" # Mondays at 03:23 UTC (08:53 Sri Lanka time)
+
+permissions:
+  contents: read
+
+jobs:
+  audit-public-seo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11bd71901bbe5f1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "24"
+      - name: Read-only checks on own public website
+        run: node web/scripts/seo-public-monitor.mjs
+        env:
+          CHATSPARK_SEO_BASE: https://chatsparkrc.com
+          CHATSPARK_SEO_OUTPUT: seo-health-reports
+      - name: Write results to run summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -f seo-health-reports/seo-public-latest.md ]; then
+            cat seo-health-reports/seo-public-latest.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "SEO monitor failed before it could write a report." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Archive timestamped results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: seo-public-${{ github.run_id }}
+          path: seo-health-reports/
+          if-no-files-found: warn
+          retention-days: 90
