@@ -67,6 +67,7 @@ export function createCreativeArenas(io, options = {}) {
   const createMs = options.createMs ?? ARENA_CREATE_MS;
   const voteMs = options.voteMs ?? ARENA_VOTE_MS;
   const resultsMs = options.resultsMs ?? ARENA_RESULTS_MS;
+  const joinCloseMs = Math.min(10_000, Math.max(150, Math.floor(createMs / 8)));
   const rooms = Object.fromEntries(KINDS.map(kind =>
     [kind, Array.from({length:ARENA_ROOMS}, (_, i) => newRoom(kind, i + 1))]));
   const memberships = new Map();
@@ -76,7 +77,7 @@ export function createCreativeArenas(io, options = {}) {
       number:r.number, count:r.members.size, capacity:ARENA_CAPACITY,
       phase:r.phase, round:r.round, endsAt:r.endsAt,
       open:r.members.size < ARENA_CAPACITY && (r.phase === "waiting" ||
-        (r.phase === "creating" && r.endsAt - Date.now() > 10_000))
+        (r.phase === "creating" && r.endsAt - Date.now() > joinCloseMs))
     }))};
   }
   function publishLobby(kind) { io.to(lobbyKey(kind)).emit("arena:lobby", lobby(kind)); }
@@ -147,13 +148,13 @@ export function createCreativeArenas(io, options = {}) {
         return ack({ok:false,error:"invalid_room"});
       const target=desired ? rooms[kind][desired-1]
         : [...rooms[kind]].filter(r=>r.members.size<ARENA_CAPACITY &&
-           (r.phase==="waiting"||(r.phase==="creating" && r.endsAt-Date.now()>10_000)))
+           (r.phase==="waiting"||(r.phase==="creating" && r.endsAt-Date.now()>joinCloseMs)))
           .sort((a,b)=>b.members.size-a.members.size || a.number-b.number)[0];
       if(!target)return ack({ok:false,error:"rooms_full"});
       const previous=getMembership(socket);
       if(previous===target){socket.emit("arena:state",state(target,socket));return ack({ok:true,number:target.number});}
       if(target.members.size>=ARENA_CAPACITY ||
-         (target.phase!=="waiting" && (target.phase!=="creating"||target.endsAt-Date.now()<=10_000)))
+         (target.phase!=="waiting" && (target.phase!=="creating"||target.endsAt-Date.now()<=joinCloseMs)))
         return ack({ok:false,error:"room_closed"});
       if(previous)leave(socket);
       const name="STRANGER "+String(randomInt(100,1000));
