@@ -21,7 +21,7 @@ Music streams directly from Audius to each visitor's browser. ChatSpark doesn't 
 
 ## Required production configuration
 1. Deploy the backend as a **persistent Node.js service** (Railway or equivalent) using the repository's `server/` directory and `npm ci && npm start`. Vercel Functions cannot host persistent Socket.IO channels.
-2. Set backend `CORS_ORIGINS=https://chatspark-rc.vercel.app` and a stable, strong `PRIVACY_HMAC_SECRET`. Consider `TRUST_PROXY=true` only when your reverse proxy overwrites forwarded headers.
+2. Set backend `CORS_ORIGINS=https://chatsparkrc.com,https://www.chatsparkrc.com,https://chatspark-rc.vercel.app,https://randomchat-indol.vercel.app` and a stable, strong `PRIVACY_HMAC_SECRET`. Consider `TRUST_PROXY=true` only when your reverse proxy overwrites forwarded headers.
 3. Set Vercel public variable `NEXT_PUBLIC_SERVER_URL=https://<your-backend-domain>`, then redeploy the Next.js frontend.
 4. Optional `AUDIUS_API_KEY` on Vercel, server-side, raises API limits; discovery may work keyless under current Audius read endpoints.
 5. Test with two browsers: join same room, only DJ can play, listeners can queue, leave deletes rooms when empty. Browser playback requires a user gesture on mobile.
