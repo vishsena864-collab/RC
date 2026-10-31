@@ -4,6 +4,7 @@ import "../social-motion.css";
 import "../nostalgia-home.css";
 import "../nostalgia-lower.css";
 import "../movie-rush.css";
+import "../experience-header.css";
 import { notFound } from "next/navigation";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { getDict, isLocale, locales } from "@/lib/i18n";
