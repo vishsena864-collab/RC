@@ -170,6 +170,7 @@ export function createCreativeArenas(io, options = {}) {
       if(!r)return ack({ok:false,error:"not_in_room"});
       if(r.phase!=="creating" || r.endsAt<=Date.now())return ack({ok:false,error:"round_closed"});
       if(r.entries.has(socket.id))return ack({ok:false,error:"already_submitted"});
+      if(input?.ageConfirmed!==true)return ack({ok:false,error:"adult_consent_required"});
       const title=clean(input?.title,80),tag=clean(input?.author_tag,24)||r.members.get(socket.id)?.name||"STRANGER";
       if(title.length<3)return ack({ok:false,error:"title_required"});
       const entry={id:randomUUID(),owner:socket.id,title,author_tag:tag};
