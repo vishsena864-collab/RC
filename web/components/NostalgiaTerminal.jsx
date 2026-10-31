@@ -2,21 +2,12 @@
 
 import { useEffect, useState } from "react";
 
-const PHRASES = [
-  "Let's talk to\na stranger...",
-  "Somewhere out there,\nsomeone gets you.",
-  "Now tuning in:\nUnderground FM.",
-  "Leave a thought.\nMake a mark.",
-  "One hello can\nchange the story.",
-  "No followers.\nJust people."
-];
-
-export default function NostalgiaTerminal() {
+export default function NostalgiaTerminal({ phrases }) {
   const [line, setLine] = useState("");
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     if (reduced.matches) {
-      setLine(PHRASES[0]);
+      setLine(phrases[0]);
       return;
     }
     let timer;
@@ -30,7 +21,7 @@ export default function NostalgiaTerminal() {
         timer = window.setTimeout(run, 300);
         return;
       }
-      const phrase = PHRASES[index];
+      const phrase = phrases[index];
       character += direction;
       setLine(phrase.slice(0, character));
 
@@ -39,7 +30,7 @@ export default function NostalgiaTerminal() {
         timer = window.setTimeout(run, 2700);
       } else if (direction === -1 && character <= 0) {
         direction = 1;
-        index = (index + 1) % PHRASES.length;
+        index = (index + 1) % phrases.length;
         timer = window.setTimeout(run, 550);
       } else {
         timer = window.setTimeout(run, direction === 1 ? 75 : 28);
@@ -48,7 +39,7 @@ export default function NostalgiaTerminal() {
 
     timer = window.setTimeout(run, 750);
     return () => { active = false; window.clearTimeout(timer); };
-  }, []);
+  }, [phrases]);
 
   return (
     <div className="nostalgia-terminal" aria-hidden="true">
