@@ -437,7 +437,8 @@ export default function UndergroundFM({locale="en"}){
    <small className="fx-side-foot">RANDOM PEOPLE.<br/>REAL MUSIC.<br/>BIGGER NIGHTS.</small>
   </aside>
 
-  <div className="fx-main">
+  <a className="fx-skip" href="#underground-main">Skip to main content</a>
+  <main className="fx-main" id="underground-main">
    <header className="fx-topbar">
     <Link href={"/"+locale} className="fx-brand fx-brand-mobile">ChatSpark<span aria-hidden="true">⚡</span></Link>
     <nav className="fx-pills" aria-label="Site sections"><Link href={"/"+locale}>EXPLORE</Link><Link className="is-active" href={"/"+locale+"/underground"} aria-current="page">UNDERGROUND FM</Link><Link href={"/"+locale+"/poem-wall"}>COMMUNITY</Link></nav>
@@ -577,7 +578,7 @@ export default function UndergroundFM({locale="en"}){
     {view==="discover"&&<div className="fx-row fx-row-howto" data-pane="show">{[["01","Enter a room","Strangers, one shared playlist, no profiles."],["02","Take the aux","Everyone gets a turn as controller — pick tracks and set the lights."],["03","Shape the vibe","Fire, Vibe or Chill. The whole room feels it, live."]].map(([n,t,d])=><div className="fx-panel fx-howto" key={n}><b>{n}</b><h2>{t}</h2><p>{d}</p></div>)}</div>}
    </div>
    <footer className="fx-legal"><span>18+ only</span><Link href="/en/privacy">Privacy</Link><Link href="/en/cookies">Cookies</Link><Link href="/en/terms">Terms</Link><Link href={"/"+locale+"/safety"}>Safety</Link></footer>
-  </div>
+  </main>
 
   {view==="controller"&&selectedTrack&&<div className={"fx-fab"+(current&&tab!=="show"?" has-mini":"")} role="region" aria-label="Selected track">
    <button type="button" className="fx-fab-play" onClick={()=>broadcast(selectedTrack)} aria-label={"Broadcast "+selectedTrack.title+" to the room now"}>
