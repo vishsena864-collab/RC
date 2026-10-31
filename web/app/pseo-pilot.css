@@ -1,0 +1,54 @@
+/* Intentionally isolated Phase 5 noindex pilot. No site-wide overrides. */
+.pilot-guide {
+  --pilot-bg: #101812;
+  --pilot-surface: #1c2a20;
+  --pilot-border: #4c644d;
+  --pilot-accent: #ddfa88;
+  --pilot-muted: #d0ddca;
+  color: #f5f5e9;
+  background: radial-gradient(circle at 95% 0%, #33583a 0, transparent 32%), var(--pilot-bg);
+  min-height: 100vh;
+  padding: clamp(26px,4.5vw,64px) 0 100px;
+}
+.pilot-guide * { box-sizing: border-box; }
+.pilot-guide a { color: var(--pilot-accent); }
+.pilot-guide a:hover { text-decoration: underline; }
+.pilot-guide a:focus-visible {outline:3px solid #f9a66f;outline-offset:4px;}
+.pilot-container { width: min(1060px, calc(100% - 38px)); margin: auto; }
+.pilot-breadcrumb { display:flex; flex-wrap:wrap; gap:12px; align-items:center; color:#d8ead0; font:700 13px/1.5 "Segoe UI",Arial,sans-serif; margin-bottom:25px; }
+.pilot-draft { padding:14px 19px; margin:0 0 45px; color:#ffeac3; background:#493222; border:1px solid #f5bb77; border-radius:8px; font:800 12px/1.5 ui-monospace,monospace; letter-spacing:.035em; }
+.pilot-hero { padding-bottom:42px; border-bottom:1px solid var(--pilot-border); }
+.pilot-label { font:800 12px/1.5 ui-monospace,monospace; color:#d8ff9a; letter-spacing:.12em; }
+.pilot-hero h1 { max-width:840px; font:900 clamp(40px,7.3vw,86px)/1.04 "Arial Black",Impact,Arial,sans-serif; letter-spacing:-.065em; color:#f7ffe8; margin:18px 0 30px; }
+.pilot-dek { max-width:800px; font:600 clamp(20px,2.8vw,29px)/1.34 "Segoe UI",Arial,sans-serif; color:var(--pilot-accent)!important; }
+.pilot-hero>p:not(.pilot-dek) { font:400 clamp(16px,1.6vw,19px)/1.8 "Segoe UI",Arial,sans-serif;max-width:800px;color:#e5eee3; }
+.pilot-guide section:not(.pilot-hero) { padding-top:34px; }
+.pilot-guide h2 { font:850 clamp(25px,3.5vw,40px)/1.12 "Segoe UI",Arial,sans-serif; letter-spacing:-.045em; color:#f5f8eb; margin:0 0 24px; }
+.pilot-tips { background:var(--pilot-surface); border:1px solid var(--pilot-border); padding:25px 32px 25px 47px; border-radius:14px; margin:0; }
+.pilot-tips li { margin:12px 0; color:#e4eee0;line-height:1.7; font-size:16px; }
+.pilot-questions { display:grid;grid-template-columns:repeat(2,minmax(0,1fr)); gap:17px; padding:0; list-style:none; }
+.pilot-questions>li { margin:0;padding:26px; background:#1d2a21;border:1px solid #546951;border-radius:12px;min-width:0; }
+.pilot-number { color:#ddfa88;display:inline-block;margin-bottom:17px;font:900 12px ui-monospace,monospace; }
+.pilot-questions h3 { color:#f4ffe3;font:850 clamp(20px,2vw,26px)/1.25 "Segoe UI",Arial,sans-serif; margin:0 0 18px; }
+.pilot-questions p { color:#d3e1ce; line-height:1.75;font-size:15px;margin:10px 0; }
+.pilot-questions p strong { color:#e6fda7; }
+.pilot-comparison { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px; }
+.pilot-pair { background:#1c2a20;border:1px solid #4d6d53;border-radius:10px;padding:20px; }
+.pilot-pair p { color:#f1f1e9;font-size:15px;line-height:1.6; margin:0 0 22px; }
+.pilot-pair p:last-child {margin-bottom:0;}
+.pilot-pair span { display:block;color:#daf9a5;font:800 11px/1.5 ui-monospace,monospace;letter-spacing:.1em;margin-bottom:8px; }
+.pilot-outro { padding:30px 35px 35px!important; margin-top:50px; background:#ddfa88; color:#1a281c; border-radius:14px; }
+.pilot-outro h2 {color:#1a281c; }
+.pilot-outro p {color:#223a23;max-width:760px;line-height:1.7;font-size:16px;}
+.pilot-cta,.pilot-secondary {display:inline-block;margin:20px 12px 0 0;padding:13px 19px;border-radius:8px;font-weight:800;text-decoration:none;}
+.pilot-guide .pilot-cta {background:#1b311e;color:#f5ffe9;}
+.pilot-guide .pilot-secondary {background:transparent;color:#1b311e;border:2px solid #355237;}
+.pilot-sources ul {padding-left:22px;line-height:2;}
+.pilot-sources p {color:#d8e4d3;font-size:13px;line-height:1.6;}
+@media(max-width:720px){
+  .pilot-questions,.pilot-comparison {grid-template-columns:1fr;}
+  .pilot-questions>li {padding:20px;}
+  .pilot-outro {padding:24px!important;}
+  .pilot-hero h1 {font-size:clamp(37px,9vw,60px);}
+}
+@media(prefers-reduced-motion:reduce){.pilot-guide * {scroll-behavior:auto;}}
