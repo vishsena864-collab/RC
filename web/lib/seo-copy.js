@@ -2,8 +2,8 @@
 // This deliberately does not synthesize translations or create extra indexable URLs.
 export const EN_TOPIC_SEO = {
   general: {
-    title: "Free Random Chat With Strangers | ChatSpark",
-    description: "Start a free, anonymous text chat with a stranger. No account or camera needed. Pick a topic and skip anytime. ChatSpark is for adults 18+.",
+    title: "Just Chatting: Talk About Anything | ChatSpark",
+    description: "Choose the general chat topic and talk about anything with a random stranger. Text only, no signup or camera. Skip anytime. For adults 18+.",
     heading: "Ways to start a random conversation",
     introduction: "Not sure what to say first? These are conversation starters, not automated messages. You choose what to send.",
     prompts: ["What's one small thing that made your day better?", "If you could restart a hobby tomorrow, what would it be?", "What's a harmless opinion you will defend forever?"]
