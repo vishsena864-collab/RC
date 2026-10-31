@@ -417,7 +417,7 @@ export default function UndergroundFM({locale="en"}){
    {tap>0&&<i className="fx-burst" key={"b"+tap} aria-hidden="true">{[0,1,2,3,4,5,6,7].map(n=><em key={n} style={{"--a":n*45+"deg"}}/>)}</i>}
    <b key={"c"+(room?.reactionCounts?.[kind]||0)}>{room?.reactionCounts?.[kind]||0}</b></button>;})}</div>;
 
- return <div ref={shellRef} className={"fx-shell fx-"+view+" "+oswald.variable} style={vars} data-view={view} data-tab={tab} data-motion={motionOff?"reduced":"full"} data-lights={lightsOff?"off":"on"} data-playing={playing} data-heat={hottest} data-fab={view==="controller"&&Boolean(selectedTrack)}>
+ return <div lang="en" ref={shellRef} className={"fx-shell fx-"+view+" "+oswald.variable} style={vars} data-view={view} data-tab={tab} data-motion={motionOff?"reduced":"full"} data-lights={lightsOff?"off":"on"} data-playing={playing} data-heat={hottest} data-fab={view==="controller"&&Boolean(selectedTrack)}>
   <div ref={photoRef} className="fx-photo" aria-hidden="true"/>
   <canvas ref={stageCv} className="fx-stage" aria-hidden="true"/>
   <div className="fx-scrim" aria-hidden="true"/>
