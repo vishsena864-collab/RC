@@ -4,6 +4,15 @@ body:has(.nostalgia-home) .site-header{background:#151511;color:#f5e9d5;border-c
 body:has(.nostalgia-home) .site-header .brand{color:#e1f878!important;font-family:"Trebuchet MS",sans-serif;font-style:italic;font-size:1.5rem}
 body:has(.nostalgia-home) .site-header .studio-brand-icon{display:none}
 body:has(.nostalgia-home) .site-header .nav>a:not(.btn){color:#f4e6d3}
+/* Accessible navigation on the dark CRT homepage (WCAG contrast). */
+body:has(.nostalgia-home) .site-header .lang summary{color:#f6f0de!important;background:#292920;border:1px solid #6a604d;border-radius:6px;padding:10px 12px;font-weight:800;}
+body:has(.nostalgia-home) .site-header .lang summary:hover,
+body:has(.nostalgia-home) .site-header .lang summary:focus-visible{color:#e1f878!important;border-color:#e1f878;}
+body:has(.nostalgia-home) .site-header .lang ul{background:#22251d;border:1px solid #625a45;}
+body:has(.nostalgia-home) .site-header .lang li a{color:#f8f3e4;}
+body:has(.nostalgia-home) .site-header .lang li a:hover,
+body:has(.nostalgia-home) .site-header .lang li a[aria-current="true"]{background:#dfff82;color:#161c12;}
+
 body:has(.nostalgia-home) .site-header .nav>.btn{background:#f5e9d7!important;color:#191a15!important;border-radius:99px}
 .nostalgia-home{background:#181612;color:#f4eadb}
 .nostalgia-hero{position:relative;isolation:isolate;min-height:770px;background:#120f0d;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:60px clamp(20px,5vw,82px) 30px}
