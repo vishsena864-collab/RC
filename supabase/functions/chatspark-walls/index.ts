@@ -1,6 +1,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2.95.0";
 
 const origins = new Set([
+  "https://chatsparkrc.com",
+  "https://www.chatsparkrc.com",
   "https://chatspark-rc.vercel.app",
   "https://randomchat-indol.vercel.app",
   "http://localhost:3000"
@@ -57,7 +59,7 @@ const artOk = (art) => {
 
 Deno.serve(async(req)=>{
   const origin=req.headers.get("origin")||"";
-  const responseOrigin=origins.has(origin)?origin:"https://chatspark-rc.vercel.app";
+  const responseOrigin=origins.has(origin)?origin:"https://chatsparkrc.com";
   if(req.method==="OPTIONS")return new Response(null,{status:204,headers:{
     "access-control-allow-origin":responseOrigin,
     "access-control-allow-methods":"GET, POST, OPTIONS",
