@@ -37,7 +37,7 @@ function ArtworkPreview({artwork,title}){
 // weekly gallery or its signed-card feature. Final entries are only shared with this room.
 export default function CreativeArena({kind,draft,allowed=true,canSubmit=true}){
  const [connected,setConnected]=useState(false),[match,setMatch]=useState(null),[lobby,setLobby]=useState(null);
- const [message,setMessage]=useState(""),[pending,setPending]=useState(false),[now,setNow]=useState(Date.now());
+ const [message,setMessage]=useState(""),[pending,setPending]=useState(false),[now,setNow]=useState(Date.now()),[consent,setConsent]=useState(false);
  const socketRef=useRef(null),desiredRoom=useRef(null),serverOffset=useRef(0),lastRound=useRef(0);
  const entries=match?.entries||[];
  const seconds=match?.endsAt?Math.max(0,Math.ceil((match.endsAt-(now+serverOffset.current))/1000)):0;
@@ -47,7 +47,7 @@ export default function CreativeArena({kind,draft,allowed=true,canSubmit=true}){
  const myVote=match?.yourVote;
  const inRound=match?.phase==="creating";
  const prepared=kind==="poem"?(draft?.body||"").trim().length>=8 : (draft?.artwork?.ops?.length||0)>0;
- const ready=Boolean(connected&&inRound&&!mySubmission&&allowed&&canSubmit&&prepared&&(draft?.title||"").trim().length>=3);
+ const ready=Boolean(connected&&inRound&&!mySubmission&&(allowed||consent)&&canSubmit&&prepared&&(draft?.title||"").trim().length>=3);
 
  useEffect(()=>{
   const t=setInterval(()=>setNow(Date.now()),350);
@@ -156,6 +156,7 @@ export default function CreativeArena({kind,draft,allowed=true,canSubmit=true}){
        <div className="arena-progress"><span style={{width:Math.min(100,Math.max(0,(1-seconds/(7*60))*100))+"%"}}/></div>
        <div className="arena-create-info"><strong>{match.submissions} / {members.length} ENTRIES LOCKED</strong><span>7 MIN CREATE · 1 MIN VOTE</span></div>
        <p>Use the {kind==="poem"?"poem editor":"paint studio"} on this page. Make your entry match the surprise topic, tick the original-work agreement, then lock it here before the timer ends.</p>
+       <label className="arena-consent"><input type="checkbox" checked={allowed||consent} onChange={e=>setConsent(e.target.checked)} disabled={allowed}/><span>I am 18+ and this is my original creation. I agree to show it to room members for voting.</span></label>
        <div className="arena-create-buttons">
         <a href={kind==="poem"?"#write":"#graffiti-studio"} className="arena-outline">{kind==="poem"?"↗ OPEN POEM EDITOR":"↗ OPEN PAINT STUDIO"}</a>
         <button type="button" onClick={submit} disabled={!ready||pending} className="arena-submit">{mySubmission?"✓ ENTRY LOCKED":pending?"SUBMITTING…":"SUBMIT TO THIS ROUND ↗"}</button>
