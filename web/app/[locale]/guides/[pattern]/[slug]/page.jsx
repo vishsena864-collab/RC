@@ -116,7 +116,7 @@ export default async function PilotGuidePage({ params }) {
       "@type": "BreadcrumbList",
       itemListElement: [
         { "@type": "ListItem", position: 1, name: "ChatSpark", item: SITE_URL + "/en" },
-        { "@type": "ListItem", position: 2, name: guide.pattern==="chat-safety"?"Chat safety":"Conversation starters", item: url }
+        { "@type": "ListItem", position: 2, name: guide.h1, item: url }
       ]
     }
   ];
@@ -126,7 +126,7 @@ export default async function PilotGuidePage({ params }) {
       <div className="pilot-container">
         <nav className="pilot-breadcrumb" aria-label="Breadcrumb">
           <Link href="/en">ChatSpark</Link><span aria-hidden="true">/</span>
-          <span>{guide.pattern==="chat-safety"?"Chat safety":"Conversation starters"}</span>
+          <span aria-current="page">{guide.h1}</span>
         </nav>
         <p className="pilot-draft" role="status">DRAFT / CONTENT TEST / NOT INDEXED — NOT HUMAN REVIEWED</p>
         <header className="pilot-hero">
