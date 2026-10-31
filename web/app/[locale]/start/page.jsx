@@ -1,3 +1,4 @@
+import "../../social-motion.css";
 import ChatApp from "@/components/ChatApp";
 import { categoryIds } from "@/lib/categories";
 import { fmt } from "@/lib/format";
