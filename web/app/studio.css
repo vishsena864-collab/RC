@@ -140,7 +140,8 @@ body:has(.home-entertainment) .site-footer .footer-links a { color: #d9e3d4; fon
 .chat-page > .chat > .note { color: #71806c; }
 
 /* Generic content pages */
-main:not(:has(.home-entertainment)) { background: #f7f7f2; }
+/* Editorial paper belongs only on the outer document main, never nested experience stages. */
+main#main:not(:has(.home-entertainment)):not(:has(.fx-shell)) { background: #f7f7f2; }
 main:not(:has(.home-entertainment)) .prose { padding-block: 28px; }
 main:not(:has(.home-entertainment)) .crumbs { margin-top: 20px; }
 main:not(:has(.home-entertainment)) .hero-card.compact { border-radius: 24px; background: #203a26; }
