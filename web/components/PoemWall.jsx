@@ -22,7 +22,7 @@ export default function PoemWall({locale="en"}){
   <div className="walls-topline"><span>CHATSPARK / SIDE FEATURE 002</span><Link href={"/"+locale}>↖ BACK TO RANDOM CHAT</Link></div>
   <section className="walls-hero poem-hero">
     <div className="walls-hero-overline">A QUIET CORNER OF THE INTERNET / NO FOLLOWERS / NO PROFILE</div>
-    <div className="poem-intro"><div><h1>WORDS FROM<br/><em>NOBODY.</em></h1><p>Leave a few lines behind. Someone you've never met might keep them alive.</p><a href="#write" className="walls-action-link">LEAVE A POEM ↘</a></div><div className="poem-art" aria-hidden="true"><span className="poem-giant-quote">“</span><span>UNTOLD<br/>STORIES<br/>BY STRANGERS</span><span className="poem-outline">001 / THE POEM WALL</span></div></div>
+    <div className="poem-intro"><div><h1>WORDS FROM<br/><em>NOBODY.</em></h1><p>Leave a few lines behind. Someone you've never met might keep them alive.</p><a href="#creative-arena" className="walls-action-link">★ LIVE 7-MINUTE BATTLES ↘</a><a href="#write" className="walls-action-link">WRITE YOUR POEM ↘</a></div><div className="poem-art" aria-hidden="true"><span className="poem-giant-quote">“</span><span>UNTOLD<br/>STORIES<br/>BY STRANGERS</span><span className="poem-outline">001 / THE POEM WALL</span></div></div>
   </section>
   <div className="walls-ribbon">✳ WRITE ANONYMOUSLY &nbsp; · &nbsp; ♥ VOTE FOR YOUR FAVORITES &nbsp; · &nbsp; ★ ONLY THE TOP FIVE ARE KEPT &nbsp; · &nbsp; ✳ A NEW WALL EVERY MONDAY</div>
   <section id="write" className="poem-create">
