@@ -1,3 +1,4 @@
+import "../../../social-motion.css";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/Art";
