@@ -4,7 +4,7 @@ export const dynamic="force-dynamic";
 export async function GET(){
  try{
   const upstream=await fetch("https://lpbpjffnjbjwzdrcscko.supabase.co/functions/v1/chatspark-walls?kind=poem&view=active",{
-   headers:{Origin:"https://chatspark-rc.vercel.app","x-cs-visitor":"health-probe"},
+   headers:{Origin:"https://chatsparkrc.com","x-cs-visitor":"health-probe"},
    cache:"no-store",signal:AbortSignal.timeout(8000)
   });
   const data=await upstream.json().catch(()=>({}));
