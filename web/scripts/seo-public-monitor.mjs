@@ -30,13 +30,13 @@ function attr(tag, name) {
   return match ? unescapeHtml(match[2]) : null;
 }
 function stripMarkup(html) {
-  return unescapeHtml(html.replace(/<[^>]*>/g," ").replace(/\\s+/g," ").trim());
+  return unescapeHtml(html.replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim());
 }
 export function parsePage(html) {
-  const titleMatch = html.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i);
-  const metaTags = [...html.matchAll(/<meta\\b[^>]*>/gi)].map(m => m[0]);
-  const linkTags = [...html.matchAll(/<link\\b[^>]*>/gi)].map(m => m[0]);
-  const headerMatches = [...html.matchAll(/<h1\\b[^>]*>([\\s\\S]*?)<\\/h1>/gi)];
+  const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  const metaTags = [...html.matchAll(/<meta\b[^>]*>/gi)].map(m => m[0]);
+  const linkTags = [...html.matchAll(/<link\b[^>]*>/gi)].map(m => m[0]);
+  const headerMatches = [...html.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/gi)];
   const canonicalTag = linkTags.find(t => attr(t,"rel")?.toLowerCase() === "canonical");
   const descriptionTag = metaTags.find(t => attr(t,"name")?.toLowerCase() === "description");
   const robotsTag = metaTags.find(t => attr(t,"name")?.toLowerCase() === "robots");
@@ -58,14 +58,14 @@ export function parsePage(html) {
   };
 }
 export function parseSitemap(xml) {
-  const urls=[...xml.matchAll(/<loc>\\s*([\\s\\S]*?)\\s*<\\/loc>/gi)]
+  const urls=[...xml.matchAll(/<loc>\s*([\s\S]*?)\s*<\/loc>/gi)]
     .map(m=>unescapeHtml(m[1].trim()));
   // Next.js uses url nodes, not a sitemap index.
   return { urls, duplicates:urls.filter((u,i)=>urls.indexOf(u)!==i),
-    hasSitemap: /<urlset\\b/i.test(xml), hasIndex: /<sitemapindex\\b/i.test(xml) };
+    hasSitemap: /<urlset\b/i.test(xml), hasIndex: /<sitemapindex\b/i.test(xml) };
 }
 function sameCanonical(current, expected) {
-  const normalize = s=>{try{const u=new URL(s);return u.origin+u.pathname.replace(/\\/$/,"")+(u.search||"");}catch{return s;}};
+  const normalize = s=>{try{const u=new URL(s);return u.origin+u.pathname.replace(/\/$/,"")+(u.search||"");}catch{return s;}};
   return normalize(current)===normalize(expected);
 }
 async function getText(url, fetcher, timeoutMs) {
@@ -85,10 +85,10 @@ async function getText(url, fetcher, timeoutMs) {
 }
 function note(bucket,level,message) {bucket.push({level,message});}
 function looksNoindex(meta,xrobots) {
-  return /(?:^|[,\\s])noindex(?:[,\\s]|$)/i.test((meta||"")+" "+(xrobots||""));
+  return /(?:^|[,\s])noindex(?:[,\s]|$)/i.test((meta||"")+" "+(xrobots||""));
 }
 export async function auditPublicSite({baseUrl=CANONICAL,fetcher=fetch,timeoutMs=18000}={}) {
-  const base=baseUrl.replace(/\\/$/,"");
+  const base=baseUrl.replace(/\/$/,"");
   const start=new Date().toISOString();
   const issues=[],pages=[];
   const [robots,sitemap]=await Promise.all([
@@ -97,9 +97,9 @@ export async function auditPublicSite({baseUrl=CANONICAL,fetcher=fetch,timeoutMs
   ]);
   if(!robots.ok)note(issues,"error","Cannot retrieve robots.txt: "+(robots.status||robots.error));
   else {
-    if(!/^sitemap:\\s*https?:\\/\\//im.test(robots.text))note(issues,"warning","robots.txt has no sitemap declaration");
+    if(!/^sitemap:\s*https?:\/\//im.test(robots.text))note(issues,"warning","robots.txt has no sitemap declaration");
     if(!robots.text.includes(base+"/sitemap.xml"))note(issues,"warning","robots.txt does not reference expected canonical sitemap");
-    if(/^disallow:\\s*\\/\\s*$/im.test(robots.text))note(issues,"error","robots.txt disallows root crawling");
+    if(/^disallow:\s*\/\s*$/im.test(robots.text))note(issues,"error","robots.txt disallows root crawling");
   }
   if(!sitemap.ok)note(issues,"error","Cannot retrieve sitemap.xml: "+(sitemap.status||sitemap.error));
   const parsed=sitemap.ok?parseSitemap(sitemap.text):{urls:[],duplicates:[],hasSitemap:false,hasIndex:false};
@@ -108,7 +108,7 @@ export async function auditPublicSite({baseUrl=CANONICAL,fetcher=fetch,timeoutMs
   if(parsed.urls.length && parsed.urls.length<40)note(issues,"warning","Unexpectedly small sitemap: "+parsed.urls.length+" URLs");
   for (const url of parsed.urls) {
     if(!url.startsWith(base+"/")) note(issues,"warning","Sitemap contains non-canonical host or URL: "+url);
-    if(/\\/start(?:\\/|$)|\\/guides\\//.test(url))note(issues,"error","Noindex or draft URL included in sitemap: "+url);
+    if(/\/start(?:\/|$)|\/guides\//.test(url))note(issues,"error","Noindex or draft URL included in sitemap: "+url);
   }
   for (const important of ["/en","/en/underground","/en/poem-wall","/en/graffiti-wall"]) {
     if(parsed.urls.length && !parsed.urls.some(u=>sameCanonical(u,base+important)))
@@ -180,7 +180,7 @@ export function toMarkdown(data) {
     "| Route | HTTP | Expected | Canonical | Noindex | Finding |",
     "|---|---:|---|---|---|---|",
     ...data.pages.map(p=>
-      "| \`"+p.path+"\` | "+(p.status??"N/A")+" | "+p.expected+
+      "| `"+p.path+"` | "+(p.status??"N/A")+" | "+p.expected+
       " | "+(p.canonical||"—").replaceAll("|","\\|")+" | "+
       (p.noindex===null?"Unknown":p.noindex?"Yes":"No")+" | "+
       (p.issues.length?p.issues.map(x=>x.level+": "+x.message).join("; "):"OK").replaceAll("|","\\|")+" |"
@@ -190,13 +190,13 @@ export function toMarkdown(data) {
     ...(data.issues.length?data.issues.map(x=>"- **"+x.level.toUpperCase()+"**"+(x.page?" ("+x.page+")":"")+": "+x.message):["- No issues detected in the public checks. This does not establish Google index status."]),
     "",
     "## Search Console follow-up",
-    "- Confirm \`sc-domain:chatsparkrc.com\` DNS property ownership in Google Search Console.",
+    "- Confirm `sc-domain:chatsparkrc.com` DNS property ownership in Google Search Console.",
     "- Inspect live URLs using Search Console's URL Inspection tool (Google-indexed and live test are separate).",
     "- Check Sitemaps and Pages indexing reports; export Performance → Pages and Queries by country and device.",
     "- Compare the exported GSC report with these technical observations. Do not infer impressions or rankings from this report.",
     ""
   ];
-  return lines.join("\\n");
+  return lines.join("\n");
 }
 async function run() {
   const out=resolve(process.env.CHATSPARK_SEO_OUTPUT||"seo-health-reports");
@@ -205,13 +205,13 @@ async function run() {
   await mkdir(out,{recursive:true});
   const stamp=result.inspectedAtUTC.slice(0,10);
   await Promise.all([
-    writeFile(resolve(out,"seo-public-"+stamp+".json"),JSON.stringify(result,null,2)+"\\n"),
-    writeFile(resolve(out,"seo-public-"+stamp+".md"),toMarkdown(result)+"\\n"),
-    writeFile(resolve(out,"seo-public-latest.md"),toMarkdown(result)+"\\n"),
+    writeFile(resolve(out,"seo-public-"+stamp+".json"),JSON.stringify(result,null,2)+"\n"),
+    writeFile(resolve(out,"seo-public-"+stamp+".md"),toMarkdown(result)+"\n"),
+    writeFile(resolve(out,"seo-public-latest.md"),toMarkdown(result)+"\n"),
   ]);
   process.stdout.write("SEO technical check "+result.inspectedAtUTC+
     ": "+result.checks.errors+" errors; "+result.checks.warnings+" warnings; "+
-    result.sitemap.urlCount+" sitemap URLs. No Google account data was accessed.\\n");
+    result.sitemap.urlCount+" sitemap URLs. No Google account data was accessed.\n");
   if(result.checks.errors>0)process.exitCode=1;
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
