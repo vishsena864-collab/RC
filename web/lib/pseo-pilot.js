@@ -204,7 +204,7 @@ export const PILOT_GUIDES = [
     "description": "A practical first-chat checklist: set boundaries, protect personal details and know when to skip or report a stranger.",
     "h1": "A safety checklist for your first random text chat",
     "dek": "Start with an ordinary conversation without feeling pressured to give anyone a profile of your life.",
-    "intro": "Random chat means meeting someone you do not already know. Neither a friendly opener nor an anonymous-looking interface verifies another person's identity. ChatSpark's random chat is text-only, intended for adults aged 18 and over, and has Skip and Report controls. Your safest first conversation starts with ordinary interests and stops when you are uncomfortable.",
+    "intro": "Random chat means meeting someone you do not already know. Neither a friendly opener nor an anonymous-looking interface verifies another person's identity. ChatSpark's random chat is text-only, intended for adults aged 18 and over, and has Skip and Report controls. Your safest first conversation starts with ordinary interests and stops when you are uncomfortable. Before selecting a topic, decide which kinds of questions you are willing to answer and which are off limits. There is no need to fill uncomfortable pauses with identifying details.",
     "approach": [
       "Choose a hobby or general topic, not a personal identifier.",
       "Keep your name, address, workplace, phone number and account handles to yourself.",
@@ -332,7 +332,7 @@ export const PILOT_GUIDES = [
     "description": "A step-by-step guide to leaving an uncomfortable random chat, using Report and protecting yourself after threats or harassment.",
     "h1": "What to do when a random chat becomes uncomfortable",
     "dek": "Leaving an unpleasant conversation is enough reason to end it. You do not need to negotiate with a stranger.",
-    "intro": "Sometimes a stranger becomes rude, intrusive or threatening. Your first task is to get out of the interaction, not to persuade them to change. ChatSpark includes Skip and Report tools in its text-chat experience. The Report tool records limited context for moderation, but a report does not guarantee immediate removal. If a threat involves real-world danger, involve local emergency or law-enforcement services as appropriate.",
+    "intro": "Sometimes a stranger becomes rude, intrusive or threatening. Your first task is to get out of the interaction, not to persuade them to change. ChatSpark includes Skip and Report tools in its text-chat experience. The Report tool records limited context for moderation, but a report does not guarantee immediate removal. If a threat involves real-world danger, involve local emergency or law-enforcement services as appropriate. Some chats are simply unpleasant; others may involve attempts to obtain credentials, intimidation or repeated contact. Your next action should fit the actual risk, not the stranger's demands.",
     "approach": [
       "Do not retaliate with threats or share more personal details.",
       "Avoid clicking follow-up links or moving into a separate private account.",
