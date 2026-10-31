@@ -449,8 +449,10 @@ export default function UndergroundFM({locale="en"}){
    <section className="fx-hero" data-pane="show">
     <div className="fx-hero-copy">
      <div className="fx-live-row"><span className={"fx-live "+(room?"on":"")+(reconnecting?" is-reconnecting":"")}><i/>{reconnecting?"RECONNECTING…":room?"LIVE":"OFFLINE"}</span><span>{fmtListeners(room?.listeners)} LISTENERS</span><span className="fx-dim">{room?"ROOM · "+room.room:"OPEN FREQUENCY"} · {heroGenre} · Global</span></div>
+     <div className="fx-seo-kicker">LISTEN TO MUSIC WITH STRANGERS ONLINE</div>
      <h1>{roomName}</h1>
      <p>{roomTagline}</p>
+     <p className="fx-seo-dek">Explore shared music rooms, discover tracks and react with other listeners. The room controller selects music; individual streams depend on provider availability.</p>
      <div className="fx-genres" role="group" aria-label="Discover by genre">{GENRES.map(genre=><button type="button" key={genre} aria-pressed={heroGenre===genre} onClick={()=>selectGenre(genre)}>{genre}</button>)}</div>
     </div>
     <div className={"fx-ctrl-card fx-ctrl-card-"+view}>
