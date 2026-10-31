@@ -2,6 +2,7 @@
 import {useState} from "react";
 import Link from "next/link";
 import WallGallery from "./WallGallery";
+import CreativeArena from "./CreativeArena";
 import {postWall} from "@/lib/walls";
 import "./walls.css";
 
@@ -38,6 +39,7 @@ export default function PoemWall({locale="en"}){
     {latest&&<div className="walls-published">✓ SUBMITTED / ID {latest.id.slice(0,8).toUpperCase()}</div>}
    </form>
   </section>
+  <CreativeArena kind="poem" draft={{title,body,author_tag:tag||"UNKNOWN"}} allowed={allowed}/>
   <WallGallery kind="poem" refreshKey={refresh}/>
   <div className="walls-endline"><span>ANONYMOUS WORDS / HUMAN CONNECTIONS</span><Link href={"/"+locale+"/graffiti-wall"}>NEXT UP: GRAFFITI WALL ↗</Link></div>
  </div>;
