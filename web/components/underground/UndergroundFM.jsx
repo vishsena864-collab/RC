@@ -27,6 +27,7 @@ export default function UndergroundFM({locale="en"}){
  const autoShow=fx.auto!==false;
  // Lights off is personal: it only changes this browser, never the room's show.
  const [lightsOff,setLightsOff]=useState(false),lightsOffRef=useRef(false);
+ const [rigFailed,setRigFailed]=useState(false),[rigNonce,setRigNonce]=useState(0),lastRigFrame=useRef(0);
  const [mixNonce,setMixNonce]=useState(0),mixSeed=useRef(0);
  const [tapped,setTapped]=useState(null);
  useEffect(()=>{try{setLightsOff(localStorage.getItem("fm:lights-off")==="1");}catch{}},[]);
@@ -53,17 +54,38 @@ export default function UndergroundFM({locale="en"}){
  /* ── visual engines ── */
  useEffect(()=>{
   const quality=qualityFor();
-  // the rig reports its drive every frame; globes and the cover breathe with it through CSS variables
-  const shell=shellRef.current,onLevels=lv=>{shell.style.setProperty("--bass",lv.bass.toFixed(3));shell.style.setProperty("--kick",lv.kick.toFixed(3));};
-  // a mapped drop fires the pyro for everyone in sync (each device follows the same cue sheet and room clock)
-  stage.current=createStage(stageCv.current,{quality,photo:true,onLevels,onCue:kind=>{if(kind==="drop"&&!lightsOffRef.current)overlay.current?.burst("energy",1.15);}});
-  overlay.current=createOverlay(overlayCv.current,{quality});
-  spectrum.current=createSpectrum(specCv.current);
+  const shell=shellRef.current;
+  let active=true;
+  lastRigFrame.current=performance.now();
+  // Keep the CSS backup lights visible when a Canvas/GPU context fails.
+  const onLevels=lv=>{
+   if(!shell)return;
+   shell.style.setProperty("--bass",Number(lv.bass||0).toFixed(3));
+   shell.style.setProperty("--kick",Number(lv.kick||0).toFixed(3));
+  };
+  try{
+   stage.current=createStage(stageCv.current,{
+    quality,photo:true,onLevels,
+    onFrame:()=>{lastRigFrame.current=performance.now();},
+    onCue:kind=>{if(kind==="drop"&&!lightsOffRef.current)overlay.current?.burst("energy",1.15);}
+   });
+   stage.current.set({off:lightsOffRef.current});
+  }catch(error){
+   console.warn("Underground FM stage canvas unavailable; using backup beams.",error);
+   if(active)setRigFailed(true);
+  }
+  try{overlay.current=createOverlay(overlayCv.current,{quality});}
+  catch(error){console.warn("Underground FM overlay unavailable.",error);}
+  try{spectrum.current=createSpectrum(specCv.current);}
+  catch(error){console.warn("Underground FM spectrum unavailable.",error);}
   const place=()=>{const f=photoFit(innerWidth,innerHeight),el=photoRef.current;if(el){el.style.backgroundImage="url("+f.src+")";el.style.backgroundSize=f.dw+"px "+f.dh+"px";el.style.backgroundPosition=f.ox+"px "+f.oy+"px";}};
   place();addEventListener("resize",place);
-  if(analyser.current){stage.current.audio(analyser.current);spectrum.current.audio(analyser.current);}
-  return ()=>{removeEventListener("resize",place);stage.current?.destroy();overlay.current?.destroy();spectrum.current?.destroy();stage.current=overlay.current=spectrum.current=null;};
- },[]);
+  if(analyser.current){stage.current?.audio(analyser.current);spectrum.current?.audio(analyser.current);}
+  const watchdog=setInterval(()=>{
+   if(!document.hidden&&!lightsOffRef.current&&performance.now()-lastRigFrame.current>5000)setRigFailed(true);
+  },2500);
+  return ()=>{active=false;clearInterval(watchdog);removeEventListener("resize",place);stage.current?.destroy();overlay.current?.destroy();spectrum.current?.destroy();stage.current=overlay.current=spectrum.current=null;};
+ },[rigNonce]);
  useEffect(()=>{stage.current?.setReduced(motionOff);overlay.current?.setReduced(motionOff);spectrum.current?.setReduced(motionOff);if(motionOff)shellRef.current?.style.setProperty("--bass","0");},[motionOff]);
  useEffect(()=>{spectrum.current?.playing(playing);},[playing]);
  useEffect(()=>{stage.current?.set({theme,fx:fx.fx,power:fx.intensity,bpm:cueSheet?.id===current?.id&&cueSheet?cueSheet.bpm:fx.beatBpm,heat:room?heatScore:50,playing,auto:autoShow,off:lightsOffRef.current});},[theme.id,fx.fx,fx.intensity,fx.beatBpm,heatScore,playing,room?.room,autoShow,cueSheet,current?.id]);
@@ -369,6 +391,14 @@ export default function UndergroundFM({locale="en"}){
  };
  const chooseDiscovery=type=>{setRequestSent(null);setRequestText(({"Underground Picks":"underground","This Week":"new music","Global Sounds":"world music","Deep & Dreamy":"ambient chill"})[type]||type);};
  const toggleMotion=()=>setMotionPref(!motionOff);
+ // This only repairs local visual state; the room controller's shared show is untouched.
+ const restartLights=()=>{
+  lightsOffRef.current=false;
+  setLightsOff(false);setMotionPref(false);setRigFailed(false);
+  try{localStorage.setItem("fm:lights-off","0");}catch{}
+  lastRigFrame.current=performance.now();
+  setRigNonce(n=>n+1);
+ };
 
  /* ── shared pieces ── */
  const controllerActions=<div className="fx-ctrl-actions">
@@ -417,10 +447,15 @@ export default function UndergroundFM({locale="en"}){
    {tap>0&&<i className="fx-burst" key={"b"+tap} aria-hidden="true">{[0,1,2,3,4,5,6,7].map(n=><em key={n} style={{"--a":n*45+"deg"}}/>)}</i>}
    <b key={"c"+(room?.reactionCounts?.[kind]||0)}>{room?.reactionCounts?.[kind]||0}</b></button>;})}</div>;
 
- return <div lang="en" ref={shellRef} className={"fx-shell fx-"+view+" "+oswald.variable} style={vars} data-view={view} data-tab={tab} data-motion={motionOff?"reduced":"full"} data-lights={lightsOff?"off":"on"} data-playing={playing} data-heat={hottest} data-fab={view==="controller"&&Boolean(selectedTrack)}>
+ return <div lang="en" ref={shellRef} className={"fx-shell fx-"+view+" "+oswald.variable} style={vars} data-view={view} data-tab={tab} data-motion={motionOff?"reduced":"full"} data-lights={lightsOff?"off":"on"} data-rig={rigFailed?"fallback":"canvas"} data-playing={playing} data-heat={hottest} data-fab={view==="controller"&&Boolean(selectedTrack)}>
   <div ref={photoRef} className="fx-photo" aria-hidden="true"/>
   <canvas ref={stageCv} className="fx-stage" aria-hidden="true"/>
   <div className="fx-scrim" aria-hidden="true"/>
+  <div className="fx-ambient-rig" aria-hidden="true">
+   <i className="fx-backup-beam fx-backup-beam-a"/>
+   <i className="fx-backup-beam fx-backup-beam-b"/>
+   <i className="fx-backup-beam fx-backup-beam-c"/>
+  </div>
   <canvas ref={overlayCv} className="fx-overlay" aria-hidden="true"/>
   {moodBurst&&<div key={moodBurst.nonce} className={"fx-callout fx-callout-"+moodBurst.kind} role="status"><strong>{moodBurst.kind==="energy"?"IGNITION":moodBurst.kind==="love"?"VIBE WAVE":"COOL DOWN"}</strong><small>{moodBurst.handle?moodBurst.handle+" ":""}{moodBurst.kind==="energy"?"lit it up":moodBurst.kind==="love"?"kept the vibe":"chilled the room"}</small></div>}
 
@@ -443,8 +478,10 @@ export default function UndergroundFM({locale="en"}){
     <Link href={"/"+locale} className="fx-brand fx-brand-mobile">ChatSpark<span aria-hidden="true">⚡</span></Link>
     <nav className="fx-pills" aria-label="Site sections"><Link href={"/"+locale}>EXPLORE</Link><Link className="is-active" href={"/"+locale+"/underground"} aria-current="page">UNDERGROUND FM</Link><Link href={"/"+locale+"/poem-wall"}>COMMUNITY</Link></nav>
     <button type="button" className="fx-fx-toggle fx-lights-toggle" onClick={()=>setLightsOff(v=>!v)} aria-pressed={lightsOff} title={lightsOff?"Turn the light show back on for you":"Turn the light show off just for you"}>{lightsOff?"LIGHTS ON":"LIGHTS OFF"}</button>
+    <button type="button" className="fx-fx-toggle fx-restart-lights" onClick={restartLights} title="Restart this device’s lighting engine and restore moving lights">RESTART LIGHTS</button>
     <button type="button" className="fx-fx-toggle" onClick={toggleMotion} aria-pressed={motionOff}>{motionOff?"ENABLE FX":<><span className="fx-long">REDUCE </span>MOTION</>}</button>
    </header>
+   {rigFailed&&<p className="fx-rig-status" role="status">The light renderer stopped responding. Backup lights are active. Select RESTART LIGHTS to retry.</p>}
 
    <section className="fx-hero" data-pane="show">
     <div className="fx-hero-copy">

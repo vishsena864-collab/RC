@@ -38,3 +38,5 @@ jobs:
         working-directory: web
       - run: node --test lib/deployment-policy.test.mjs
         working-directory: web
+      - run: node --test lib/fm-lightshow.test.mjs
+        working-directory: web

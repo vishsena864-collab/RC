@@ -30,7 +30,7 @@ body:has(.fx-shell)>.site-header,body:has(.fx-shell)>.site-footer{display:none}
 
 /* ── stage layers ── */
 .fx-photo{position:fixed;inset:0;z-index:0;pointer-events:none;background:#05030a url(/underground/stage-2400.webp) center 28%/cover no-repeat;filter:hue-rotate(var(--hue,0deg)) saturate(1.15) brightness(.92);transition:filter 1.4s ease}
-.fx-stage{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block;pointer-events:none;mix-blend-mode:screen}
+.fx-stage{position:fixed;inset:0;width:100%;height:100%;z-index:2;display:block;pointer-events:none;mix-blend-mode:screen}
 .fx-scrim{position:fixed;inset:0;z-index:1;pointer-events:none;background:
  radial-gradient(60% 55% at 18% 18%,rgba(5,3,10,.55),transparent 70%),
  linear-gradient(180deg,rgba(5,3,10,.15) 0,rgba(5,3,10,.25) 260px,rgba(5,3,10,.6) 620px,rgba(5,3,10,.72) 100%)}
@@ -44,7 +44,7 @@ body:has(.fx-shell)>.site-header,body:has(.fx-shell)>.site-footer{display:none}
 @keyframes fx-callout{0%{opacity:0;transform:translate(-50%,-50%) scale(.6);filter:blur(8px)}14%{opacity:1;transform:translate(-50%,-50%) scale(1.06);filter:blur(0)}70%{opacity:1;transform:translate(-50%,-56%) scale(1)}100%{opacity:0;transform:translate(-50%,-80%) scale(1.04)}}
 
 /* ── sidebar ── */
-.fx-side{position:sticky;top:0;height:100vh;height:100dvh;z-index:2;display:flex;flex-direction:column;padding:22px 14px 18px;background:linear-gradient(180deg,rgba(6,4,12,.86),rgba(6,4,12,.6));border-right:1px solid var(--line);backdrop-filter:blur(14px)}
+.fx-side{position:sticky;top:0;height:100vh;height:100dvh;z-index:3;display:flex;flex-direction:column;padding:22px 14px 18px;background:linear-gradient(180deg,rgba(6,4,12,.86),rgba(6,4,12,.6));border-right:1px solid var(--line);backdrop-filter:blur(14px)}
 .fx-brand{display:block;font:900 24px/1 system-ui,sans-serif;letter-spacing:-.04em;padding:0 6px;margin-bottom:24px}
 .fx-brand span{color:var(--lime);margin-left:2px}
 .fx-brand small{display:block;margin-top:7px;font:700 9px var(--mono);letter-spacing:.2em;color:var(--lime)}
@@ -58,7 +58,7 @@ body:has(.fx-shell)>.site-header,body:has(.fx-shell)>.site-footer{display:none}
 .fx-brand-mobile{display:none}
 
 /* ── main column ── */
-.fx-main{position:relative;z-index:2;min-width:0;padding:0 22px 26px;overflow-x:clip}
+.fx-main{position:relative;z-index:3;min-width:0;padding:0 22px 26px;overflow-x:clip}
 .fx-topbar{display:flex;align-items:center;justify-content:flex-end;gap:14px;min-height:68px}
 .fx-pills{display:flex;gap:2px;padding:4px;border-radius:999px;background:rgba(6,4,12,.7);border:1px solid var(--line);backdrop-filter:blur(12px)}
 .fx-pills a{padding:9px 16px;border-radius:999px;font:700 10px var(--mono);letter-spacing:.1em;color:var(--muted)}
@@ -826,3 +826,23 @@ canvas.fx-wave{display:block;width:100%;height:62px}
  font:500 clamp(13px,1vw,16px)/1.65 "Segoe UI",Arial,sans-serif;
  color:#efdfce;
 }
+
+/* Independent ambient lighting is visible even when Canvas/GPU rendering fails.
+   Layer order: photo (0), dark scrim (1), lighting (2), controls (3). */
+.fx-ambient-rig{position:fixed;inset:0;z-index:2;pointer-events:none;overflow:hidden;mix-blend-mode:screen;opacity:.45;transition:opacity .3s ease}
+.fx-backup-beam{position:absolute;top:-5vh;width:clamp(260px,40vw,720px);height:105vh;transform-origin:50% 0;clip-path:polygon(47% 0,53% 0,100% 100%,0 100%);filter:blur(9px);will-change:transform}
+.fx-backup-beam-a{left:-6%;background:linear-gradient(180deg,rgba(255,66,136,.7),rgba(255,66,136,.12) 76%,transparent);animation:fx-ambient-a 9s ease-in-out infinite alternate}
+.fx-backup-beam-b{left:31%;background:linear-gradient(180deg,rgba(78,208,255,.7),rgba(78,208,255,.12) 78%,transparent);animation:fx-ambient-b 10s ease-in-out infinite alternate}
+.fx-backup-beam-c{right:-8%;background:linear-gradient(180deg,rgba(215,255,84,.62),rgba(215,255,84,.1) 80%,transparent);animation:fx-ambient-c 8s ease-in-out infinite alternate}
+.fx-ambient-rig::after{content:"";position:absolute;inset:40% -10% -15%;background:radial-gradient(ellipse at 30% 80%,rgba(240,60,160,.18),transparent 52%),radial-gradient(ellipse at 77% 90%,rgba(55,180,255,.2),transparent 55%)}
+.fx-shell[data-rig=fallback] .fx-ambient-rig{opacity:.9}
+.fx-shell[data-lights=off] .fx-ambient-rig{display:none}
+@keyframes fx-ambient-a{from{transform:rotate(-26deg)}to{transform:rotate(18deg)}}
+@keyframes fx-ambient-b{from{transform:rotate(25deg)}to{transform:rotate(-23deg)}}
+@keyframes fx-ambient-c{from{transform:rotate(-19deg)}to{transform:rotate(24deg)}}
+.fx-rig-status{margin:5px 0 12px!important;padding:10px 14px;background:#35241a;color:#ffdfaa;border:1px solid #bb8d54;border-radius:9px;font-size:12px}
+.fx-restart-lights{color:#d4ff3a!important;border-color:rgba(212,255,58,.42)!important;white-space:nowrap}
+.fx-topbar{flex-wrap:wrap}
+@media(max-width:620px){.fx-restart-lights{font-size:9px!important;padding:8px 10px!important}.fx-ambient-rig{opacity:.58}}
+@media(prefers-reduced-motion:reduce){.fx-backup-beam{animation:none!important;will-change:auto}}
+.fx-shell[data-motion=reduced] .fx-backup-beam{animation:none!important;will-change:auto}

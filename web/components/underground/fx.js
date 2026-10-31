@@ -303,7 +303,7 @@ const REACT_RGB = { heart: [255, 40, 150], fire: [255, 110, 20], spark: [255, 25
 // Without it (nobody pressed play on this device) the rig follows the room BPM. onLevels reports the drive each frame.
 const SPECIAL = new Set(["cone", "matrix", "chase", "follow"]);
 const MOOD_RGB = { energy: [255, 96, 24], love: [255, 52, 200], chill: [60, 190, 255] };
-export function createStage(canvas, { reduced = false, quality = 1, photo = false, onLevels = null, onCue = null } = {}) {
+export function createStage(canvas, { reduced = false, quality = 1, photo = false, onLevels = null, onCue = null, onFrame = null } = {}) {
   const main = canvas.getContext("2d", { alpha: photo });
   let g = main; // beams and lasers are drawn into `bl` first so the haze can break them up, then composited onto `main`
   const bl = document.createElement("canvas"), blg = bl.getContext("2d"), led = document.createElement("canvas"), ledg = led.getContext("2d");
@@ -687,6 +687,8 @@ export function createStage(canvas, { reduced = false, quality = 1, photo = fals
   const loop = makeLoop((dt, ts) => {
     for (const k of ["a", "b", "dark"]) for (let i = 0; i < 3; i++) cur[k][i] = lerp(cur[k][i], S[k][i], 1 - Math.exp(-dt * 2.4));
     listen(dt, ts); paint(ts, dt);
+    // Let the UI detect a stalled frame loop and expose the CSS backup rig.
+    onFrame?.();
     onLevels?.(S.off ? { bass: 0, level: 0, kick: 0, live: false } : L.live ? { bass: L.bass, level: L.level, kick: beatEnv, live: true } : cueState ? { bass: cueState.kick * (.3 + cueState.energy * .5), level: cueState.energy, kick: cueState.kick, live: false } : { bass: Math.pow(1 - (ts * S.bpm / 60) % 1, 3) * (S.playing ? .45 : .15), level: 0, kick: 0, live: false });
     return true;
   });
