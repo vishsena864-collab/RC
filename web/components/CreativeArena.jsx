@@ -37,7 +37,7 @@ function ArtworkPreview({artwork,title}){
 // weekly gallery or its signed-card feature. Final entries are only shared with this room.
 export default function CreativeArena({kind,draft,allowed=true,canSubmit=true}){
  const [connected,setConnected]=useState(false),[match,setMatch]=useState(null),[lobby,setLobby]=useState(null);
- const [message,setMessage]=useState(""),[pending,setPending]=useState(false),[now,setNow]=useState(Date.now()),[consent,setConsent]=useState(false);
+ const [message,setMessage]=useState(""),[pending,setPending]=useState(false),[now,setNow]=useState(Date.now()),[consent,setConsent]=useState(false),[contestTitle,setContestTitle]=useState(""),[contestTag,setContestTag]=useState("");
  const socketRef=useRef(null),desiredRoom=useRef(null),serverOffset=useRef(0),lastRound=useRef(0);
  const entries=match?.entries||[];
  const seconds=match?.endsAt?Math.max(0,Math.ceil((match.endsAt-(now+serverOffset.current))/1000)):0;
@@ -47,7 +47,9 @@ export default function CreativeArena({kind,draft,allowed=true,canSubmit=true}){
  const myVote=match?.yourVote;
  const inRound=match?.phase==="creating";
  const prepared=kind==="poem"?(draft?.body||"").trim().length>=8 : (draft?.artwork?.ops?.length||0)>0;
- const ready=Boolean(connected&&inRound&&!mySubmission&&(allowed||consent)&&canSubmit&&prepared&&(draft?.title||"").trim().length>=3);
+ const resolvedTitle=(contestTitle.trim()||draft?.title||"").trim();
+ const resolvedTag=(contestTag.trim()||draft?.author_tag||"").trim();
+ const ready=Boolean(connected&&inRound&&!mySubmission&&(allowed||consent)&&canSubmit&&prepared&&resolvedTitle.length>=3);
 
  useEffect(()=>{
   const t=setInterval(()=>setNow(Date.now()),350);
@@ -94,7 +96,7 @@ export default function CreativeArena({kind,draft,allowed=true,canSubmit=true}){
   if(!ready||pending||!socketRef.current)return;
   setPending(true);setMessage("");
   socketRef.current.emit("arena:submit",{
-   title:draft.title,author_tag:draft.author_tag,ageConfirmed:true,
+   title:resolvedTitle,author_tag:resolvedTag,ageConfirmed:true,
    ...(kind==="poem"?{body:draft.body}:{artwork:draft.artwork})
   },ack=>{
    setPending(false);
@@ -156,6 +158,7 @@ export default function CreativeArena({kind,draft,allowed=true,canSubmit=true}){
        <div className="arena-progress"><span style={{width:Math.min(100,Math.max(0,(1-seconds/(7*60))*100))+"%"}}/></div>
        <div className="arena-create-info"><strong>{match.submissions} / {members.length} ENTRIES LOCKED</strong><span>7 MIN CREATE · 1 MIN VOTE</span></div>
        <p>Use the {kind==="poem"?"poem editor":"paint studio"} on this page. Make your entry match the surprise topic, tick the original-work agreement, then lock it here before the timer ends.</p>
+       <div className="arena-entry-fields"><label>CHALLENGE ENTRY TITLE<input maxLength={80} minLength={3} value={contestTitle} placeholder={draft?.title||"Give your entry a name"} onChange={e=>setContestTitle(e.target.value)}/></label><label>YOUR STAGE NAME <small>OPTIONAL</small><input maxLength={24} value={contestTag} placeholder="Anonymous artist" onChange={e=>setContestTag(e.target.value)}/></label></div>
        <label className="arena-consent"><input type="checkbox" checked={allowed||consent} onChange={e=>setConsent(e.target.checked)} disabled={allowed}/><span>I am 18+ and this is my original creation. I agree to show it to room members for voting.</span></label>
        <div className="arena-create-buttons">
         <a href={kind==="poem"?"#write":"#graffiti-studio"} className="arena-outline">{kind==="poem"?"↗ OPEN POEM EDITOR":"↗ OPEN PAINT STUDIO"}</a>
