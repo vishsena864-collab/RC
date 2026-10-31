@@ -9,7 +9,7 @@ const sitemapPaths=paths.filter(p=>!["/en/start","/es/underground"].includes(p))
 
 function html(url, {noindex=false,canonical=true}={}) {
   const href = canonical ? `<link rel="canonical" href="${url}"/>` : "";
-  const alternate= /^\\/(en|es|pt|fr|de)$/.test(new URL(url).pathname)
+  const alternate= /^\/(en|es|pt|fr|de)$/.test(new URL(url).pathname)
     ? ["en","es","pt","fr","de"].map(l=>
       `<link rel="alternate" hreflang="${l}" href="${BASE}/${l}"/>`).join("")
     : "";
@@ -19,7 +19,7 @@ function html(url, {noindex=false,canonical=true}={}) {
     ${href}${alternate}</head><body><h1>Chat with strangers</h1></body></html>`;
 }
 function fakeFetcher(url) {
-  if(url.endsWith("/robots.txt"))return Promise.resolve(new Response("User-agent: *\\nAllow: /\\nSitemap: "+BASE+"/sitemap.xml",{
+  if(url.endsWith("/robots.txt"))return Promise.resolve(new Response("User-agent: *\nAllow: /\nSitemap: "+BASE+"/sitemap.xml",{
     status:200,headers:{"content-type":"text/plain"}
   }));
   if(url.endsWith("/sitemap.xml"))return Promise.resolve(new Response(
