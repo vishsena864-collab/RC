@@ -8,7 +8,12 @@ export function experienceMetadata(locale, slug) {
   if (!item) throw new Error("Unknown experience slug: " + slug);
   const url = SITE_URL + "/en/" + slug;
   const base = { title: item.title, description: item.description };
-  if (locale !== "en") return base;
+  // The three interactive experiences currently render their main content in
+  // English in every route. Mark untranslated copies noindex until a native
+  // language review and a full feature localization are complete.
+  if (locale !== "en") {
+    return { ...base, robots: { index: false, follow: true } };
+  }
   return {
     ...base,
     alternates: { canonical: url },

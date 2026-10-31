@@ -1,28 +1,29 @@
 import Link from "next/link";
 import Image from "next/image";
 import NostalgiaTerminal from "./NostalgiaTerminal";
+import { getNostalgiaCopy } from "@/lib/nostalgia-locales";
 
 const PHOTO_ROOT = "/art/nostalgia/";
 const EXPERIENCES = [
   {
-    id: "chat", title: "RANDOM CHAT", sub: "Meet someone new",
-    path: "start", label: "Open random stranger chat",
+    id: "chat",
+    path: "start",
   },
   {
-    id: "radio", title: "UNDERGROUND FM", sub: "Discover real music",
-    path: "underground", label: "Explore Underground FM",
+    id: "radio",
+    path: "underground",
   },
   {
-    id: "movie", title: "MOVIE RUSH", sub: "Play in stranger chat",
-    path: "start", label: "Play Movie Rush with a stranger",
+    id: "movie",
+    path: "start",
   },
   {
-    id: "poem", title: "POEM WALL", sub: "Share your words",
-    path: "poem-wall", label: "Visit Poem Wall",
+    id: "poem",
+    path: "poem-wall",
   },
   {
-    id: "graffiti", title: "GRAFFITI WALL", sub: "Paint the internet",
-    path: "graffiti-wall", label: "Visit Graffiti Wall",
+    id: "graffiti",
+    path: "graffiti-wall",
   },
 ];
 
@@ -33,9 +34,10 @@ const EXPERIENCES = [
  */
 export default function NostalgiaHome({ locale, dict }) {
   const chatLabel = dict?.home?.cta || "Start Chatting";
+  const c = getNostalgiaCopy(locale);
 
   return (
-    <section className="nostalgia-hero" aria-labelledby="nostalgia-title">
+    <section className="nostalgia-hero" data-locale={locale} aria-labelledby="nostalgia-title">
       <div className="nostalgia-room" aria-hidden="true">
         <img
           src={PHOTO_ROOT + "retro-room.webp"}
@@ -45,7 +47,7 @@ export default function NostalgiaHome({ locale, dict }) {
           fetchPriority="high"
           decoding="async"
         />
-        <NostalgiaTerminal />
+        <NostalgiaTerminal phrases={c.terminal} />
       </div>
       <span className="nostalgia-shade" aria-hidden="true" />
       <span className="nostalgia-film" aria-hidden="true" />
@@ -54,15 +56,11 @@ export default function NostalgiaHome({ locale, dict }) {
       <div className="nostalgia-copy">
         <div className="nostalgia-copy-top" aria-hidden="true">
           <span className="nostalgia-tiny-star">✳</span>
-          <span>THE INTERNET USED TO FEEL LIKE SOMETHING.</span>
+          <span>{c.hero.eyebrow}</span>
         </div>
         <h1 id="nostalgia-title" className="nostalgia-handline">
           <span className="nostalgia-search-intent">{dict.home.h1}</span>
-          <span>A</span>
-          <span>STRANGER</span>
-          <span>TODAY.</span>
-          <span className="nostalgia-handline-accent">A STORY</span>
-          <span>TOMORROW.</span>
+          {c.hero.lines.map((line, index) => <span key={index} className={index === 3 ? "nostalgia-handline-accent" : undefined}>{line}</span>)}
         </h1>
         <p className="nostalgia-subtitle">
           {dict.home.sub}
@@ -73,20 +71,20 @@ export default function NostalgiaHome({ locale, dict }) {
             <span className="nostalgia-cta-arrow" aria-hidden="true">→</span>
           </Link>
         </div>
-        <div className="nostalgia-status" aria-label="Anonymous, text-based stranger chat">
+        <div className="nostalgia-status" aria-label={c.hero.statusLabel}>
           <span className="nostalgia-status-dot" />
-          <span>NO PROFILES. NO FOLLOWERS. JUST STRANGERS.</span>
+          <span>{c.hero.status}</span>
         </div>
       </div>
 
-      <nav className="nostalgia-experiences" id="nostalgia-experiences" aria-label="Explore ChatSpark experiences">
+      <nav className="nostalgia-experiences" id="nostalgia-experiences" aria-label={c.hero.cardsLabel}>
         {EXPERIENCES.map((feature, index) => (
           <Link
             key={feature.id}
             className={`nostalgia-postcard nostalgia-postcard--${feature.id}`}
             href={`/${locale}/${feature.path}`}
             prefetch={false}
-            aria-label={feature.label}
+            aria-label={c.hero.cards[feature.id][2]}
           >
             <span className="nostalgia-tape nostalgia-tape--left" aria-hidden="true" />
             {index === 1 || index === 3 ? <span className="nostalgia-tape nostalgia-tape--right" aria-hidden="true" /> : null}
@@ -105,15 +103,15 @@ export default function NostalgiaHome({ locale, dict }) {
             </span>
             <span className="nostalgia-card-paper">
               <span className="nostalgia-card-copy">
-                <strong>{feature.title}</strong>
-                <small>{feature.sub}</small>
+                <strong>{c.hero.cards[feature.id][0]}</strong>
+                <small>{c.hero.cards[feature.id][1]}</small>
               </span>
               <span className="nostalgia-card-arrow" aria-hidden="true">→</span>
             </span>
           </Link>
         ))}
       </nav>
-      <span className="nostalgia-hero-footnote" aria-hidden="true">CHATSPARK © {new Date().getFullYear()} · A MORE INTERESTING INTERNET</span>
+      <span className="nostalgia-hero-footnote" aria-hidden="true">CHATSPARK © {new Date().getFullYear()} · {c.hero.foot}</span>
     </section>
   );
 }

@@ -62,3 +62,19 @@ body:has(.nostalgia-home) .site-footer{background:#151511;color:#bcb0a0;border-c
 @media(max-width:750px) {
  .nostalgia-handline .nostalgia-search-intent {font-size:12px;max-width:330px;}
 }
+
+/* Long native-language hero phrases need more room than the English tagline. */
+.nostalgia-hero[data-locale]:not([data-locale="en"]) .nostalgia-handline {
+  font-size:clamp(38px,6vw,91px);
+  letter-spacing:-.07em;
+}
+.nostalgia-hero[data-locale="fr"] .nostalgia-handline,
+.nostalgia-hero[data-locale="de"] .nostalgia-handline { font-size:clamp(33px,5.2vw,84px); }
+.nostalgia-handline>span:not(.nostalgia-search-intent) { overflow-wrap:anywhere; }
+.nostalgia-card-copy strong,
+.nostalgia-card-copy small { overflow-wrap:anywhere; }
+@media(max-width:750px) {
+  .nostalgia-hero[data-locale]:not([data-locale="en"]) .nostalgia-handline {font-size:clamp(35px,8.3vw,63px);}
+  .nostalgia-hero[data-locale="fr"] .nostalgia-handline,
+  .nostalgia-hero[data-locale="de"] .nostalgia-handline {font-size:clamp(31px,7.8vw,58px);}
+}

@@ -18,7 +18,7 @@ export default function PoemWall({locale="en"}){
     setTitle("");setBody("");setRefresh(x=>x+1);
   }catch(e){setMessage(e.message);}finally{setBusy(false);}
  };
- return <div className="walls-shell poem-shell">
+ return <div className="walls-shell poem-shell" lang="en">
   <div className="walls-topline"><span>CHATSPARK / SIDE FEATURE 002</span><Link href={"/"+locale}>↖ BACK TO RANDOM CHAT</Link></div>
   <section className="walls-hero poem-hero">
     <div className="walls-hero-overline">A QUIET CORNER OF THE INTERNET / NO FOLLOWERS / NO PROFILE</div>
