@@ -137,7 +137,7 @@ export default function GraffitiWall({locale="en"}){
   <div className="walls-topline"><span>CHATSPARK / SIDE FEATURE 003</span><Link href={"/"+locale}>↖ BACK TO RANDOM CHAT</Link></div>
   <section className="walls-hero graffiti-hero">
     <span className="walls-hero-overline">THE INTERNET IS YOUR CANVAS / NO ACCOUNTS / NO UPLOADS</span>
-    <div className="graffiti-hero-grid"><div><h1>DON'T JUST<br/>EXIST. <em>MARK IT.</em></h1><p>Take a digital spray can to the wall. Anyone can paint. Strangers decide what deserves to stay.</p><a className="walls-action-link" href="#graffiti-studio">ENTER THE PAINT STUDIO ↘</a></div><div className="graffiti-hero-art" aria-hidden="true"><span className="graffiti-poster-word">TAG<br/>THE<br/>WEB.</span><span>NO RULES FOR COLORS.<br/>RULES FOR RESPECT.</span></div></div>
+    <div className="graffiti-hero-grid"><div><h1>DON'T JUST<br/>EXIST. <em>MARK IT.</em></h1><p>Compete with real strangers on an auto-generated topic. Seven minutes to paint. One minute to vote.</p><a className="walls-action-link" href="#creative-arena">★ ENTER LIVE BATTLES ↘</a><a className="walls-action-link" href="#graffiti-studio">OPEN PAINT STUDIO ↘</a></div><div className="graffiti-hero-art" aria-hidden="true"><span className="graffiti-poster-word">TAG<br/>THE<br/>WEB.</span><span>NO RULES FOR COLORS.<br/>RULES FOR RESPECT.</span></div></div>
   </section>
   <div className="walls-ribbon graffiti-ribbon">✳ ALL COLORS · ♥ VOTE FOR ART · ✳ SPRAY / NEON / BRUSH / STENCIL · ★ ONLY TOP FIVE ARCHIVED · NO ART FILE UPLOADS</div>
   <section id="graffiti-studio" className="graffiti-studio" aria-labelledby="graffiti-studio-heading">
