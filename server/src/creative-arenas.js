@@ -195,7 +195,12 @@ export function createCreativeArenas(io, options = {}) {
       if(!e)return ack({ok:false,error:"entry_not_found"});
       if(e.owner===socket.id)return ack({ok:false,error:"no_self_votes"});
       r.votes.set(socket.id,e.id);
-      ack({ok:true});publish(r);
+      ack({ok:true});
+      // Avoid rebroadcasting up to ten large artworks whenever someone votes.
+      for(const id of r.members.keys()){
+        const s=io.sockets.sockets.get(id);
+        if(s)s.emit("arena:votes",{count:r.votes.size,yourVote:r.votes.get(id)||null});
+      }
     });
     socket.on("disconnect",()=>leave(socket));
   }
