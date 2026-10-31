@@ -133,7 +133,7 @@ export default function GraffitiWall({locale="en"}){
    }catch(e){setMessage(e.message);}finally{setBusy(false);}
  };
  const saveCard=()=>saveCanvas(cardCanvas.current,"ChatSpark-"+certificate?.serial+"-signature-card.png");
- return <div className="walls-shell graffiti-shell">
+ return <div className="walls-shell graffiti-shell" lang="en">
   <div className="walls-topline"><span>CHATSPARK / SIDE FEATURE 003</span><Link href={"/"+locale}>↖ BACK TO RANDOM CHAT</Link></div>
   <section className="walls-hero graffiti-hero">
     <span className="walls-hero-overline">THE INTERNET IS YOUR CANVAS / NO ACCOUNTS / NO UPLOADS</span>
