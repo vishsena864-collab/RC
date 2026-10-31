@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import NostalgiaTerminal from "./NostalgiaTerminal";
 
 const PHOTO_ROOT = "/art/nostalgia/";
@@ -90,13 +91,16 @@ export default function NostalgiaHome({ locale, dict }) {
             <span className="nostalgia-tape nostalgia-tape--left" aria-hidden="true" />
             {index === 1 || index === 3 ? <span className="nostalgia-tape nostalgia-tape--right" aria-hidden="true" /> : null}
             <span className="nostalgia-photo">
-              <img
+              <Image
                 src={PHOTO_ROOT + feature.id + ".webp"}
                 alt=""
-                width="456"
-                height="196"
+                width={456}
+                height={196}
+                sizes={index === 4
+                  ? "(max-width: 750px) 72vw, (max-width: 1100px) 18vw, 220px"
+                  : "(max-width: 750px) 45vw, (max-width: 1100px) 18vw, 220px"}
+                loading="lazy"
                 decoding="async"
-                loading="eager"
               />
             </span>
             <span className="nostalgia-card-paper">
