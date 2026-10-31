@@ -37,7 +37,7 @@ export default function NostalgiaHome({ locale, dict }) {
   const c = getNostalgiaCopy(locale);
 
   return (
-    <section className="nostalgia-hero" aria-labelledby="nostalgia-title">
+    <section className="nostalgia-hero" data-locale={locale} aria-labelledby="nostalgia-title">
       <div className="nostalgia-room" aria-hidden="true">
         <img
           src={PHOTO_ROOT + "retro-room.webp"}
