@@ -52,3 +52,13 @@ body:has(.nostalgia-home) .site-header .nav>.btn{background:#f5e9d7!important;co
 body:has(.nostalgia-home) .site-footer{background:#151511;color:#bcb0a0;border-color:#4d4335}body:has(.nostalgia-home) .site-footer a{color:#e5d6bf}
 @media(max-width:750px){.nostalgia-hero{min-height:965px;padding:35px 20px}.nostalgia-room{inset:0 -85% 29% 0;opacity:.65}.nostalgia-shade{background:linear-gradient(90deg,#100d0dcc,#100d0d66),linear-gradient(0deg,#100d0d 15%,transparent 70%)}.nostalgia-handline{font-size:clamp(46px,9vw,71px)}.nostalgia-terminal{font-size:12px}.nostalgia-experiences{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.nostalgia-postcard:last-child{grid-column:span 2;width:75%;justify-self:center}.nostalgia-card-copy strong{font-size:14px}.nostalgia-card-copy small{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.nostalgia-terminal-cursor{animation:none}.nostalgia-postcard,.nostalgia-cta{transition:none}}
+
+.nostalgia-handline .nostalgia-search-intent {
+ display:block; max-width:650px; margin:0 0 14px;
+ color:#e8f6b6; font:800 clamp(12px,1.05vw,15px)/1.45 "Courier New",monospace;
+ letter-spacing:.07em; text-transform:uppercase; text-shadow:none;
+ transform:rotate(2deg); overflow-wrap:anywhere;
+}
+@media(max-width:750px) {
+ .nostalgia-handline .nostalgia-search-intent {font-size:12px;max-width:330px;}
+}

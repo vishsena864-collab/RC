@@ -168,3 +168,11 @@
 .graffiti-layer-choice button{margin:0}
 .graffiti-layer-choice .graffiti-eye{padding:7px 6px;color:#d8ff7b;background:#1a241c;border-left:0}
 .graffiti-layer-choice .graffiti-eye[aria-pressed="false"]{color:#8c9989;opacity:.6}
+
+/* User-visible topical description inside the editorial hero H1. */
+.walls-hero h1 .walls-seo-kicker {
+ display:block;max-width:620px;margin:0 0 20px;
+ color:#ddff90;font:800 clamp(12px,1.1vw,16px)/1.45 ui-monospace,Consolas,monospace;
+ letter-spacing:.09em;text-transform:uppercase;
+}
+@media(max-width:760px){.walls-hero h1 .walls-seo-kicker{max-width:350px;font-size:12px;line-height:1.5}}

@@ -57,6 +57,7 @@ export default function NostalgiaHome({ locale, dict }) {
           <span>THE INTERNET USED TO FEEL LIKE SOMETHING.</span>
         </div>
         <h1 id="nostalgia-title" className="nostalgia-handline">
+          <span className="nostalgia-search-intent">{dict.home.h1}</span>
           <span>A</span>
           <span>STRANGER</span>
           <span>TODAY.</span>
@@ -64,9 +65,7 @@ export default function NostalgiaHome({ locale, dict }) {
           <span>TOMORROW.</span>
         </h1>
         <p className="nostalgia-subtitle">
-          Jump into random conversations.<br />
-          Find real music, play together, or leave<br className="nostalgia-copy-break" />
-          a little piece of yourself behind.
+          {dict.home.sub}
         </p>
         <div className="nostalgia-actions">
           <Link href={`/${locale}/start`} className="nostalgia-cta" prefetch={false}>
