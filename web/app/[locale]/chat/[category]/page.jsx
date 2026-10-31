@@ -9,6 +9,7 @@ import { fmt } from "@/lib/format";
 import { getDict, locales } from "@/lib/i18n";
 import { absoluteUrl, pageMetadata } from "@/lib/seo";
 import { SITE_NAME } from "@/lib/site";
+import { EN_TOPIC_SEO } from "@/lib/seo-copy";
 
 export const dynamicParams = false;
 
@@ -20,11 +21,12 @@ export async function generateMetadata({ params }) {
   const { locale, category } = await params;
   if (!isCategory(category)) return {};
   const cat = getDict(locale).cats[category];
+  const english = locale === "en" ? EN_TOPIC_SEO[category] : null;
   return pageMetadata({
     locale,
     path: `/chat/${category}`,
-    title: `${cat.title} | ${SITE_NAME}`,
-    description: cat.intro,
+    title: english?.title || `${cat.title} | ${SITE_NAME}`,
+    description: english?.description || cat.intro,
   });
 }
 
@@ -68,6 +70,25 @@ export default async function CategoryPage({ params }) {
         </section>
 
         <Steps title={fmt(dict.categoryPage.howTitle, { category: cat.name })} steps={dict.home.steps} />
+        {locale === "en" && EN_TOPIC_SEO[category] ? (
+          <section className="container topic-conversation-guide" aria-labelledby="conversation-guide-heading">
+            <h2 id="conversation-guide-heading">{EN_TOPIC_SEO[category].heading}</h2>
+            <p>{EN_TOPIC_SEO[category].introduction}</p>
+            <ul>
+              {EN_TOPIC_SEO[category].prompts.map((prompt) => <li key={prompt}>{prompt}</li>)}
+            </ul>
+            {EN_TOPIC_SEO[category].links?.length ? (
+              <p className="topic-related-links">
+                {EN_TOPIC_SEO[category].links.map((link) => (
+                  <Link key={link.href} href={`/${locale}${link.href}`}>{link.text} ↗</Link>
+                ))}
+              </p>
+            ) : null}
+            <Link href={`/${locale}/start?category=${category}`} className="topic-guide-cta">
+              Start a {cat.name.toLowerCase()} text chat ↗
+            </Link>
+          </section>
+        ) : null}
         <CategoryGrid locale={locale} dict={dict} title={dict.categoryPage.otherTopics} exclude={category} />
       </div>
     </>
