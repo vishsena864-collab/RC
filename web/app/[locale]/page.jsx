@@ -1,3 +1,5 @@
+import "../nostalgia-home.css";
+import "../nostalgia-lower.css";
 import NostalgiaHome from "@/components/NostalgiaHome";
 import JsonLd from "@/components/JsonLd";
 import NostalgiaLower from "@/components/NostalgiaLower";
