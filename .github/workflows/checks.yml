@@ -34,3 +34,5 @@ jobs:
         working-directory: web
       - run: node --test lib/cues.test.mjs lib/mix.test.mjs lib/seo-copy.test.mjs
         working-directory: web
+      - run: node --test scripts/seo-public-monitor.test.mjs
+        working-directory: web
