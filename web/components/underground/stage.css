@@ -859,3 +859,24 @@ canvas.fx-wave{display:block;width:100%;height:62px}
  .fx-shell[data-lights=on] .fx-ambient-rig{opacity:.92}
  .fx-shell[data-lights=on] .fx-backup-beam{width:55vw;height:100dvh}
 }
+
+
+/* Mobile contrast safeguard: stage artwork and platform/browser color transforms
+   must never bleach hero copy. This sits UNDER both light canvases, so lights remain visible. */
+.fx-shell .fx-scrim{
+ background:
+   linear-gradient(180deg,
+     rgba(5,3,12,.82) 0%,
+     rgba(5,3,12,.78) 30%,
+     rgba(5,3,12,.79) 60%,
+     rgba(5,3,12,.88) 100%);
+}
+.fx-shell .fx-hero-copy :is(h1,p,.fx-seo-kicker,.fx-seo-dek){
+ text-shadow:0 2px 12px rgba(0,0,0,.95),0 0 22px rgba(0,0,0,.8);
+}
+.fx-shell .fx-hero-copy .fx-seo-dek{color:#f6f2ff}
+@media(max-width:699px){
+ .fx-shell .fx-scrim{
+  background:linear-gradient(180deg,rgba(5,3,12,.91),rgba(5,3,12,.86) 55%,rgba(5,3,12,.9));
+ }
+}
