@@ -36,3 +36,5 @@ jobs:
         working-directory: web
       - run: node --test scripts/seo-public-monitor.test.mjs
         working-directory: web
+      - run: node --test lib/deployment-policy.test.mjs
+        working-directory: web
