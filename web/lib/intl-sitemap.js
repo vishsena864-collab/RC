@@ -25,6 +25,11 @@ export function buildSitemap() {
     changeFrequency: "yearly",
     priority: 0.3,
   }));
+  const seoLandingPages = ["drawing-battle-online", "random-text-chat", "online-games-with-strangers"].map(slug => ({
+    url: SITE_URL + "/en/" + slug,
+    changeFrequency: "monthly",
+    priority: 0.8,
+  }));
   const englishExperiences = ENGLISH_ONLY_EXPERIENCES.map(slug => ({
     url: SITE_URL + "/en/" + slug,
     changeFrequency: "monthly",
@@ -32,5 +37,5 @@ export function buildSitemap() {
   }));
   // Deliberately omit lastModified. A fresh "now" on every request would falsely
   // claim meaningful content edits; provide dates only when independently tracked.
-  return [...translated, ...englishLegal, ...englishExperiences];
+  return [...translated, ...englishLegal, ...englishExperiences, ...seoLandingPages];
 }
