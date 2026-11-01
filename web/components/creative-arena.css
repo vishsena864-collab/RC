@@ -113,3 +113,15 @@
 .walls-shell .arena-shell .arena-feedback{background:#253523;border:1px solid #b1d877;color:#f5ffe5;}
 .walls-shell .arena-shell .arena-poem-entry{background:#eee8d7;color:#212721;}
 .arena-shell .arena-shell-message{max-width:680px;display:block;color:#f8f1d5;font-size:14px;line-height:1.65;}
+
+/* Standalone practice prompts while waiting for a fair two-player battle. */
+.arena-practice{margin-top:22px;padding:clamp(18px,3vw,28px);background:linear-gradient(125deg,#1b281f,#152019);border:1px solid #56664e;border-left:4px solid var(--arena-accent)}
+.arena-practice-heading span{display:block;color:var(--arena-accent);font:800 10px/1.5 ui-monospace,monospace;letter-spacing:.12em}
+.arena-practice-heading h3{font:800 13px/1.35 ui-monospace,monospace;letter-spacing:.05em;margin:6px 0 0;color:#d4dfc8}
+.arena-practice-topic{display:block;max-width:680px;margin:15px 0;font:900 clamp(24px,3.3vw,39px)/1.1 Impact,"Arial Black",sans-serif;color:#fff7e9;overflow-wrap:anywhere}
+.arena-practice p{max-width:660px;margin:0;color:#bcccb8;font:400 13px/1.65 "Segoe UI",Arial,sans-serif}
+.arena-practice-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:19px}
+.arena-practice-actions>*{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 14px;font:800 11px/1.35 ui-monospace,monospace!important;letter-spacing:.04em;cursor:pointer;text-align:center;border:1px solid var(--arena-accent)}
+.arena-practice-actions button{background:var(--arena-accent);color:#152016}
+.arena-practice-actions a{background:transparent;color:var(--arena-accent)}
+@media(max-width:660px){.arena-practice-actions>*{width:100%}}

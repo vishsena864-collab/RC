@@ -6,6 +6,24 @@ import {renderArtwork} from "@/lib/graffiti";
 import "./creative-arena.css";
 
 const ROOMS=Array.from({length:10},(_,i)=>i+1);
+// Practice prompts never count as competition entries. The real battle prompt is
+// created server-side only when two players are present.
+const PRACTICE_TOPICS={
+ graffiti:[
+  "A dinosaur at a job interview","A cat running a nightclub",
+  "A robot having its first bad hair day","A shark taking a driving test",
+  "The world's most suspicious birthday cake","A ghost's first day at the office",
+  "A superhero scared of pigeons","A vending machine with a secret",
+  "The last slice of pizza fighting for its life","An alien trying street food"
+ ],
+ poem:[
+  "A message from your future self","The last bus before sunrise",
+  "A stranger who knew your name","The moon sends a voice note",
+  "A love letter to a rainy day","A goodbye written in five words",
+  "A robot learns to miss someone","When the stars stop answering",
+  "The city loses its memories","A letter that never arrived"
+ ]
+};
 const MESSAGES={
   rooms_full:"All ten rooms are full or voting. Try another room or reconnect.",
   room_closed:"That room has started voting. Choose an open room.",
@@ -39,6 +57,9 @@ export default function CreativeArena({kind,draft,allowed=true,canSubmit=true}){
  const [connected,setConnected]=useState(false),[match,setMatch]=useState(null),[lobby,setLobby]=useState(null);
  const [message,setMessage]=useState(""),[pending,setPending]=useState(false),[now,setNow]=useState(Date.now()),[consent,setConsent]=useState(false),[contestTitle,setContestTitle]=useState(""),[contestTag,setContestTag]=useState("");
  const [serviceStatus,setServiceStatus]=useState("connecting");
+ const [practiceIndex,setPracticeIndex]=useState(0);
+ const practiceTopics=PRACTICE_TOPICS[kind]||PRACTICE_TOPICS.graffiti;
+ const nextPracticeTopic=()=>setPracticeIndex(i=>(i+1+Math.floor(Math.random()*(practiceTopics.length-1)))%practiceTopics.length);
  const socketRef=useRef(null),retryRef=useRef(null),desiredRoom=useRef(null),serverOffset=useRef(0),lastRound=useRef(0);
  const entries=match?.entries||[];
  const seconds=match?.endsAt?Math.max(0,Math.ceil((match.endsAt-(now+serverOffset.current))/1000)):0;
@@ -194,7 +215,7 @@ export default function CreativeArena({kind,draft,allowed=true,canSubmit=true}){
      !match?<div className="arena-status" role="status"><strong>FINDING AN OPEN ROOM</strong><p>Checking available challenge rooms and waiting for the server to place you.</p></div>:
      <>
       <div className="arena-topic"><span>ROUND {String(match.round||0).padStart(2,"0")} / {match.phase==="waiting"?"AWAITING A CHALLENGER":"AUTO-GENERATED PROMPT"}</span>
-       <strong>{match.topic||"The next theme is a surprise."}</strong>
+       <strong>{match.topic||(match.phase==="waiting"?"A second player unlocks the official topic":"Waiting for the official topic…")}</strong>
        <small>{match.phase==="waiting"?"Two strangers start the seven-minute clock. Invite someone to join this wall.":
         match.phase==="creating"?"Make something original for this topic. Only one entry per player.":
         match.phase==="voting"?"The canvases are closed. Everyone gets one vote. You cannot vote for yourself.":
@@ -212,7 +233,7 @@ export default function CreativeArena({kind,draft,allowed=true,canSubmit=true}){
        </div>
        {mySubmission&&<strong className="arena-locked">✓ Your entry is in. Watch the countdown — voting opens automatically.</strong>}
       </div>}
-      {match.phase==="waiting"&&<div className="arena-wait"><span aria-hidden="true">✳</span><strong>YOUR ROOM IS OPEN.</strong><p>Waiting for a second person. You can work on your {kind==="poem"?"poem":"art"} while someone joins. The clock starts only when two people arrive.</p><a href={kind==="poem"?"#write":"#graffiti-studio"}>START CREATING ↗</a></div>}
+      {match.phase==="waiting"&&<div className="arena-wait"><span aria-hidden="true">✳</span><strong>YOUR ROOM IS OPEN.</strong><p>Waiting for a second person. Try a solo practice prompt below. The official battle topic is revealed to everyone at the same time when the round starts.</p><a href={kind==="poem"?"#write":"#graffiti-studio"}>START CREATING ↗</a></div>}
       {match.phase==="voting"&&<div className="arena-vote-intro"><strong>THE GALLERY IS OPEN.</strong><p>Look through the submissions. Choose one favorite by tapping its heart. Your own entry cannot receive your vote.</p><span>{match.votes} VOTES CAST</span></div>}
       {match.phase==="results"&&<div className="arena-results"><strong>{winners.size?"THE PEOPLE HAVE SPOKEN.":"NO VOTES THIS ROUND."}</strong><p>{winners.size?(winners.size>1?"It's a tie. These creations share the crown.":"The highest-liked creation takes the crown."):"No winner was selected. The next round starts soon."}</p></div>}
       {(match.phase==="voting"||match.phase==="results")&&<div className="arena-entry-grid">
@@ -227,6 +248,15 @@ export default function CreativeArena({kind,draft,allowed=true,canSubmit=true}){
        </article>):<div className="arena-empty-votes">Nobody submitted this round. The next theme will appear shortly.</div>}
       </div>}
      </>}
+    {(!match||match.phase==="waiting")&&<section className="arena-practice" aria-labelledby={"arena-practice-"+kind}>
+      <div className="arena-practice-heading"><span>SOLO PRACTICE · NO OPPONENT NEEDED</span><h3 id={"arena-practice-"+kind}>{kind==="poem"?"WRITE TO THIS PROMPT":"DRAW THIS PROMPT"}</h3></div>
+      <strong className="arena-practice-topic" aria-live="polite">{practiceTopics[practiceIndex%practiceTopics.length]}</strong>
+      <p>Practice only, not a scored entry. The official competition topic appears when a second player joins. Make a new entry for that shared topic.</p>
+      <div className="arena-practice-actions">
+       <button type="button" onClick={nextPracticeTopic}>↻ NEW PRACTICE TOPIC</button>
+       <a href={kind==="poem"?"#write":"#graffiti-studio"}>{kind==="poem"?"OPEN POEM EDITOR ↗":"OPEN PAINT STUDIO ↗"}</a>
+      </div>
+     </section>}
     {message&&<div className="arena-feedback" role="status">{message}</div>}
     <p className="arena-footnote">Battles are temporary and anonymous. Winners are decided by participant likes, not AI. Weekly wall publishing and signed graffiti cards remain separate below. Reconnecting or a server restart may interrupt an unfinished round.</p>
    </div>
